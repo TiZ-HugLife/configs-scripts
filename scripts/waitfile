@@ -1,0 +1,23 @@
+#!/bin/bash
+# Wait for specified file to exist, then optionally run a command.
+
+# If anything blows up, jump ship.
+set -e
+
+# And now we wait.
+file=$1
+shift
+while [[ ! -e "$file" ]] && [[ $timer -lt 30 ]]; do
+    sleep 1
+    timer="$((timer + 1))"
+done
+
+# Die if the process takes longer than 30 seconds to exist.
+if [[ $timer -ge 30 ]]; then
+    echo "Wait timed out." >&2
+    exit 1
+fi
+
+# Run the command if one was given.
+[[ $# -gt 0 ]] && exec "$@"
+exit 0

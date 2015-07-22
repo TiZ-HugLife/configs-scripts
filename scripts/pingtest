@@ -1,0 +1,4 @@
+#!/bin/bash
+[[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+ping -q -i 0 -c 250 8.8.8.8
+ping -q -i 0 -c 250 8.8.4.4

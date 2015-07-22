@@ -1,0 +1,16 @@
+/* The imports that this uses are linked from the gtkrc folder. */
+
+@define-color selected_bg_color #2d94a3;
+@define-color theme_selected_bg_color @selected_bg_color;
+
+/** {
+    -GtkButton-child-displacement-x: 0;
+    -GtkButton-child-displacement-y: 0;
+    -GtkRange-slider-width: 8;
+}
+
+.menubar.menuitem {
+    padding: 2px 7px;
+}*/
+
+@import url("widget-sizes-compact2.css");

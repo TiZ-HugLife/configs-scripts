@@ -1,0 +1,23 @@
+style "whisker-default" {
+	fg[NORMAL]        = "#1a1a1a"
+	fg[PRELIGHT]      = "#ffffff"
+	fg[ACTIVE]        = "#ffffff"
+	fg[INSENSITIVE]   = "#3c3c3c"
+
+	bg[NORMAL]        = "#fcfcfc"
+	bg[PRELIGHT]      = "#2192a3"
+	bg[INSENSITIVE]   = "#fcfcfc"
+	bg[ACTIVE]        = "#2192a3"
+
+	text[NORMAL]      = "#1a1a1a"
+	text[PRELIGHT]    = "#ffffff"
+	text[ACTIVE]      = "#ffffff"
+	text[INSENSITIVE] = "#1a1a1a"
+
+	base[NORMAL]      = "#fcfcfc"
+	base[PRELIGHT]    = shade(0.9, "#2192a3")
+	base[ACTIVE]      = shade(0.9, "#2192a3")
+	base[INSENSITIVE] = "#fcfcfc"
+}
+
+widget "whiskermenu-window*" style "whisker-default"

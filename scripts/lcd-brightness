@@ -1,0 +1,17 @@
+#!/bin/bash
+# Automated lcd brightness changer.
+[[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+
+dev=/sys/class/backlight/intel_backlight
+step_base=$(($(< $dev/max_brightness) / 100))
+step="$2"
+[[ -z "$step" ]] && step="5"
+step=$(($step_base * $step))
+
+/home/common/bin/waitfile $dev || exit
+
+case $1 in
+    +)  echo $(($(< $dev/brightness) + $step)) > $dev/brightness ;;
+    -)  echo $(($(< $dev/brightness) - $step)) > $dev/brightness ;;
+    *)  echo $(($1 * $step)) > $dev/brightness ;;
+esac

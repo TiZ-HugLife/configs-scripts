@@ -1,0 +1,12 @@
+#!/bin/bash
+# Start a program and wait for its window to exist.
+
+class=$1
+shift
+
+$@ & disown
+test="$(wmctrl -lx | grep $class)"
+while [[ -z "$test" ]] ; do
+    sleep 0.5s
+    test="$(wmctrl -lx | grep $class)"
+done

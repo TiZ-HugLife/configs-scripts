@@ -1,0 +1,11 @@
+# Misc app specific styling. Not much in here right now but I keep it as a separate file in case.
+
+# This gets rid of the space around Geany's bottom pane.
+style "custom-geany-slim" {
+    xthickness = 0
+    ythickness = 0
+}
+
+widget "GeanyMainWindow.GtkVBox.GtkVPaned.GtkScrolledWindow" style "custom-geany-slim"
+widget "GeanyMainWindow.GtkVBox.GtkVPaned.GtkScrolledWindow.GtkViewport" style "custom-geany-slim"
+

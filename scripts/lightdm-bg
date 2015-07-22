@@ -1,0 +1,7 @@
+#!/bin/bash
+[[ "$(whoami)" != "root" ]] && exit 1
+[[ "$(hostname)" = "TiZLappy" ]] && res="1600x900" && mon="eDP1"
+[[ "$(hostname)" = "WC130" ]] && res="1280x1024" && mon="DVI-D-0"
+[[ -z "$res" ]] && exit 1
+wall="$(xmlstarlet sel -t -v "//property[@name='monitor$mon']/property[@name='workspace0']/property[@name='last-image']/@value" /home/trent/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml)"
+gm convert "$wall" -resize $res^ -gravity center -extent $res -blur 0x5 /var/lib/lightdm/background.png

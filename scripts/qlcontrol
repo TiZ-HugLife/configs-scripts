@@ -1,0 +1,24 @@
+#!/bin/bash
+export HOME=/home/trent
+export DISPLAY=:0.0
+task="$1"
+shift
+case "$task" in
+    printweb)
+/usr/bin/quodlibet --print-playing '<title>\<br/\>
+<artist>\<br/\>
+<album>'
+;;
+    toggle)   /usr/bin/quodlibet --play-pause    ;;
+    play)     /usr/bin/quodlibet --play          ;;
+    pause)    /usr/bin/quodlibet --pause         ;;
+    back)     /usr/bin/quodlibet --previous      ;;
+    fwd)      /usr/bin/quodlibet --next          ;;
+    enqueue)  /usr/bin/quodlibet --enqueue "$@"  ;;
+    print) ;&
+    *)
+/usr/bin/quodlibet --print-playing '<title>
+<artist>
+<album>'
+;;
+esac

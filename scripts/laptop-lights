@@ -1,0 +1,12 @@
+#!/bin/bash
+# Preset laptop light settings.
+switch=$1
+[[ -z "$switch" ]] && switch=$(cat /sys/class/power_supply/AC0/online)
+[[ -z "$switch" ]] && exit
+if [[ $switch -eq 1 ]]; then
+    /home/common/bin/lcd-brightness 18
+    /home/common/bin/kbd-brightness 3
+else
+    /home/common/bin/lcd-brightness 3
+    /home/common/bin/kbd-brightness 1
+fi

@@ -1,0 +1,23 @@
+#!/bin/bash
+# Wait for an internet connection, then optionally run a command.
+
+# If anything blows up, jump ship.
+set -e -x
+
+# And now we wait.
+test="$((ping -w1 -c1 google.com || ping -w1 -c1 wikipedia.com) > /dev/null 2>&1 && echo up || true)"
+timer=0
+while [[ -z "$test" ]] && [[ $timer -lt 60 ]]; do
+    sleep 1
+    timer="$((timer + 1))"
+    test="$((ping -w1 -c1 google.com || ping -w1 -c1 wikipedia.com) > /dev/null 2>&1 && echo up || true)"
+done
+
+# Die if the internet takes longer than 60 seconds to come up.
+if [[ $timer -ge 60 ]]; then
+    echo "Wait timed out." >&2
+    exit 1
+fi
+
+# Run the command if one was given.
+[[ $# -gt 0 ]] && exec $@

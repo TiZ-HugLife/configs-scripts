@@ -1,0 +1,31 @@
+#!/bin/bash
+# Wait for a window of specified class to exist, then optionally run a command.
+
+# If anything blows up, jump ship.
+set -e
+
+# Support running without a display defined.
+if [[ -z "$DISPLAY" ]]; then
+    export DISPLAY=:0.0
+    user="$(who | grep :0\) | cut -d ' ' -f1)"
+    export XAUTHORITY="$(cat /etc/passwd | grep $user | cut -d: -f6)/.XAUTHORITY"
+fi
+
+# And now we wait.
+class=$1
+shift
+test="$(xdotool search --class $class || true)"
+while [[ -z "$test" ]] && [[ $timer -lt 30 ]]; do
+    sleep 1
+    timer="$((timer + 1))"
+    test="$(xdotool search --class $class || true)"
+done
+
+# Die if the window takes longer than 30 seconds to exist.
+if [[ $timer -ge 30 ]]; then
+    echo "Wait timed out." >&2
+    exit 1
+fi
+
+# Run the command if one was given.
+[[ $# -gt 0 ]] && exec "$@"

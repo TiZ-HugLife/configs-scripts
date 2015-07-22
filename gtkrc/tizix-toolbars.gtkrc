@@ -1,0 +1,24 @@
+# Gives some apps dark toolbars to blend with TiZix. (Basically just thunar right now.)
+
+style "mod-dark-toolbar" {
+    GtkToolbar::shadow-type = GTK_SHADOW_INSET
+    
+    bg[NORMAL] = "#181d1e"
+	bg[PRELIGHT] =  mix (0.21, "#dcdcdc", "#181d1e")
+	bg[SELECTED] =  mix (0.21, "#dcdcdc", "#181d1e")
+	bg[ACTIVE] = shade (0.9, "#181d1e")
+	bg[INSENSITIVE] = "#181d1e"
+
+	fg[NORMAL] = "#dcdcdc"
+	fg[PRELIGHT] = shade (1.08, "#dcdcdc")
+	fg[SELECTED] = shade (1.08, "#dcdcdc")
+	fg[ACTIVE] = "#dcdcdc"
+	fg[INSENSITIVE] = mix (0.5, "#181d1e", "#dcdcdc")
+
+	engine "murrine" {
+		roundness = 0
+	}
+}
+
+widget_class "ThunarWindow*<GtkToolbar>*" style "mod-dark-toolbar"
+widget_class "Thunderbird*<GtkToolbar>*" style "mod-dark-toolbar"

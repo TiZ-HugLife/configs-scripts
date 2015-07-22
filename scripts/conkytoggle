@@ -1,0 +1,18 @@
+#!/bin/bash
+
+target="$1"
+[[ -z "$target" ]] && target="$(cat /tmp/.conkytarget)"
+
+if [[ "$target" = "below" ]]; then
+    state="below"
+    remove="above"
+else
+    state="above"
+    remove="below"
+fi
+    echo $remove > /tmp/.conkytarget
+
+for t in Todo-Conky QuodLibet-Conky QuodLibet-Conky-Cover; do
+    wmctrl -F -r $t -b remove,$remove
+    wmctrl -F -r $t -b add,$state
+done
