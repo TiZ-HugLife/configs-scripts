@@ -2,13 +2,11 @@
 alias fucking='sudo'
 alias ls='ls --color=auto'
 alias icoextract='wrestool -x --output=. -t14'
-alias backup='sudo rsync --verbose --progress --stats --archive --hard-links --acls --xattrs --numeric-ids --delete --delete-excluded --delete-after --ignore-errors --exclude-from=/home/trent/.backup.exclude / rsync://trent@tiz.qc.to:8873/$(hostname) > >(tee .backup-stdout) 2> >(tee .backup-stderr)'
-alias cit383='rsync -av --progress /home/trent/School/CIT383/ mcpheronw1@cscode1:/home/local/NKU/mcpheronw1/CIT383/'
 alias r='rolldice --separate --random'
 alias kpie-dump='kpie --single /usr/share/doc/kpie/examples/dump.lua > /tmp/kpie-dump; geany /tmp/kpie-dump &'
 alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
 
-# Package management.
+# Package management; consistent commands no matter what distro I'm on.
 alias pkg-fail="echo Can't do that here, sorry."
 if [[ -x $(which pacman) ]]; then
     alias pkg='yaourt'
@@ -41,11 +39,12 @@ elif [[ -x $(which apt-get) ]]; then
     alias pkg-clean='pkg autoremove && pkg autoclean'
 fi
 
-# Functions.
+# Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
 }
 
+# I forgot what I use this for.
 ffencode () {
     while getopts "s:e:" OPT; do
     case "$OPT" in
@@ -77,19 +76,9 @@ search () {
 }
 
 # Dump and then strip album art.
-albumart () {
+albumart_mp3 () {
     VAR=(*.mp3)
     eyeD3 -i . "$VAR"
     mv FRONT_COVER.jpeg albumart.jpg
     mid3v2 --delete-frames=PIC,APIC *.mp3
-}
-
-# Make btsync key.
-gen-bts-secret () {
-    echo "TiZEX1${1}sec$(echo $1|rev)ret${1}1XEZiT" | base64
-}
-
-sync-music () {
-    rsync -av --progress --exclude=".st*" ~/Music/ /media/trent/TIZMUSIC/
-    for f in /media/trent/TIZMUSIC/*.m3u8; do mv "$f" "${f/.m3u8/.m3u}"; done
 }
