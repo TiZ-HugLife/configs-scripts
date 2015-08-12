@@ -1,0 +1,54 @@
+#!/usr/bin/env python2
+# Sets panel to specified opacity depending on the visilibity of a maximized
+# window on the current workspace. Basically hacks together what wingpanel does.
+# You need xfce4-dockbarx-plugin >= 0.4 for this to work properly with it.
+# 
+# Usage: xfce4-panel-fader panel# alpha_normal alpha_max
+#
+# by Trent "TiZ" McPheron. MIT/X11 License.
+
+import sys
+import gtk
+import wnck
+import dbus
+
+class PanelFader:
+    def __init__(self, panel, alpha_normal, alpha_max):
+        self.panel = panel
+        self.alpha_normal = alpha_normal
+        self.alpha_max = alpha_max
+        
+        self.bus = dbus.SessionBus()
+        self.xfconf = dbus.Interface(self.bus.get_object(
+         "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
+        self.channel = "xfce4-panel"
+        self.prop = "/panels/panel-{}/background-alpha"
+        
+        self.screen = wnck.screen_get_default()
+        while gtk.events_pending():
+            gtk.main_iteration()
+        self.screen.connect("active_workspace_changed", self.check_status)
+        self.screen.connect("active_window_changed", self.check_status)
+        self.screen.connect("window_opened", self.check_status)
+        self.screen.connect("window_closed", self.check_status)
+        self.check_status()
+        
+    def check_status(self, null1=None, null2=None):
+        for w in self.screen.get_windows_stacked():
+            if w.is_on_workspace(self.screen.get_active_workspace()) and \
+             w.is_maximized():
+                self.set_panel_opacity(self.alpha_max)
+                return
+        self.set_panel_opacity(self.alpha_normal)
+
+    def set_panel_opacity(self, alpha):
+        self.xfconf.SetProperty(
+         self.channel, self.prop.format(self.panel), alpha)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print("Usage: xfce4-panel-fader panel# alpha_normal alpha_max")
+        sys.exit(1)
+    fader = PanelFader(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    gtk.main()
