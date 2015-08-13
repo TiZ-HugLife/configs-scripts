@@ -7,16 +7,20 @@
 #
 # by Trent "TiZ" McPheron. MIT/X11 License.
 
-import sys
 import gtk
 import wnck
 import dbus
+from optparse import OptionParser
 
 class PanelFader:
-    def __init__(self, panel, alpha_normal, alpha_max):
+    def __init__ (self, panel, alpha_normal, alpha_max, range_x, range_y):
         self.panel = panel
         self.alpha_normal = alpha_normal
         self.alpha_max = alpha_max
+        self.window = None
+        self.window_handler = None
+        self.range_x = [int(i) for i in range_x.split(":")]
+        self.range_y = [int(i) for i in range_y.split(":")]
         
         self.bus = dbus.SessionBus()
         self.xfconf = dbus.Interface(self.bus.get_object(
@@ -27,28 +31,56 @@ class PanelFader:
         self.screen = wnck.screen_get_default()
         while gtk.events_pending():
             gtk.main_iteration()
+        self.screen.connect("active_window_changed", self.active_win_change)
         self.screen.connect("active_workspace_changed", self.check_status)
-        self.screen.connect("active_window_changed", self.check_status)
         self.screen.connect("window_opened", self.check_status)
         self.screen.connect("window_closed", self.check_status)
+        self.active_win_change()
+    
+    def active_win_change (self, null1=None, null2=None):
+        if self.window and self.window_handler:
+            self.window.disconnect(self.window_handler)
+        self.window = self.screen.get_active_window()
+        if self.window:
+            self.window_handler = self.window.connect("state_changed",
+             self.check_status)
         self.check_status()
-        
-    def check_status(self, null1=None, null2=None):
-        for w in self.screen.get_windows_stacked():
-            if w.is_on_workspace(self.screen.get_active_workspace()) and \
-             w.is_maximized():
-                self.set_panel_opacity(self.alpha_max)
-                return
-        self.set_panel_opacity(self.alpha_normal)
+    
+    def check_status (self, null1=None, null2=None, null3=None):
+        if len(self.get_wins()) > 0: self.set_panel_alpha(self.alpha_max)
+        else: self.set_panel_alpha(self.alpha_normal)
+    
+    def get_wins (self):
+        return [w for w in self.screen.get_windows_stacked() if
+         w.is_visible_on_workspace(self.screen.get_active_workspace()) and
+         w.is_maximized() and not w.is_skip_tasklist() and
+         w.get_window_type() == 0 and self.window_in_range(w)]
+    
+    def window_in_range (self, window):
+        geometry = window.get_geometry()
+        return self.range_x[0] <= geometry[0] <= self.range_x[1] and \
+         self.range_y[0] <= geometry[0] <= self.range_y[1]
 
-    def set_panel_opacity(self, alpha):
+    def set_panel_alpha (self, alpha):
         self.xfconf.SetProperty(
          self.channel, self.prop.format(self.panel), alpha)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: xfce4-panel-fader panel# alpha_normal alpha_max")
-        sys.exit(1)
-    fader = PanelFader(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    from optparse import OptionParser
+    usage = "%prog [options]"
+    parser = OptionParser(usage=usage)
+    parser.add_option("-p", "--panel", default=0,
+     help="Which panel to fade (default 0)")
+    parser.add_option("-n", "--normal", dest="alpha_normal", default=0,
+     help="Default panel bg alpha (default 0)")
+    parser.add_option("-m", "--max", dest="alpha_max", default=100,
+     help="Panel bg alpha with maximized windows (default 100)")
+    parser.add_option("-x", "--xrange", dest="range_x", default="0:32767",
+     help="Only consider windows in a certain x range: min:max")
+    parser.add_option("-y", "--yrange", dest="range_y", default="0:32767",
+     help="Only consider windows in a certain y range: min:max")
+    (options, args) = parser.parse_args()
+    fader = PanelFader(options.panel, options.alpha_normal, options.alpha_max,
+     options.range_x, options.range_y)
     gtk.main()
