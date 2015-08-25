@@ -82,3 +82,27 @@ albumart_mp3 () {
     mv FRONT_COVER.jpeg albumart.jpg
     mid3v2 --delete-frames=PIC,APIC *.mp3
 }
+
+albumart_flac () {
+    metaflac --remove --block-type=PICTURE,PADDING --dont-use-padding *.flac
+}
+
+# Unrotate images and strip exif data. Lossy!
+auto_orient () {
+    [[ ! -d "$1" ]] && echo "Need a directory." && return 1
+    mogrify -auto-orient -quality 96% -strip "$1"/*.jpg
+}
+
+# Rotate videos.
+vid_rotate () {
+    for f in "$@"; do if [[ -f "$f" ]]; then
+        ffmpeg -i "$f" -vf "transpose=1" "${f%.*}.rot.${f##*.}"
+    fi; done
+}
+
+# Silence videos.
+vid_silence () {
+    for f in "$@"; do if [[ -f "$f" ]]; then
+        ffmpeg -i "$f" -c:v copy -an "${f%.*}.shh.${f##*.}"
+    fi; done
+}
