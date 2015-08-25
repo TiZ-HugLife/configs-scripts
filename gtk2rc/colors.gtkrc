@@ -1,3 +1,7 @@
+# This file is meant to be linked into a theme's gtk-2.0 foler and included
+# from within the gtkrc. The defined theme colors should be modified to add
+# the required colors if necessary.
+
 # Most of this code shamelessly jacked from Greybird.
 
 
@@ -8,12 +12,12 @@
 # Sets bg color on window decorations.
 style "mod-window-decoration-colors"
 {
-	bg[NORMAL]        = "#181d1e"
-	fg[NORMAL]        = "#dcdcdc"
-    bg[SELECTED]      = "#2e94a3"
-    fg[SELECTED]      = "#f9f9f9"
-    bg[INSENSITIVE]   = "#181d1e"
-    fg[INSENSITIVE]   = mix (0.5, "#181d1e", "#dcdcdc")
+	bg[NORMAL]        = @titlebar_bg_color
+	fg[NORMAL]        = @titlebar_fg_color
+    bg[SELECTED]      = @selected_bg_color
+    fg[SELECTED]      = @selected_fg_color
+    bg[INSENSITIVE]   = @titlebar_bg_color
+    fg[INSENSITIVE]   = mix (0.5, @titlebar_bg_color, @titlebar_fg_color)
 }
 widget "xfwm" style "mod-window-decoration-colors"
 class "MetaFrames" style "mod-window-decoration-colors"
@@ -25,50 +29,50 @@ widget_class "MetaFrames" style "mod-window-decoration-colors"
 ####
 
 style "mod-panel-colors" {   
-    bg[NORMAL]     = "#161616"
-    bg[ACTIVE]     = "#242424"
-    bg[PRELIGHT]   = shade (0.85, "#2192A3")
-    bg[SELECTED]   = mix (0.50, "#161616", "#2192A3")
+    bg[NORMAL]     = @panel_bg_color
+    bg[ACTIVE]     = mix (0.25, @panel_fg_color, @panel_bg_color)
+    bg[PRELIGHT]   = shade (0.85, @selected_bg_color)
+    bg[SELECTED]   = mix (0.50, @panel_bg_color, @selected_bg_color)
     
-    fg[NORMAL]     = shade (0.9, "#ffffff")
-    fg[PRELIGHT]   = "#ffffff"
-    fg[ACTIVE]     = shade (0.9, "#ffffff")
-    fg[SELECTED]   = shade (0.9, "#ffffff")
+    fg[NORMAL]     = @panel_fg_color
+    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
+    fg[ACTIVE]     = @panel_fg_color
+    fg[SELECTED]   = @panel_fg_color
     
-    text[NORMAL]   = shade (0.9, "#ffffff")
-    text[PRELIGHT] = "#ffffff"
-    text[ACTIVE]   = shade (0.9, "#ffffff")
-    text[SELECTED] = shade (0.9, "#ffffff")
+    text[NORMAL]   = @panel_fg_color
+    text[PRELIGHT] = shade (1.1, @panel_fg_color)
+    text[ACTIVE]   = @panel_fg_color
+    text[SELECTED] = @panel_fg_color
 }
 
 style "mod-panel-text-colors" {
-    fg[NORMAL]     = "#ffffff"
-    fg[PRELIGHT]   = "#ffffff"
-    fg[ACTIVE]     = "#ffffff"
+    fg[NORMAL]     = shade (1.1, @panel_fg_color)
+    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
+    fg[ACTIVE]     = shade (1.1, @panel_fg_color)
     
-    text[NORMAL]   = "#ffffff"
-    text[PRELIGHT] = "#ffffff"
-    text[ACTIVE]   = "#ffffff"
+    text[NORMAL]   = shade (1.1, @panel_fg_color)
+    text[PRELIGHT] = shade (1.1, @panel_fg_color)
+    text[ACTIVE]   = shade (1.1, @panel_fg_color)
 }
 
 style "mod-main-menu-text-colors" = "mod-panel-text-colors" {
     font_name = "Bold"
-    fg[PRELIGHT]   = "#ffffff"
-    text[PRELIGHT] = "#ffffff"
+    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
+    text[PRELIGHT] = shade (1.1, @panel_fg_color)
 }
 
 style "mod-workspace-switcher-colors" = "mod-panel-colors" {
-    bg[SELECTED] = shade (0.8, "#2192A3")
+    bg[SELECTED] = shade (0.8, @selected_bg_color)
 }
 
 style "mod-tasklist-colors" = "mod-panel-colors" {
-    bg[ACTIVE]   = mix (0.5, "#161616", "#2192A3")
-    bg[PRELIGHT] = shade (0.85, "#2192A3")
-    bg[SELECTED] = shade (0.85, "#2192A3")
+    bg[ACTIVE]   = mix (0.5, @panel_bg_color, @selected_bg_color)
+    bg[PRELIGHT] = shade (0.85, @selected_bg_color)
+    bg[SELECTED] = shade (0.85, @selected_bg_color)
     
-    fg[NORMAL]   = shade (0.9, "#ffffff")
-    fg[ACTIVE]   = "#ffffff"
-    fg[PRELIGHT] = "#ffffff"
+    fg[NORMAL]   = @panel_fg_color
+    fg[ACTIVE]   = shade (1.1, @panel_fg_color)
+    fg[PRELIGHT] = shade (1.1, @panel_fg_color)
 }
 
 widget "*PanelWidget*"            style "mod-panel-colors"
@@ -113,19 +117,23 @@ widget "*XfceTasklist*"     style "mod-tasklist-colors"
 ####
 
 style "mod-thunar-sidepane-colors" {
-    base[NORMAL]      = "#ececec"
-    base[INSENSITIVE] = "#ececec"
-    bg[NORMAL]        = "#ececec"
+    base[NORMAL]      = mix (0.5, @bg_color, @base_color)
+    base[INSENSITIVE] = mix (0.5, @bg_color, @base_color)
+    bg[NORMAL]        = mix (0.5, @bg_color, @base_color)
+	
+	fg[NORMAL]      = @fg_color
+    fg[INSENSITIVE] = @fg_color
+    fg[ACTIVE]      = @fg_color
 }
 
 style "mod-thunar-window-colors" {
-    bg[NORMAL]      = "#f9f9f9"
-    bg[INSENSITIVE] = "#f9f9f9"
-    bg[ACTIVE]      = "#f9f9f9"
+    bg[NORMAL]      = @base_color
+    bg[INSENSITIVE] = @base_color
+    bg[ACTIVE]      = @base_color
 }
 
 style "mod-thunar-sidepane-header-colors" = "mod-thunar-sidepane-colors" {
-    bg[ACTIVE] = "#ececec"
+    bg[ACTIVE] = mix (0.5, @bg_color, @base_color)
 }
 
 widget_class "ThunarWindow"        style "mod-thunar-window-colors"
@@ -142,49 +150,27 @@ widget_class "*GtkFileChooserWidget.GtkFileChooserDefault.GtkVBox.GtkHPaned.GtkV
 ####
 
 style "mod-whisker-colors" {
-     #fg[NORMAL]        = "#dcdcdc"
-	#fg[PRELIGHT]      = "#ffffff"
-	#fg[ACTIVE]        = "#ffffff"
-	#fg[INSENSITIVE]   = "#dcdcdc"
+	bg[NORMAL]         = @whisker_bg_color
+	bg[PRELIGHT]       = @selected_bg_color
+	bg[ACTIVE]         = shade (0.9, @whisker_bg_color)
+	bg[INSENSITIVE]    = @whisker_bg_color
 
-	#bg[NORMAL]        = "#181d1e"
-	#bg[PRELIGHT]      = "#226f7a"
-	#bg[INSENSITIVE]   = "#181d1e"
-	#bg[ACTIVE]        = "#1c5d66"
-
-	#text[NORMAL]      = "#dcdcdc"
-	#text[PRELIGHT]    = "#ffffff"
-	#text[ACTIVE]      = "#ffffff"
-	#text[INSENSITIVE] = "#dcdcdc"
-
-	#base[NORMAL]      = "#363636"
-	base[PRELIGHT]     = "#226f7a"
-	base[ACTIVE]       = "#226f7a"
-	#base[INSENSITIVE] = "#363636"
+	fg[NORMAL]         = @whisker_fg_color
+	fg[PRELIGHT]       = shade (1.08, @whisker_fg_color)
+	fg[SELECTED]       = shade (1.08, @whisker_fg_color)
+	fg[ACTIVE]         = @whisker_fg_color
+	fg[INSENSITIVE]    = mix (0.5, @whisker_bg_color, @whisker_fg_color)
 	
-	bg[NORMAL]         = "#181d1e"
-	bg[PRELIGHT]       = "#226f7a"
-	#bg[SELECTED]      = mix (0.21, "#dcdcdc", "#181d1e")
-	bg[ACTIVE]         = shade (0.9, "#181d1e")
-	bg[INSENSITIVE]    = "#181d1e"
+	base[NORMAL]       = mix (0.21, @whisker_fg_color, @whisker_bg_color)
+	base[PRELIGHT]     = @selected_bg_color
+	base[ACTIVE]       = @selected_bg_color
+	base[INSENSITIVE]  = shade(1.2, @whisker_bg_color)
 
-	fg[NORMAL]         = "#dcdcdc"
-	fg[PRELIGHT]       = shade (1.08, "#dcdcdc")
-	fg[SELECTED]       = shade (1.08, "#dcdcdc")
-	fg[ACTIVE]         = "#dcdcdc"
-	fg[INSENSITIVE]    = mix (0.5, "#181d1e", "#dcdcdc")
-	
-	base[NORMAL]       = mix (0.21, "#dcdcdc", "#181d1e")
-	#base[PRELIGHT]    = "#226f7a"
-	#base[SELECTED]    = "#226f7a"
-	#base[ACTIVE]      = mix (0.21, "#dcdcdc", "#181d1e")
-	base[INSENSITIVE]  = shade(1.2, "#181d1e")
-
-	text[NORMAL]       = "#dcdcdc"
-	text[PRELIGHT]     = "#f9f9f9"
-	text[SELECTED]     = "#f9f9f9"
-	text[ACTIVE]       = "#f9f9f9"
-	text[INSENSITIVE]  = mix (0.5, "#181d1e", "#dcdcdc")
+	text[NORMAL]       = @whisker_fg_color
+	text[PRELIGHT]     = @selected_fg_color
+	text[SELECTED]     = @selected_fg_color
+	text[ACTIVE]       = @selected_fg_color
+	text[INSENSITIVE]  = mix (0.5, @whisker_bg_color, @whisker_fg_color)
 }
 
 widget "whiskermenu-window*" style "mod-whisker-colors"
@@ -197,17 +183,17 @@ widget "whiskermenu-window*" style "mod-whisker-colors"
 style "mod-toolbar-colors" {
     GtkToolbar::shadow-type = GTK_SHADOW_INSET
     
-    bg[NORMAL]      = "#181d1e"
-	bg[PRELIGHT]    = mix (0.21, "#dcdcdc", "#181d1e")
-	bg[SELECTED]    = mix (0.21, "#dcdcdc", "#181d1e")
-	bg[ACTIVE]      = shade (0.9, "#181d1e")
-	bg[INSENSITIVE] = "#181d1e"
+    bg[NORMAL]      = @toolbar_bg_color
+	bg[PRELIGHT]    = mix (0.21, @toolbar_fg_color, @toolbar_bg_color)
+	bg[SELECTED]    = mix (0.21, @toolbar_fg_color, @toolbar_bg_color)
+	bg[ACTIVE]      = shade (0.9, @toolbar_bg_color)
+	bg[INSENSITIVE] = @toolbar_bg_color
 
-	fg[NORMAL]      = "#dcdcdc"
-	fg[PRELIGHT]    = shade (1.08, "#dcdcdc")
-	fg[SELECTED]    = shade (1.08, "#dcdcdc")
-	fg[ACTIVE]      = "#dcdcdc"
-	fg[INSENSITIVE] = mix (0.5, "#181d1e", "#dcdcdc")
+	fg[NORMAL]      = @toolbar_fg_color
+	fg[PRELIGHT]    = shade (1.08, @toolbar_fg_color)
+	fg[SELECTED]    = shade (1.08, @toolbar_fg_color)
+	fg[ACTIVE]      = @toolbar_fg_color
+	fg[INSENSITIVE] = mix (0.5, @toolbar_bg_color, "#dcdcdc")
 
 	engine "murrine" {
 		roundness = 0
