@@ -8,5 +8,5 @@ do_rules(
     {app="geany", size={w=622, h=411}},
     {app="syncthing-gtk", size={w=550, h=400}},
     {app="mirage", max=true},
-    {app="wrapper-1.0", type="dialog", alpha=0.88, size={w=350, h=365}}
+    {app="wrapper-1.0", type="dialog", alpha=0.88, size={w=350, h=380}}
 )
