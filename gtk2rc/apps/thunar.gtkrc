@@ -1,0 +1,34 @@
+# Tweaks for Thunar to make it look exactly how I want it. Also taken mostly from Greybird.
+
+style "mod-thunar-slim" {
+    xthickness = 0
+    ythickness = 0
+}
+
+style "mod-thunar-iconview" {
+    ThunarIconVIew::cell-spacing = 0
+    ThunarIconView::cell-padding = 0
+    ThunarIconView::cell-text-width-proportion = 1.5
+}
+
+style "mod-thunar-toolbar" {
+    GtkToolbar::shadow-type = GTK_SHADOW_INSET
+}
+
+widget_class "ThunarWindow*Toolbar" style "mod-thunar-toolbar"
+widget_class "*ThunarIconView*"     style "mod-thunar-iconview"
+widget_class "ThunarWindow*View"    style "mod-thunar-slim"
+widget_class "ThunarWindow*Pane"    style "mod-thunar-slim"
+
+style "mod-gtk2-sidepane-header" {
+    font_name = "Bold"
+    engine "murrine" {
+        gradient_shades = {1.0,1.0,1.0,1.0}
+        lightborder_shade = 1.0
+        contrast = 0.0
+        reliefstyle = 0
+    }
+}
+
+# Gtk2 Open-File Dialog
+widget_class "*GtkFileChooserWidget.GtkFileChooserDefault.GtkVBox.GtkHPaned.GtkVBox.GtkScrolledWindow.<GtkTreeView>.<GtkButton>"	style "mod-gtk2-sidepane-header"

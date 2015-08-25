@@ -1,0 +1,97 @@
+# Most of this code shamelessly jacked from Greybird.
+
+#gtk-color-scheme = "panel_bg:#141414\npanel_fg:#e5e5e5
+#gtk-color-scheme = "panel_sel_bg:#2192a3\npanel_sel_fg:#ffffff"
+
+style "mod-panel"
+{
+    GtkMenuBar::shadow-type = GTK_SHADOW_NONE
+    
+    xthickness  = 0
+    ythickness  = 0
+
+    engine "murrine" {
+        roundness   = 0
+        glowstyle   = 0
+        glazestyle  = 0
+        lightborder_shade = 1.0
+        highlight_shade = 1.0
+        contrast = 0.0
+        gradient_shades = { 1.0, 0.85, 0.85, 0.7 }
+        roundness   = 0
+        reliefstyle = 0
+        textstyle   = 1
+        text_shade  = 0.2
+    }
+}
+
+style "mod-main-menu-text" = "mod-panel-text"
+{
+    font_name = "Bold"
+}
+
+style "mod-tasklist" = "mod-panel"
+{
+    xthickness  = 2
+    ythickness  = 0
+}
+
+style "mod-indicator" = "mod-panel"
+{
+    xthickness = 0
+    ythickness = 0
+}
+
+style "mod-whisker-panel" = "mod-panel"
+{
+    ythickness = 0
+}
+
+style "mod-meter" = "mod-panel"
+{
+    xthickness = 1
+    ythickness = 1
+}
+
+widget "*PanelWidget*"            style "mod-panel"
+widget "*PanelApplet*"            style "mod-panel"
+widget "*fast-user-switch*"       style "mod-panel"
+widget "*CPUFreq*Applet*"         style "mod-panel"
+class "PanelApp*"				  style "mod-panel"
+class "PanelToplevel*"            style "mod-panel"
+widget_class "*PanelToplevel*"    style "mod-panel"
+widget_class "*notif*"            style "mod-panel"
+widget_class "*Notif*"            style "mod-panel"
+widget_class "*Tray*"             style "mod-panel" 
+widget_class "*tray*"             style "mod-panel"
+widget_class "*computertemp*"     style "mod-panel"
+widget_class "*Applet*Tomboy*"    style "mod-panel"
+widget_class "*Applet*Netstatus*" style "mod-panel"
+
+# Fixes for tooltip text in some apps.
+widget_class "*Notif*Beagle*"  style "mod-panel"
+widget_class "*Notif*Brasero*" style "mod-panel"
+
+# XFCE panel theming.
+widget "*Xfce*Panel*"   style "mod-panel"
+class "*Xfce*Panel*"    style "mod-panel"
+widget "*PagerButtons*" style "mod-tasklist"
+
+# Whisker menu theming.
+widget "*Xfce*Panel*isker" style "mod-whisker-panel"
+
+# Make sure panel text color doesn't change
+widget_class "*Panel*MenuBar*"      style "mod-main-menu-text"
+widget_class "*Panel*<GtkMenuBar>*" style "mod-main-menu-text"
+
+# Override general panel-style with specific plugin-styles
+widget_class "*Xfce*notif*" style "mod-panel"
+widget_class "*Xfce*Notif*" style "mod-panel"
+widget "*Xfce*ail*lugin*"   style "mod-indicator"
+widget "*Xfce*ixer*lugin*"  style "mod-indicator"
+widget "*Xfce*auncher*"     style "mod-indicator"
+widget "*Xfce*ystem*"       style "mod-meter"
+widget "*Xfce*attery*"      style "mod-meter"
+widget "*indicator-applet*" style "mod-indicator"
+widget "*indicator-button*" style "mod-indicator"
+widget "*XfceTasklist*"     style "mod-tasklist"

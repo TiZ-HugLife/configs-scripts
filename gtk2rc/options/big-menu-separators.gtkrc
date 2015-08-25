@@ -1,0 +1,13 @@
+# I like big menu separators.
+style "mod-menu-separator"
+{
+    xthickness = 1
+    ythickness = 0
+
+    GtkSeparatorMenuItem::horizontal-padding = 0
+
+    GtkWidget::wide-separators  = 1
+    GtkWidget::separator-width  = 0
+    GtkWidget::separator-height = 7
+}
+widget_class "*<GtkSeparatorMenuItem>*" style "mod-menu-separator"

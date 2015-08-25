@@ -1,56 +1,15 @@
 gtk-enable-mnemonics = 0
 gtk-auto-mnemonics = 1
-
 gtk-icon-sizes = "gtk-large-toolbar=22,22:gtk-small-toolbar=16,16"
 
-# I like small scrollbars.
-style "size-default" {
-    GtkScrollbar::slider-width = 8
-}
-class "GtkWidget"    style "size-default"
-
-# I don't like displacement.
-style "no-displacement" {
-    GtkButton::child-displacement-x = 0
-    GtkButton::child-displacement-y = 0
-}
-class "GtkWidget" style "no-displacement"
-
-# Gets rid of resize grips.
-style "no-resize-grip" {
-    GtkWindow::resize-grip-height = 0
-    GtkWindow::resize-grip-width = 0
-}
-class "GtkWidget" style "no-resize-grip"
-
-# I like big menu separators.
-style "size-separator-menu-item"
-{
-    xthickness = 1
-    ythickness = 0
-
-    GtkSeparatorMenuItem::horizontal-padding = 0
-
-    GtkWidget::wide-separators  = 1
-    GtkWidget::separator-width  = 0
-    GtkWidget::separator-height = 7
-}
-widget_class "*<GtkSeparatorMenuItem>*" style "size-separator-menu-item"
-
-# Makes pane separators thin and sleek.
-style "mod-sidebar-paned" {
-    GtkPaned::handle-size = 1
-
-    # Setting contrast to 0 makes the handle go away.
-    engine "murrine" { contrast = 0.0 }
-}
-
-widget_class "*<GtkPaned>" style "mod-sidebar-paned"
-
 # Everything in gtkrc gets linked into .themes.
-include ".themes/panel.gtkrc"
-include ".themes/widget-sizes-compact.gtkrc"
-include ".themes/thunar.gtkrc"
-include ".themes/apps.gtkrc"
-include ".themes/whisker-tizix.gtkrc"
-include ".themes/tizix-toolbars.gtkrc"
+include ".themes/custom/base/compact.gtkrc"
+include ".themes/custom/options/tiny-scrollbars.gtkrc"
+include ".themes/custom/options/no-displacement.gtkrc"
+include ".themes/custom/options/no-resize-grips.gtkrc"
+include ".themes/custom/options/big-menu-separators.gtkrc"
+include ".themes/custom/options/thin-pane-separators.gtkrc"
+include ".themes/custom/apps/xfce4-panel.gtkrc"
+include ".themes/custom/apps/thunar.gtkrc"
+include ".themes/custom/apps/geany.gtkrc"
+include ".themes/custom/colors/tizix.gtkrc"

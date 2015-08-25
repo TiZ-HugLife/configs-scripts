@@ -1,0 +1,8 @@
+# Makes pane separators thin and sleek.
+style "mod-sidebar-paned" {
+    GtkPaned::handle-size = 1
+
+    # Setting contrast to 0 makes the handle go away.
+    engine "murrine" { contrast = 0.0 }
+}
+widget_class "*<GtkPaned>" style "mod-sidebar-paned"

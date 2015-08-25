@@ -1,0 +1,6 @@
+# Gets rid of resize grips.
+style "mod-no-resize-grip" {
+    GtkWindow::resize-grip-height = 0
+    GtkWindow::resize-grip-width = 0
+}
+class "GtkWidget" style "mod-no-resize-grip"

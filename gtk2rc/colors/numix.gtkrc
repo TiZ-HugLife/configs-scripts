@@ -1,0 +1,199 @@
+# Most of this code shamelessly jacked from Greybird.
+
+
+####
+# PANEL COLORS
+####
+
+style "mod-panel-colors" {   
+    bg[NORMAL]     = "#161616"
+    bg[ACTIVE]     = "#242424"
+    bg[PRELIGHT]   = shade (0.85, "#2192A3")
+    bg[SELECTED]   = mix (0.50, "#161616", "#2192A3")
+    
+    fg[NORMAL]     = shade (0.9, "#ffffff")
+    fg[PRELIGHT]   = "#ffffff"
+    fg[ACTIVE]     = shade (0.9, "#ffffff")
+    fg[SELECTED]   = shade (0.9, "#ffffff")
+    
+    text[NORMAL]   = shade (0.9, "#ffffff")
+    text[PRELIGHT] = "#ffffff"
+    text[ACTIVE]   = shade (0.9, "#ffffff")
+    text[SELECTED] = shade (0.9, "#ffffff")
+}
+
+style "mod-panel-text-colors" {
+    fg[NORMAL]     = "#ffffff"
+    fg[PRELIGHT]   = "#ffffff"
+    fg[ACTIVE]     = "#ffffff"
+    
+    text[NORMAL]   = "#ffffff"
+    text[PRELIGHT] = "#ffffff"
+    text[ACTIVE]   = "#ffffff"
+}
+
+style "mod-main-menu-text-colors" = "mod-panel-text-colors" {
+    font_name = "Bold"
+    fg[PRELIGHT]   = "#ffffff"
+    text[PRELIGHT] = "#ffffff"
+}
+
+style "mod-workspace-switcher-colors" = "mod-panel-colors" {
+    bg[SELECTED] = shade (0.8, "#2192A3")
+}
+
+style "mod-tasklist-colors" = "mod-panel-colors" {
+    bg[ACTIVE]   = mix (0.5, "#161616", "#2192A3")
+    bg[PRELIGHT] = shade (0.85, "#2192A3")
+    bg[SELECTED] = shade (0.85, "#2192A3")
+    
+    fg[NORMAL]   = shade (0.9, "#ffffff")
+    fg[ACTIVE]   = "#ffffff"
+    fg[PRELIGHT] = "#ffffff"
+}
+
+widget "*PanelWidget*"            style "mod-panel-colors"
+widget "*PanelApplet*"            style "mod-panel-colors"
+widget "*fast-user-switch*"       style "mod-panel-colors"
+widget "*CPUFreq*Applet*"         style "mod-panel-colors"
+class "PanelApp*"                 style "mod-panel-colors"
+class "PanelToplevel*"            style "mod-panel-colors"
+widget_class "*PanelToplevel*"    style "mod-panel-colors"
+widget_class "*notif*"            style "mod-panel-colors"
+widget_class "*Notif*"            style "mod-panel-colors"
+widget_class "*Tray*"             style "mod-panel-colors" 
+widget_class "*tray*"             style "mod-panel-colors"
+widget_class "*computertemp*"     style "mod-panel-colors"
+widget_class "*Applet*Tomboy*"    style "mod-panel-colors"
+widget_class "*Applet*Netstatus*" style "mod-panel-colors"
+
+# Fixes for tooltip text in some apps.
+widget_class "*Notif*Beagle*"  style "mod-panel-colors"
+widget_class "*Notif*Brasero*" style "mod-panel-colors"
+
+# XFCE panel theming.
+widget "*Xfce*Panel*"   style "mod-panel-colors"
+class "*Xfce*Panel*"    style "mod-panel-colors"
+widget "*WnckPager*"    style "mod-workspace-switcher-colors"
+widget "*PagerButtons*" style "mod-tasklist-colors"
+
+# Make sure panel text color doesn't change
+widget_class "*Panel*MenuBar*"      style "mod-main-menu-text-colors"
+widget_class "*Panel*<GtkMenuBar>*" style "mod-main-menu-text-colors"
+widget "*.clock-applet-button.*"    style "mod-panel-text-colors"
+widget "*PanelApplet*"              style "mod-panel-text-colors"
+
+# Override general panel-style with specific plugin-styles
+widget_class "*Xfce*notif*" style "mod-panel-colors"
+widget_class "*Xfce*Notif*" style "mod-panel-colors"
+widget "*XfceTasklist*"     style "mod-tasklist-colors"
+
+
+####
+# THUNAR COLORS
+####
+
+style "mod-thunar-sidepane-colors" {
+    base[NORMAL]      = "#ececec"
+    base[INSENSITIVE] = "#ececec"
+    bg[NORMAL]        = "#ececec"
+}
+
+style "mod-thunar-window-colors" {
+    bg[NORMAL]      = "#f9f9f9"
+    bg[INSENSITIVE] = "#f9f9f9"
+    bg[ACTIVE]      = "#f9f9f9"
+}
+
+style "mod-thunar-sidepane-header-colors" = "mod-thunar-sidepane-colors" {
+    bg[ACTIVE] = "#ececec"
+}
+
+widget_class "ThunarWindow"        style "mod-thunar-window-colors"
+widget_class "ThunarWindow*HPaned" style:highest "mod-thunar-window-colors"
+widget_class "*ThunarStatusbar*"   style:highest "mod-thunar-window-colors"
+
+# Gtk2 Open-File Dialog
+widget_class "*GtkFileChooserWidget.GtkFileChooserDefault.GtkVBox.GtkHPaned.GtkVBox.GtkScrolledWindow.GtkTreeView*" style "mod-thunar-sidepane-colors"
+widget_class "*GtkFileChooserWidget.GtkFileChooserDefault.GtkVBox.GtkHPaned.GtkVBox.GtkScrolledWindow.<GtkTreeView>.<GtkButton>" style "mod-thunar-sidepane-header-colors"
+
+
+####
+# WHISKER COLORS
+####
+
+style "mod-whisker-colors" {
+    #fg[NORMAL]        = "#dcdcdc"
+	#fg[PRELIGHT]      = "#ffffff"
+	#fg[ACTIVE]        = "#ffffff"
+	#fg[INSENSITIVE]   = "#dcdcdc"
+
+	#bg[NORMAL]        = "#2d2d2d"
+	#bg[PRELIGHT]      = "#226f7a"
+	#bg[INSENSITIVE]   = "#2d2d2d"
+	#bg[ACTIVE]        = "#1c5d66"
+
+	#text[NORMAL]      = "#dcdcdc"
+	#text[PRELIGHT]    = "#ffffff"
+	#text[ACTIVE]      = "#ffffff"
+	#text[INSENSITIVE] = "#dcdcdc"
+
+	#base[NORMAL]      = "#363636"
+	base[PRELIGHT]     = "#226f7a"
+	base[ACTIVE]       = "#226f7a"
+	#base[INSENSITIVE] = "#363636"
+	
+	bg[NORMAL]         = "#2d2d2d"
+	bg[PRELIGHT]       = "#226f7a"
+	#bg[SELECTED]      = mix (0.21, "#dcdcdc", "#2d2d2d")
+	bg[ACTIVE]         = shade (0.9, "#2d2d2d")
+	bg[INSENSITIVE]    = "#2d2d2d"
+
+	fg[NORMAL]         = "#dcdcdc"
+	fg[PRELIGHT]       = shade (1.08, "#dcdcdc")
+	fg[SELECTED]       = shade (1.08, "#dcdcdc")
+	fg[ACTIVE]         = "#dcdcdc"
+	fg[INSENSITIVE]    = mix (0.5, "#2d2d2d", "#dcdcdc")
+	
+	base[NORMAL]       = mix (0.21, "#dcdcdc", "#2d2d2d")
+	#base[PRELIGHT]    = "#226f7a"
+	#base[SELECTED]    = "#226f7a"
+	#base[ACTIVE]      = mix (0.21, "#dcdcdc", "#2d2d2d")
+	base[INSENSITIVE]  = shade(1.2, "#2d2d2d")
+
+	text[NORMAL]       = "#dcdcdc"
+	text[PRELIGHT]     = "#f9f9f9"
+	text[SELECTED]     = "#f9f9f9"
+	text[ACTIVE]       = "#f9f9f9"
+	text[INSENSITIVE]  = mix (0.5, "#2d2d2d", "#dcdcdc")
+}
+
+widget "whiskermenu-window*" style "mod-whisker-colors"
+
+
+####
+# TOOLBAR COLORS
+####
+
+style "mod-toolbar-colors" {
+    GtkToolbar::shadow-type = GTK_SHADOW_INSET
+    
+    bg[NORMAL]      = "#2d2d2d"
+	bg[PRELIGHT]    = mix (0.21, "#dcdcdc", "#2d2d2d")
+	bg[SELECTED]    = mix (0.21, "#dcdcdc", "#2d2d2d")
+	bg[ACTIVE]      = shade (0.9, "#2d2d2d")
+	bg[INSENSITIVE] = "#2d2d2d"
+
+	fg[NORMAL]      = "#dcdcdc"
+	fg[PRELIGHT]    = shade (1.08, "#dcdcdc")
+	fg[SELECTED]    = shade (1.08, "#dcdcdc")
+	fg[ACTIVE]      = "#dcdcdc"
+	fg[INSENSITIVE] = mix (0.5, "#2d2d2d", "#dcdcdc")
+
+	engine "murrine" {
+		roundness = 0
+	}
+}
+
+widget_class "ThunarWindow*<GtkToolbar>*" style "mod-toolbar-colors"
+widget_class "Thunderbird*<GtkToolbar>*"  style "mod-toolbar-colors"

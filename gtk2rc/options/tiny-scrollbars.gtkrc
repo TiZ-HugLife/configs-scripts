@@ -1,0 +1,5 @@
+# I like small scrollbars.
+style "mod-scrollbars" {
+    GtkScrollbar::slider-width = 8
+}
+class "GtkWidget" style "mod-scrollbars"

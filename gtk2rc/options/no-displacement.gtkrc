@@ -1,0 +1,6 @@
+# I don't like displacement.
+style "mod-no-displacement" {
+    GtkButton::child-displacement-x = 0
+    GtkButton::child-displacement-y = 0
+}
+class "GtkWidget" style "mod-no-displacement"
