@@ -9,18 +9,21 @@ hoffset=112
 font="Avenir LT 65 Medium"
 fallbackfont="WenQuanYi Micro Hei"  # In case of Japanese music.
 fontsize=10
+fallbackfontsize=10
 titlesize=14
 imgsize=96
 radius=12
 shadowtype=0
 
-while getopts :s:t:S:f:F:v:a:r:hH OPT; do
+while getopts :f:F:t:T:s:S:i:v:a:r:hH OPT; do
 case $OPT in
-    s) fontsize="$OPTARG" ;;
-    t) titlesize="$OPTARG" ;;
-    S) imgsize="$OPTARG" ;;
     f) font="$OPTARG" ;;
     F) fallbackfont="$OPTARG" ;;
+    t) titlesize="$OPTARG" ;;
+    T) fallbacktitlesize="$OPTARG" ;;
+    s) fontsize="$OPTARG" ;;
+    S) fallbackfontsize="$OPTARG" ;;
+    i) imgsize="$OPTARG" ;;
     v) voffset="$OPTARG" ;;
     a) hoffset="$OPTARG" ;;
     r) radius="$OPTARG" ;;
@@ -31,8 +34,8 @@ done
 
 [[ "$shadowtype" = "1" ]] && voffset=$((voffset + 10))
 cd /tmp
-cur="$(quodlibet --print-playing '${font %font%:Bold:size='$titlesize'}${alignr} <title>${font %font%:Bold:size='$fontsize'}<artist|
-${alignr} <artist>>${font %font%:size='$fontsize'}<album|
+cur="$(quodlibet --print-playing '${font %font%:Bold:size=%title%}${alignr} <title>${font %font%:Bold:size=%size%}<artist|
+${alignr} <artist>>${font %font%:size=%size%}<album|
 ${alignr} <album>><website|
 ${alignr} <website>>')"
 if [[ "$(cat .current.song)" != "$cur" ]]; then
@@ -61,9 +64,11 @@ if [[ "$(cat .current.song)" != "$cur" ]]; then
     echo "$cur" > .current.song
 fi
 if (echo "$cur" | grep -P '[^[:ascii:]]' > /dev/null); then
-    cur="$(echo "$cur" | sed -e "s/%font%/$fallbackfont/g")"
+    cur="$(echo "$cur" | sed -e "s/%font%/$fallbackfont/g" \
+     -e "s/%size%/$fallbackfontsize/g" -e "s/%title%/$fallbacktitlesize/g")"
 else
-    cur="$(echo "$cur" | sed -e "s/%font%/$font/g")"
+    cur="$(echo "$cur" | sed -e "s/%font%/$font/g" -e "s/%size%/$fontsize/g" \
+     -e "s/%title%/$titlesize/g")"
 fi
 IMGDIFF=$((588 - imgsize))
 #echo -e '${image /tmp/conkycover.png -p '$IMGDIFF',0}${voffset '$voffset'}'"$cur"'${font}'
