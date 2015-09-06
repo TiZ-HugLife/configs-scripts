@@ -1,4 +1,4 @@
 -- Raises conky when Whisker opens.
-if get_class_instance_name() == "wrapper-1.0" then
+if get_window_name() == "Whisker Menu" then
     os.execute("conkytoggle above")
 end
