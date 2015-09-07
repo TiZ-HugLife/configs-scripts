@@ -30,7 +30,7 @@ widget_class "MetaFrames" style "mod-window-decoration-colors"
 
 style "mod-panel-colors" {   
     bg[NORMAL]     = @panel_bg_color
-    bg[ACTIVE]     = mix (0.25, @panel_fg_color, @panel_bg_color)
+    bg[ACTIVE]     = mix (0.15, @panel_fg_color, @panel_bg_color)
     bg[PRELIGHT]   = shade (0.85, @selected_bg_color)
     bg[SELECTED]   = mix (0.50, @panel_bg_color, @selected_bg_color)
     
@@ -177,6 +177,52 @@ widget "whiskermenu-window*" style "mod-whisker-colors"
 
 
 ####
+# XFCE4-NOTIFY COLORS
+####
+
+style "mod-notify-window-colors" {
+    XfceNotifyWindow::border-color = @selected_bg_color
+    XfceNotifyWindow::border-color-hover = shade (1.1, @selected_bg_color)
+
+    bg[NORMAL] = @tooltip_bg_color
+}
+
+style "mod-notify-button-colors" {
+    bg[NORMAL]   = mix (0.25, @tooltip_fg_color, @tooltip_bg_color)
+    bg[PRELIGHT] = mix (0.4, @tooltip_fg_color, @tooltip_bg_color)
+    bg[ACTIVE]   = mix (0.6, @tooltip_fg_color, @tooltip_bg_color)
+
+    fg[NORMAL]   = @tooltip_fg_color
+    fg[PRELIGHT] = mix (0.1, @tooltip_fg_color, @tooltip_fg_color)
+    fg[ACTIVE]   = mix (0.1, @tooltip_fg_color, @tooltip_fg_color)
+}
+
+style "mod-notify-text-colors" {
+    GtkWidget::link-color = mix (0.6, @tooltip_fg_color, @selected_bg_color)
+
+    fg[NORMAL]   = @tooltip_fg_color
+    fg[PRELIGHT] = @tooltip_fg_color
+    fg[ACTIVE]   = @tooltip_fg_color
+}
+
+style "mod-notify-pb-colors" {
+    bg[NORMAL]   = @tooltip_fg_color
+	bg[ACTIVE]   = mix (0.2, @tooltip_fg_color, @tooltip_bg_color)
+    bg[SELECTED] = @tooltip_fg_color
+
+    fg[PRELIGHT] = @tooltip_bg_color
+    fg[ACTIVE]   = @tooltip_fg_color
+    fg[SELECTED] = @tooltip_bg_color
+}
+
+class "XfceNotifyWindow" style "mod-notify-window-colors"
+widget_class "XfceNotifyWindow.*<GtkButton>" style "mod-notify-button-colors"
+widget_class "XfceNotifyWindow.*.<GtkLabel>" style "mod-notify-text-colors"
+widget_class "XfceNotifyWindow.*.<GtkProgress>" style "mod-notify-pb-colors"
+widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-pb-colors"
+
+
+####
 # TOOLBAR COLORS
 ####
 
@@ -193,7 +239,7 @@ style "mod-toolbar-colors" {
 	fg[PRELIGHT]    = shade (1.08, @toolbar_fg_color)
 	fg[SELECTED]    = shade (1.08, @toolbar_fg_color)
 	fg[ACTIVE]      = @toolbar_fg_color
-	fg[INSENSITIVE] = mix (0.5, @toolbar_bg_color, "#dcdcdc")
+	fg[INSENSITIVE] = mix (0.5, @toolbar_bg_color, @toolbar_fg_color)
 
 	engine "murrine" {
 		roundness = 0
