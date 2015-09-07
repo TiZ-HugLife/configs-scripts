@@ -67,7 +67,6 @@ class PanelFader:
 
 
 if __name__ == '__main__':
-    from optparse import OptionParser
     usage = "%prog [options]"
     parser = OptionParser(usage=usage)
     parser.add_option("-p", "--panel", default=0,
