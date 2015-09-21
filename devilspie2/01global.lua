@@ -8,5 +8,7 @@ do_rules(
     {app="geany", size={w=622, h=411}},
     {app="syncthing-gtk", size={w=550, h=400}},
     {app="mirage", max=true},
+    {app="Quod Libet", alpha=0.80},
+    {app="Thunderbird", role="3pane", max=true, alpha=0.80},
     {name="Whisker Menu", type="dialog", alpha=0.88, size={w=350, h=380}}
 )

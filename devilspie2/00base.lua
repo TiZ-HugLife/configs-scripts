@@ -8,6 +8,7 @@ do_rules(
 MATCH CRITERIA
 app = application name
 class = window class
+role = window role
 name = title bar contents
 type = window type, specified without the WINDOW_TYPE_ prefix and whatever case
        you want. if nil, assumed to be normal. if *, all types.
@@ -32,6 +33,7 @@ function do_rules(...)
         if
             (not v.app or v.app == get_application_name()) and
             (not v.class or v.class == get_window_class()) and
+            (not v.role or v.role == get_window_role()) and
             (not v.name or v.name == get_window_name()) and
             (not v.exc_name or v.class ~= get_window_name()) and
             (v.type == "*" or
