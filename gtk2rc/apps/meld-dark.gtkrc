@@ -1,0 +1,32 @@
+style "meld-color-scheme-user"
+{
+    color["insert-bg"] = "#002200"
+    color["insert-outline"] = shade(1.8, @insert-bg)
+    color["insert-text"] = "#008800"
+
+    color["delete-bg"] = "#111111"
+    color["delete-outline"] = shade(1.8, @delete-bg)
+    color["delete-text"] = "#880000"
+
+    color["replace-bg"] = "#000033"
+    color["replace-outline"] = shade(1.8, @replace-bg)
+    color["replace-text"] = "#0044dd"
+
+    color["conflict-bg"] = "Pink"
+    color["conflict-outline"] = shade(1.8, @conflict-bg)
+    color["conflict-text"] = "#ff0000"
+
+    color["error-bg"] = "#fce94f"
+    color["error-outline"] = shade(1.8, @error-bg)
+    color["error-text"] = "#faad3d"
+
+    color["inline-bg"] = "#333366"
+    color["inline-fg"] = "Red"
+
+    color["unknown-text"] = "#888888"
+
+    color["current-line-highlight"] = "#111100"
+
+    color["syncpoint-outline"] = "#555555"
+}
+widget "meldapp.*" style : highest "meld-color-scheme-user"
