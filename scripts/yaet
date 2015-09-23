@@ -37,7 +37,7 @@ act_frame_v=$((act_frame_t + act_frame_b))
 
 function bceval () { echo "scale=0; ($1) / 1" | bc ; }
 
-if [[ "$action" == "main" || "$type" == "DESKTOP" || "$type" == "DOCK" ]]; then
+function tile_main () {
     if [[ -z "$screen_w" || -z "$screen_h" ]]; then
         mode=$(xrandr | sed -nr 's/.*current ([0-9]+) x ([0-9]+),.*/\1x\2/p')
         act_w=$(($(echo $mode | cut -dx -f1) - margin_l - margin_r))
@@ -48,6 +48,26 @@ if [[ "$action" == "main" || "$type" == "DESKTOP" || "$type" == "DOCK" ]]; then
     fi
     act_x=$margin_l
     act_y=$margin_t
+}
+
+if [[ "$action" == "main" ]]; then
+    tile_main
+elif [[ "$type" == "DESKTOP" || "$type" == "DOCK" ]]; then
+    tile_main
+    case $action in
+        left|right)
+            adj=$(bceval "$act_w * $ratio - $gap / 2")
+            act_y=$margin_t ;;
+        up|down)
+            adj=$(bceval "$act_h * $ratio - $gap / 2")
+            act_x=$margin_l ;;
+    esac
+    case $action in
+        left)  act_w=$((act_w - adj - gap)) ;;
+        right) act_x=$((margin_l + act_w - adj)) ; act_w=$adj ;;
+        up)    act_h=$((act_h - adj - gap)) ;;
+        down)  act_y=$((margin_t + act_h - adj)) ; act_h=$adj ;;
+    esac
 else
     targ_frame=$(xprop -id $target | \
      sed -nr 's/.*FRAME_EXTENTS.* = (\S+), (\S+), (\S+), (\S+)$/\1,\2,\3,\4/p')
