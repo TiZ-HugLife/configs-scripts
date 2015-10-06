@@ -1,0 +1,8 @@
+#!/bin/bash
+waitwin xfce4-panel
+pkill conky
+conky -d -c $HOME/.conky/todo.txt/conkyrc-$(hostname) &
+if pgrep quodlibet; then
+    conky -d -c $HOME/.conky/QLInfo/conkyrc-$(hostname) &
+    conky -d -c $HOME/.conky/QLInfo/conkyrc-cover-$(hostname) &
+fi
