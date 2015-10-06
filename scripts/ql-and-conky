@@ -1,0 +1,10 @@
+#!/bin/bash
+{
+    sleep 2
+    conky -c /home/trent/.conky/QLInfo/conkyrc-$(hostname) &
+    conky -c /home/trent/.conky/QLInfo/conkyrc-cover-$(hostname) &
+} &
+quodlibet
+xdotool \
+ search --name '^Quodlibet-Conky$' windowkill \
+ search --name '^Quodlibet-Conky-Cover$' windowkill
