@@ -38,11 +38,14 @@ class PanelFader:
         self.active_win_change()
     
     def active_win_change (self, null1=None, null2=None):
-        if self.window and self.window_handler:
-            self.window.disconnect(self.window_handler)
+        if self.window and self.state_handler and self.wksp_handler:
+            self.window.disconnect(self.state_handler)
+            self.window.disconnect(self.wksp_handler)
         self.window = self.screen.get_active_window()
         if self.window:
-            self.window_handler = self.window.connect("state_changed",
+            self.state_handler = self.window.connect("state_changed",
+             self.check_status)
+            self.wksp_handler = self.window.connect("workspace_changed",
              self.check_status)
         self.check_status()
     
