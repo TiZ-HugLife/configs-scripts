@@ -3,7 +3,7 @@ update_interval_on_battery 5.0
 total_run_times 0
 
 alignment br
-gap_x 81
+gap_x 79
 gap_y 15
 
 use_xft yes
