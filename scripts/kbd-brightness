@@ -5,7 +5,7 @@
 dev=/sys/class/leds/asus::kbd_backlight
 step=1
 
-waitfile $dev || exit
+/home/common/bin/waitfile $dev || exit
 
 case $1 in
     +)  echo $(($(< $dev/brightness) + $step)) > $dev/brightness ;;
