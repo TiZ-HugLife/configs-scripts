@@ -14,9 +14,9 @@ from optparse import OptionParser
 
 class PanelFader:
     def __init__ (self, panel, alpha_normal, alpha_max, range_x, range_y):
-        self.panel = panel
-        self.alpha_normal = alpha_normal
-        self.alpha_max = alpha_max
+        self.panel = int(panel)
+        self.alpha_normal = int(alpha_normal)
+        self.alpha_max = int(alpha_max)
         self.window = None
         self.window_handler = None
         self.range_x = [int(i) for i in range_x.split(":")]
