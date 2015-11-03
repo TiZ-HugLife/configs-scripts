@@ -4,6 +4,7 @@
 @define-color theme_selected_bg_color @selected_bg_color;*/
 
 @import url("widgets-compact.css");
-@import url("mod-no-displacement.css");
 @import url("mod-tiny-scrollbars.css");
+@import url("mod-no-displacement.css");
 @import url("app-meld.css");
+@import url("fix-gtk3-shadows.css");

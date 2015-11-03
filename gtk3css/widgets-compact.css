@@ -180,6 +180,10 @@ GtkLevelBar.vertical {
 }
 
 .scale {
+    -GtkRange-slider-width: 12;
+    -GtkRange-trough-border: 1;
+    -GtkScale-slider-length: 12;
+    
     padding: 0;
 }
 
