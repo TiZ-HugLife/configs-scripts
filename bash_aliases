@@ -3,6 +3,8 @@ alias fucking='sudo'
 alias ls='ls --color=auto'
 alias icoextract='wrestool -x --output=. -t14'
 alias r='rolldice --separate --random'
+alias flow='haxelib run flow'
+alias flixel='haxelib run flixel-tools'
 alias kpie-dump='kpie --single /usr/share/doc/kpie/examples/dump.lua > /tmp/kpie-dump; geany /tmp/kpie-dump &'
 alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
 
@@ -73,6 +75,18 @@ search () {
         QUERY="$2"
     fi
     find "${DIR}" ${EXTRA_ARGS}-type f -exec grep -li "${QUERY}" \{\} \; | sort
+}
+
+# Compile Haxe programs.
+hxneko () {
+    main=${1/.hx/}; shift
+    haxe -main $main -dce full "$@" -lib thx.core -lib tink_lang -lib tink_core \
+     -neko .neko.n && nekotools boot .neko.n && mv .neko ./$main-neko
+}
+hxcpp () {
+    main=${1/.hx/}; shift
+    haxe -main $main -dce full "$@" -lib thx.core -lib tink_lang -lib tink_core \
+     -cpp .hxcpp && mv .hxcpp/$main ./$main-cpp
 }
 
 # Dump and then strip album art.
