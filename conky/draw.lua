@@ -20,6 +20,7 @@ function conky_draw(bg_colour, bg_alpha, rad_tl, rad_tr, rad_br, rad_bl, v)
 	if v == nil then v = 0 end
 	local w = conky_window.width
 	local h = conky_window.height
+	if h <= 24 then return end
 	
 	local cs = cairo_xlib_surface_create(conky_window.display, conky_window.drawable, conky_window.visual, w, h)
 	local cr = cairo_create(cs)
