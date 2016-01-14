@@ -48,7 +48,7 @@ if [[ "$(cat .current.song)" != "$cur" ]]; then
      white -stroke none -strokewidth 0 -draw "@.qli-draw.mvg" .qli-mask.png
     convert .qli-step1.png -alpha set -bordercolor none -border 0 .qli-mask.png \
      -compose DstIn -composite .qli-step2.png
-    convert .qli-step2.png -background none -gravity center -extent ${imgsize}x${imgsize} \
+    convert .qli-step2.png -background none -gravity south -extent ${imgsize}x${imgsize} \
      .qli-step3.png
     if [[ "$shadowtype" = "1" ]]; then
         convert .qli-step3.png \( +clone -background black -shadow 90x3+0+0 \) \
