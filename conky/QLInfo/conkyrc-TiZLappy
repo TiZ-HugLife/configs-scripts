@@ -4,7 +4,7 @@ total_run_times 0
 
 alignment br
 gap_x 79
-gap_y 15
+gap_y 2
 
 use_xft yes
 override_utf8_locale yes
@@ -33,7 +33,7 @@ double_buffer yes
 no_buffers yes
 
 lua_load ~/.conky/draw.lua
-lua_draw_hook_pre draw 0x000000 0.35 16 0 0 16
+lua_draw_hook_pre draw 0x000000 0.35 16 0 0 0 1
 
 
 TEXT

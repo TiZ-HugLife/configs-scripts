@@ -33,7 +33,7 @@ double_buffer yes
 no_buffers yes
 
 lua_load ~/.conky/draw.lua
-lua_draw_hook_pre draw_cover 0x000000 0.35 14 13 2 2 true
+lua_draw_hook_pre draw_cover 0x000000 0.35 27 0 2 2
 
 
 TEXT

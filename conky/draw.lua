@@ -5,8 +5,7 @@ local function rgb_to_r_g_b(colour,alpha)
 end
 
 local function check_ql()
-	local test = io.open("/tmp/.qlopen", "r")
-	print(test)
+	local test = io.open("/tmp/.current.song", "r")
 	if test == nil then
 		return false
 	else
@@ -15,8 +14,9 @@ local function check_ql()
 	end
 end
 
-function conky_draw(bg_colour, bg_alpha, rad_tl, rad_tr, rad_br, rad_bl, v)
+function conky_draw(bg_colour, bg_alpha, rad_tl, rad_tr, rad_br, rad_bl, v, ql)
 	if conky_window == nil then return end
+	if ql and not check_ql() then return end
 	if v == nil then v = 0 end
 	local w = conky_window.width
 	local h = conky_window.height
@@ -45,6 +45,7 @@ end
 
 function conky_draw_cover(bg_colour, bg_alpha, top, bottom, x, y, middle)
 	if conky_window == nil then return end
+	if not check_ql() then return end
 	if top == nil then top = 0 end
 	if bottom == nil then bottom = 0 end
 	if x == nil then x = 0 end
