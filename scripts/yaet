@@ -9,19 +9,25 @@ margin_b=0
 gap=0
 ratio=0.5
 
-while getopts r:s: OPT; do case $OPT in
-    r) ratio="$OPTARG" ;;
-    s) size="$OPTARG" ;;
-esac; done; shift $((OPTIND-1))
-action="$1"
-
 [[ -e "$HOME/.yaetrc" ]] && source "$HOME/.yaetrc"
 [[ -e "$HOME/.config/yaetrc" ]] && source "$HOME/.config/yaetrc"
 
-active=$(xdotool getwindowfocus)
+while getopts r:s:a:t:A:T: OPT; do case $OPT in
+    r) ratio="$OPTARG" ;;
+    s) size="$OPTARG" ;;
+    a) active="$OPTARG" ;;
+    t) target="$OPTARG" ;;
+    A) actc="$OPTARG" ;;
+    T) targc="$OPTARG" ;;
+esac; done; shift $((OPTIND-1))
+action="$1"
+
+[[ "$actc" ]] && active=$(xdotool search --onlyvisible --class "$actc")
+[[ "$active" ]] || active=$(xdotool getwindowfocus)
 
 if [[ "$action" != "main" ]]; then
-    target=$(xdotool selectwindow)
+    [[ "$targc" ]] && target=$(xdotool search --onlyvisible --class "$targc")
+    [[ "$target" ]] || target=$(xdotool selectwindow)
     [[ "$active" == "$target" ]] && exit
     type=$(xprop -id $target | sed -nr 's/.*WINDOW_TYPE_(\S+)$/\1/p')
 fi
