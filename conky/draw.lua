@@ -10,7 +10,13 @@ local function check_ql()
 		return false
 	else
 		test:close()
-		return true
+		local test = io.open("~/.quodlibet/current", "r")
+		if test == nil then
+			return false
+		else
+			test:close()
+			return true
+		end
 	end
 end
 
