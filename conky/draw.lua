@@ -5,12 +5,12 @@ local function rgb_to_r_g_b(colour,alpha)
 end
 
 local function check_ql()
-	local test = io.open("/tmp/.current.song", "r")
+	local test = io.open(os.getenv("HOME").."/.quodlibet/current", "r")
 	if test == nil then
 		return false
 	else
 		test:close()
-		local test = io.open("~/.quodlibet/current", "r")
+		local test = io.open("/tmp/.current.song", "r")
 		if test == nil then
 			return false
 		else
