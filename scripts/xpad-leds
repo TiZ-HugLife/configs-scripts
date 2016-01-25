@@ -1,0 +1,20 @@
+#!/bin/bash
+# Fixes LEDs for xpad driver.
+[[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+
+if [[ "$1" == "install" ]]; then
+    cat > /etc/udev/rules.d/50-xpad-leds.rules <<EOF
+SUBSYSTEM=="input", DRIVERS=="xpad", RUN+="$(readlink -f "$0")"
+EOF
+    cat > /etc/sudoers.d/xpad-leds.rules <<EOF
+ALL ALL=(ALL) NOPASSWD: $(readlink -f "$0")
+EOF
+    exit
+    udevadm control --reload
+elif [[ "$1" == "off" ]]; then off=1; fi
+
+for led in /sys/class/leds/xpad*; do
+    light=$((${led//[!0-9]/} % 4 + 6))
+    [[ "$off" ]] && light=0;
+    echo $light > $led/brightness
+done
