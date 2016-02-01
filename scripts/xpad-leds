@@ -9,8 +9,8 @@ EOF
     cat > /etc/sudoers.d/xpad-leds.rules <<EOF
 ALL ALL=(ALL) NOPASSWD: $(readlink -f "$0")
 EOF
-    exit
     udevadm control --reload
+    exit
 elif [[ "$1" == "off" ]]; then off=1; fi
 
 for led in /sys/class/leds/xpad*; do
