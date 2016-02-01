@@ -11,10 +11,10 @@ ALL ALL=(ALL) NOPASSWD: $(readlink -f "$0")
 EOF
     udevadm control --reload
     exit
-elif [[ "$1" == "off" ]]; then off=1; fi
+fi
 
 for led in /sys/class/leds/xpad*; do
     light=$((${led//[!0-9]/} % 4 + 6))
-    [[ "$off" ]] && light=0;
+    [[ "$1" == "off" ]] && light=0;
     echo $light > $led/brightness
 done
