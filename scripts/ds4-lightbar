@@ -54,16 +54,15 @@ else
     }
     
     # Convenient light-changing API.
-    index=$(($1 - 1)); r=$2; g=$3; b=$4  # Index refers to the nth available controller.
+    index=$1; r=$2; g=$3; b=$4  # Index refers to the nth available controller.
     
-    leds=()
-    for led in $ledpath*\:global; do
+    leds=(); for led in $ledpath*\:global; do
         leds+=($(echo $led | cut -d: -f3 | cut -d. -f2))
     done
     
     if [[ "$index" == "all" ]]; then
-        for led in ${leds[@]}; do set_led $led $r $g $b; exit; done
+        for led in $(seq 1 ${#leds[@]}); do "$0" $led $r $g $b; done; exit
     elif [[ "$index" == "newest" ]]; then led=${leds[${#leds[@]}]}
-    else led=${leds[$index]}; fi
+    else ((--index)); led=${leds[$index]}; fi
     [[ "$led" ]] && set_led $led $r $g $b
 fi
