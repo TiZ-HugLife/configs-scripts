@@ -1,0 +1,55 @@
+#!/bin/bash
+# Change the color of DualShock 4 LEDS, and also setup udev rules and perms.
+# This is a stark contrast to the xpad-leds script; games like Transistor and
+# TowerFall make use of the light bar so it needs to be user writable.
+
+# Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off
+
+default="0 4 5"
+ledpath="/sys/class/leds/0005:054C:05C4"
+
+if [[ "$1" == "install" ]]; then
+    # Install udev rule.
+    [[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+    cat > /etc/udev/rules.d/50-ds4-lightbar.rules <<EOF
+ACTION=="add", SUBSYSTEM=="input", DRIVERS=="sony", RUN+="$(readlink -f "$0") setup"
+EOF
+    udevadm control --reload
+    exit
+elif [[ "$1" == "setup" ]]; then
+    # Make leds user writable.
+    [[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+    for led in $ledpath.*; do
+        chmod a+w $led/brightness;
+    done
+    "$0" newest default
+elif [[ ! "$2" ]]; then
+    echo "Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off"
+    echo "  Edit this script to set the default color."
+    exit 1
+else
+    set_led () {
+        if [[ "$2" == "off" ]]; then echo 0 > $ledpath.$1\:global/brightness
+        elif [[ "$2" == "default" ]]; then set_led $1 $default
+        else
+            echo 1 > $ledpath.$1\:global/brightness
+            echo $2 > $ledpath.$1\:red/brightness
+            echo $3 > $ledpath.$1\:green/brightness
+            echo $4 > $ledpath.$1\:blue/brightness
+        fi
+    }
+    
+    # Convenient light-changing API.
+    index=$(($1 - 1)); r=$2; g=$3; b=$4  # Index refers to the nth available controller.
+    
+    leds=()
+    for led in $ledpath*\:global; do
+        leds+=($(echo $led | cut -d: -f3 | cut -d. -f2))
+    done
+    
+    if [[ "$index" == "all" ]]; then
+        for led in ${leds[@]}; do set_led $led $r $g $b; exit; done
+    elif [[ "$index" == "newest" ]]; then led=${leds[${#leds[@]}]}
+    else led=${leds[$index]}; fi
+    [[ "$led" ]] && set_led $led $r $g $b
+fi
