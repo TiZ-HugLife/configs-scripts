@@ -4,9 +4,16 @@
 # TowerFall make use of the light bar so it needs to be user writable.
 
 # Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off
+#   Change per-controller defaults by editing this file.
 
-default="0 4 5"
 ledpath="/sys/class/leds/0005:054C:05C4"
+
+defaults=(
+    "3 0 0"
+    "0 0 3"
+    "0 3 0"
+    "3 3 0"
+)
 
 if [[ "$1" == "install" ]]; then
     # Install udev rule.
@@ -23,14 +30,21 @@ elif [[ "$1" == "setup" ]]; then
         chmod a+w $led/brightness;
     done
     "$0" newest default
-elif [[ ! "$2" ]]; then
+elif [[ "$#" =~ 0|1|3 ]]; then
     echo "Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off"
     echo "  Edit this script to set the default color."
     exit 1
 else
     set_led () {
         if [[ "$2" == "off" ]]; then echo 0 > $ledpath.$1\:global/brightness
-        elif [[ "$2" == "default" ]]; then set_led $1 $default
+        elif [[ "$2" == "default" ]]; then
+            # Bash functions have no sense of scope. We can peek at the index.
+            default=${defaults[$index]}
+            [[ "$default" ]] || {
+                echo "No default color defined for controller $index."
+                default=${defaults[0]}
+            }
+            set_led $1 $default
         else
             echo 1 > $ledpath.$1\:global/brightness
             echo $2 > $ledpath.$1\:red/brightness
