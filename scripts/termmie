@@ -1,0 +1,28 @@
+#!/bin/bash
+# hOI!!! im termmie put dis in yur bashrc!
+# get many... DETERMINALATION!!! yayA!!!
+
+if [ "$TERM" == "xterm" ] && [ "SDISPLAY" ] && [ ! "$SSH_CLIENT$SSH_TTY" ]; then
+    termmies=(
+        "hOI!!! im termmie!!!"
+        "an dis is my friend... termmie!!!"
+        "don forget my friend!"
+        "Hi. I'm Bob."
+        "(Feeling of being watched.)"
+        "awawawawah!! linux... such a... CUTE!!!"
+        "term... WATCH EG!!!"
+        "eg... wil HATCH!!!"
+        "term... PROUD PARENT!!"
+        "term also allergic to windooz! hOIVS!"
+        "You have way too many temmienals."
+    )
+    wins=$(wmctrl -l)
+    for tem in "${termmies[@]}"; do
+        if ! ( echo "$wins" | grep "$tem" &> /dev/null ); then
+            echo -ne "\033]0;$tem\007"
+            break
+        fi
+    done
+fi
+
+echo "* You are filled with determinalation."
