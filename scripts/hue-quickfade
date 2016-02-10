@@ -3,7 +3,8 @@
 # Requires HuePL. Put it somewhere in your PATH or replace the variable below.
 
 huepl="$(which huepl)"
-[[ -x "$huepl" ]] || exit 1
+[[ -x "$huepl" ]] || huepl="$(dirname "$0")/huepl"
+[[ -x "$huepl" ]] || { echo "Can't find HuePL."; exit 1; }
 light="$1"; [[ "$light" ]] || { echo "Light index required."; exit 1; }
 to="$2"
 step="${3:-16}"
