@@ -1,0 +1,19 @@
+#!/bin/bash
+finish () { ds4-lightbar all default; exit; }
+trap finish EXIT
+value=${1:-20}; inc=${2:-2}; delay=${3:-0.1}
+while true; do
+    ds4-lightbar all $value 0 0; sleep $delay
+    for i in $(seq $inc $inc $value); do
+        ds4-lightbar all $value $i 0; sleep $delay; done
+    for i in $(seq $((value - inc)) -$inc 0); do
+        ds4-lightbar all $i $value 0; sleep $delay; done
+    for i in $(seq $inc $inc $value); do
+        ds4-lightbar all 0 $value $i; sleep $delay; done
+    for i in $(seq $((value - inc)) -$inc 0); do
+        ds4-lightbar all 0 $i $value; sleep $delay; done
+    for i in $(seq $inc $inc $value); do
+        ds4-lightbar all $i 0 $value; sleep $delay; done
+    for i in $(seq $((value - inc)) -$inc 2); do
+        ds4-lightbar all $value 0 $i; sleep $delay; done
+done
