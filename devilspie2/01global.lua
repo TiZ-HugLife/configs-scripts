@@ -7,7 +7,7 @@ do_rules(
     {app="Thunar", name="File Operation Progress", size={w=300, h=105}},
     {app="geany", size={w=622, h=411}},
     {app="syncthing-gtk", size={w=550, h=400}},
-    {app="gigolo", size={w=300, h=150}},
+    {app="gigolo", size={w=320, h=160}},
     {app="mirage", max=true},
     {app="Quod Libet", alpha=0.80},
     {app="Thunderbird", role="3pane", max=true, alpha=0.80},
