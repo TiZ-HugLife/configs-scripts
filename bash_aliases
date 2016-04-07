@@ -13,21 +13,35 @@ alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
 
 # Package management; consistent commands no matter what distro I'm on.
 alias pkg-fail="echo Can't do that here, sorry."
-if [[ -x $(which pacman) ]]; then
+if [[ -x $(which bauerbill 2> /dev/null) ]]; then
+    alias pkg='bb_wrapper_wrapper --build-dir /home/tiz/Source'
+    export archlinux=1
+    
+    # Now we're getting silly.
+    bb_wrapper_wrapper () {
+        pushd () { command pushd "$@" > /dev/null; }; export -f pushd
+        popd ()  { command popd "$@" > /dev/null; };  export -f popd
+        bb-wrapper "$@"
+    }
+elif [[ -x $(which yaourt 2> /dev/null) ]]; then
     alias pkg='yaourt'
+    export archlinux=1
+fi
+if [[ "$archlinux" ]]; then
     alias pkg-update='pkg -Syu --aur'
-    alias pkg-install='pkg -S'
+    alias pkg-install='pkg -S --aur'
     alias pkg-install-file='pkg -U'
     alias pkg-remove='pkg -R'
     alias pkg-purge='pkg -Rnsc' 
-    alias pkg-info='pkg -Si'
+    alias pkg-info='pkg -Si --aur'
     alias pkg-info-local='pkg -Qi'
-    alias pkg-search='pkg -Ss'
+    alias pkg-search='pkg -Ss --aur'
     alias pkg-search-local='pkg -Qs'
     alias pkg-list='pkg -Ql'
     alias pkg-owns='pkg -Qo'
     alias pkg-clean='pkg-fail'
-elif [[ -x $(which apt-get) ]]; then
+    alias pkg-mirrors="sudo reflector --verbose --country 'United States' -l 25 -p http --sort rate --save /etc/pacman.d/mirrorlist"
+elif [[ -x $(which apt-get 2> /dev/null) ]]; then
     alias pkg='sudo apt-get'
     alias pkg-update='pkg update && pkg dist-upgrade'
     alias pkg-install='pkg install'
