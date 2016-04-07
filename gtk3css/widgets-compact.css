@@ -16,7 +16,6 @@
     -GtkMenu-horizontal-padding: 0;
     -GtkMenu-vertical-padding: 0;
     -GtkNotebook-initial-gap: 0;
-    -GtkNotebook-tab-overlap: -2;
     -GtkPaned-handle-size: 3;
     -GtkProgressBar-min-horizontal-bar-height: 10;
     -GtkProgressBar-min-vertical-bar-width: 10;
@@ -121,7 +120,7 @@ GtkTreeMenu .menuitem {
 /************
  * notebook *
  ************/
-/*.notebook {
+.notebook {
     padding: 0;
 }
 
@@ -129,7 +128,7 @@ GtkTreeMenu .menuitem {
     padding: 3px;
 }
 
-.notebook tab.top:active {
+/*.notebook tab.top:active {
     padding: 4px 3px;
 }
 
@@ -278,4 +277,5 @@ GtkTreeView {
     -GtkTreeView-vertical-separator: 0;
     -GtkWidget-focus-line-width: 1;
     -GtkWidget-focus-padding: 1;
+    padding: 1px;
 }
