@@ -3,6 +3,17 @@ style "mod-notify-window" {
     XfceNotifyWindow::border-radius = 4.0
     XfceNotifyWindow::border-width = 1.0
     XfceNotifyWindow::border-width-hover = 1.0
+    XfceNotifyWindow::padding = 8.0
+}
+
+style "mod-notify-button-box" {
+    GtkButtonBox::child_min_width = 0
+    GtkButtonBox::child_min_height = 0
+    GtkButtonBox::child_internal_pad_x = 1
+    GtkButtonBox::child_internal_pad_y = 1
+    
+    xthickness = 0
+    ythickness = 0
 }
 
 style "mod-notify-button" {
@@ -41,7 +52,8 @@ style "mod-notify-progressbar" {
 
 class "XfceNotifyWindow" style "mod-notify-window"
 widget "XfceNotifyWindow.*.summary" style "mod-notify-summary"
-widget_class "XfceNotifyWindow.*<GtkButton>" style "mod-notify-button"
+widget_class "XfceNotifyWindow.*.<GtkButtonBox>" style "mod-notify-button-box"
+widget_class "XfceNotifyWindow.*.<GtkButton>" style "mod-notify-button"
 widget_class "XfceNotifyWindow.*.<GtkLabel>" style "mod-notify-text"
 widget_class "XfceNotifyWindow.*.<GtkProgress>" style "mod-notify-progressbar"
 widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-progressbar"
