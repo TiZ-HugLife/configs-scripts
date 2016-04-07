@@ -92,7 +92,7 @@ hxcpp () {
 # Dump and then strip album art.
 albumart_mp3 () {
     VAR=(*.mp3)
-    eyeD3 -i . "$VAR"
+    eyeD3 --write-images . "$VAR"
     mv FRONT_COVER.jpeg albumart.jpg
     mid3v2 --delete-frames=PIC,APIC *.mp3
 }
