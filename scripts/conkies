@@ -1,6 +1,21 @@
 #!/bin/bash
-waitwin xfce4-panel
-pkill conky
-conky -d -c $HOME/.conky/todo.txt/conkyrc-$(hostname) &
-conky -d -c $HOME/.conky/QLInfo/conkyrc-$(hostname) &
-conky -d -c $HOME/.conky/QLInfo/conkyrc-cover-$(hostname) &
+kill $(pgrep conkies | grep -v ^$$\$); pkill conky
+{
+    while
+        $HOME/.conky/todo.txt/todoview.sh -c "Work School" > /tmp/.todo_conky.tmp
+        mv /tmp/.todo_conky.tmp /tmp/.todo_conky
+        inotifywait -qqe modify $HOME/Documents/todo && sleep 0.1
+    do :; done
+} & pid1=$!
+{
+    while
+        $HOME/.conky/QLInfo/qlinfo.sh -w \
+         -f"Liberation Sans" -F"VL PGothic" -s9 -t12 -A \
+         -h -S8 -T11 -i64 -v26 -a74 -r4 > /tmp/.ql_conky.tmp
+        mv /tmp/.ql_conky.tmp /tmp/.ql_conky
+        inotifywait -qqe modify --exclude 'control|config*' $HOME/.quodlibet \
+         && sleep 0.1
+    do :; done
+} & pid2=$!
+conky -d -c $HOME/.conky/todo.txt/conkyrc & pid3=$!
+conky -d -c $HOME/.conky/QLInfo/conkyrc & pid4=$!

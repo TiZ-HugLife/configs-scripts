@@ -10,13 +10,13 @@ font="Avenir LT 65 Medium"
 fallbackfont="WenQuanYi Micro Hei"  # In case of Japanese music.
 fontsize=10
 fallbackfontsize=10
+fallbackregex='[\p{Hiragana}\p{Katakana}\p{Han}]'
 titlesize=14
 imgsize=96
 radius=12
 shadowtype=0
 
-while getopts :f:F:t:T:s:S:i:v:a:r:hH OPT; do
-case $OPT in
+while getopts :f:F:t:T:s:S:i:v:a:Ar:R:hHw OPT; do case $OPT in
     f) font="$OPTARG" ;;
     F) fallbackfont="$OPTARG" ;;
     t) titlesize="$OPTARG" ;;
@@ -26,21 +26,22 @@ case $OPT in
     i) imgsize="$OPTARG" ;;
     v) voffset="$OPTARG" ;;
     a) hoffset="$OPTARG" ;;
+    A) alignr=1 ;;
     r) radius="$OPTARG" ;;
+    R) fallbackregex="$OPTARG" ;;
     h) shadowtype=1 ;;
     H) shadowtype=2 ;;
-esac
-done
+    w) watchmode=1 ;;
+esac; done
 
-[[ "$shadowtype" = "1" ]] && voffset=$((voffset + 10))
 cd /tmp
-cur="$(quodlibet --print-playing '${font %font%:Bold:size=%title%}${alignr} <title>${font %font%:Bold:size=%size%}<artist|
-${alignr} <artist>>${font %font%:size=%size%}<album|
-${alignr} <album>><website|
-${alignr} <website>>')"
-if [[ "$(cat .current.song)" != "$cur" ]]; then
+cur="$(quodlibet --print-playing '${font %font%:Bold:size=%title%}${offset '$hoffset'}%alignr%<title>${font %font%:Bold:size=%size%}<artist|
+${offset '$hoffset'}%alignr%<artist>>${font %font%:size=%size%}<album|
+${offset '$hoffset'}%alignr%<album>><website|
+${offset '$hoffset'}%alignr%<website>>')"
+if [[ "$watchmode" ]] || [[ "$(cat .current.song)" != "$cur" ]]; then
     IN=current.cover
-    [[ ! -e $IN ]] && IN=~/.conky/QLInfo/nocover.png
+    [[ ! -e $IN ]] && IN=$HOME/.conky/QLInfo/nocover.png
     convert $IN -resize ${imgsize}x${imgsize} .qli-step1.png
     convert .qli-step1.png -format "roundrectangle 0,0 %[fx:w-1],%[fx:h-1] $radius,$radius" \
      info: > .qli-draw.mvg
@@ -56,21 +57,24 @@ if [[ "$(cat .current.song)" != "$cur" ]]; then
     elif [[ "$shadowtype" = "2" ]]; then
         convert .qli-step3.png +level 0%,0% .qli-step4.png
         composite -compose Dst_Over -geometry +1+1 .qli-step4.png .qli-step3.png \
-         conkycover.png
+         .qli-step4.png
+        mv .qli-step4.png conkycover.png
     else
         mv .qli-step3.png conkycover.png
     fi
     rm .qli-step*.png .qli-mask.png .qli-draw.mvg
     echo "$cur" > .current.song
 fi
-if (echo "$cur" | grep -P '[^[:ascii:]]' > /dev/null); then
+if [[ "$alignr" ]]; then
+    cur="$(echo "$cur" | sed 's/%alignr%/${alignr}${offset -'$hoffset'}/g')"
+else
+    cur="$(echo "$cur" | sed 's/%alignr%//g')"
+fi
+if (echo "$cur" | grep -P "$fallbackregex" > /dev/null); then
     cur="$(echo "$cur" | sed -e "s/%font%/$fallbackfont/g" \
      -e "s/%size%/$fallbackfontsize/g" -e "s/%title%/$fallbacktitlesize/g")"
 else
     cur="$(echo "$cur" | sed -e "s/%font%/$font/g" -e "s/%size%/$fontsize/g" \
      -e "s/%title%/$titlesize/g")"
 fi
-IMGDIFF=$((588 - imgsize))
-#echo -e '${image /tmp/conkycover.png -p '$IMGDIFF',0}${voffset '$voffset'}'"$cur"'${font}'
-#echo -e '${voffset '$voffset'}'"$cur"'${font}'
-echo -e "$cur"
+echo -e '${voffset '$voffset'}'"$cur"'${font}'

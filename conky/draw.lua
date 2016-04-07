@@ -1,10 +1,15 @@
 require 'cairo'
 
-local function rgb_to_r_g_b(colour,alpha)
-	return ((colour / 0x10000) % 0x100) / 255., ((colour / 0x100) % 0x100) / 255., (colour % 0x100) / 255., alpha
+tl = 0; tr = 1; br = 2; bl = 3
+
+local function rgba_tuple (color)
+	return ((color / 0x1000000) % 0x100) / 255.,
+		   ((color / 0x10000) % 0x100) / 255.,
+		   ((color / 0x100) % 0x100) / 255.,
+		   (color % 0x100) / 255.
 end
 
-local function check_ql()
+local function check_ql ()
 	local test = io.open(os.getenv("HOME").."/.quodlibet/current", "r")
 	if test == nil then
 		return false
@@ -20,62 +25,71 @@ local function check_ql()
 	end
 end
 
-function conky_draw(bg_colour, bg_alpha, rad_tl, rad_tr, rad_br, rad_bl, v, ql)
+function conky_draw (color, tl, tr, br, bl)
 	if conky_window == nil then return end
-	if ql and not check_ql() then return end
-	if v == nil then v = 0 end
 	local w = conky_window.width
 	local h = conky_window.height
-	if h <= 24 then return end
+	if h <= 20 then return end
 	
-	local cs = cairo_xlib_surface_create(conky_window.display, conky_window.drawable, conky_window.visual, w, h)
+	local cs = cairo_xlib_surface_create(
+	 conky_window.display,
+	 conky_window.drawable,
+	 conky_window.visual, w, h)
 	local cr = cairo_create(cs)
 	
-	cairo_move_to(cr,rad_tl,0)
-	cairo_line_to(cr,w-rad_tr,0)
-	cairo_curve_to(cr,w,0,w,0,w,rad_tr)
-	cairo_line_to(cr,w,h+v-rad_br)
-	cairo_curve_to(cr,w,h+v,w,h+v,w-rad_br,h+v)
-	cairo_line_to(cr,rad_bl,h+v)
-	cairo_curve_to(cr,0,h+v,0,h+v,0,h+v-rad_bl)
-	cairo_line_to(cr,0,rad_tl)
-	cairo_curve_to(cr,0,0,0,0,rad_tl,0)
+	cairo_move_to(cr, tl, 0)
+	cairo_line_to(cr, w-tr, 0)
+	cairo_curve_to(cr, w-tr, 0, w, 0, w, tr)
+	cairo_line_to(cr, w, h-br)
+	cairo_curve_to(cr, w, h-br, w, h, w-br, h)
+	cairo_line_to(cr, bl, h)
+	cairo_curve_to(cr, bl, h, 0, h, 0, h-bl)
+	cairo_line_to(cr, 0, tl)
+	cairo_curve_to(cr, 0, tl, 0, 0, tl, 0)
 	cairo_close_path(cr)
 
-	cairo_set_source_rgba(cr,rgb_to_r_g_b(bg_colour,bg_alpha))
+	cairo_set_source_rgba(cr, rgba_tuple(color))
 	cairo_fill(cr)
 
 	cairo_surface_destroy(cs)
 	cairo_destroy(cr)
 end
 
-function conky_draw_cover(bg_colour, bg_alpha, top, bottom, x, y, middle)
+function conky_draw_ql (color, tl, tr, br, bl, top, bottom, x, y, right, middle)
 	if conky_window == nil then return end
 	if not check_ql() then return end
 	if top == nil then top = 0 end
 	if bottom == nil then bottom = 0 end
 	if x == nil then x = 0 end
 	if y == nil then y = 0 end
+	right = tonumber(right) ~= 0
+	middle = tonumber(middle) ~= 0
 	local w = conky_window.width
-	local h = conky_window.height
+	local h = conky_window.height - bottom
 	
-	local cs = cairo_xlib_surface_create(conky_window.display, conky_window.drawable, conky_window.visual, w, h)
+	local cs = cairo_xlib_surface_create(
+	  conky_window.display,
+	  conky_window.drawable,
+	  conky_window.visual, w, h)
 	local cr = cairo_create(cs)
 	
-	if middle then w = w / 2 end
-	
-	cairo_move_to(cr,2,top)
-	cairo_line_to(cr,w,top)
-	cairo_line_to(cr,w,h-bottom)
-	cairo_line_to(cr,2,h-bottom)
-	cairo_line_to(cr,2,top)
+	cairo_move_to(cr, tl, top)
+	cairo_line_to(cr, w-tr, top)
+	cairo_curve_to(cr, w-tr, top, w, top, w, top+tr)
+	cairo_line_to(cr, w, h-br)
+	cairo_curve_to(cr, w, h-br, w, h, w-br, h)
+	cairo_line_to(cr, bl, h)
+	cairo_curve_to(cr, bl, h, 0, h, 0, h-bl)
+	cairo_line_to(cr, 0, top+tl)
+	cairo_curve_to(cr, 0, top+tl, 0, top, tl, top)
 	cairo_close_path(cr)
-
-	cairo_set_source_rgba(cr,rgb_to_r_g_b(bg_colour,bg_alpha))
+	
+	cairo_set_source_rgba(cr, rgba_tuple(color))
 	cairo_fill(cr)
 	
 	local image = cairo_image_surface_create_from_png("/tmp/conkycover.png")
 	if image then
+		if right then x = x + (w - cairo_image_surface_get_width(image)) end
 		cairo_set_source_surface(cr, image, x, y)
 		cairo_paint(cr)
 	end
