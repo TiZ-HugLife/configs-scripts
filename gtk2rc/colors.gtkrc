@@ -216,7 +216,7 @@ style "mod-notify-pb-colors" {
 }
 
 class "XfceNotifyWindow" style "mod-notify-window-colors"
-widget_class "XfceNotifyWindow.*<GtkButton>" style "mod-notify-button-colors"
+widget_class "XfceNotifyWindow.*.<GtkButton>" style "mod-notify-button-colors"
 widget_class "XfceNotifyWindow.*.<GtkLabel>" style "mod-notify-text-colors"
 widget_class "XfceNotifyWindow.*.<GtkProgress>" style "mod-notify-pb-colors"
 widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-pb-colors"
