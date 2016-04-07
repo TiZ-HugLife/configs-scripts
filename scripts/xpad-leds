@@ -13,8 +13,10 @@ EOF
     exit
 fi
 
+index=0
 for led in /sys/class/leds/xpad*; do
-    light=$((${led//[!0-9]/} % 4 + 6))
+    #light=$((${led//[!0-9]/} % 4 + 6))
+    light=$((index++ % 4 + 6))
     [[ "$1" == "off" ]] && light=0;
     echo $light > $led/brightness
 done
