@@ -11,6 +11,8 @@ import gtk
 import wnck
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
+import re
+rx = re.compile(r"^(/panels/panel-.+/)(?:alpha-(?:normal|max)|range-(?:x|y))$")
 
 class PanelFader:
     def __init__ (self):
@@ -21,12 +23,12 @@ class PanelFader:
         self.bus = dbus.SessionBus()
         self.xfconf = dbus.Interface(self.bus.get_object(
          "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
-        self.panels = {p: self.xfconf_get_panel(p) for p in [
-            prop[:-12] for prop in [
+        self.panels = {panel: self.xfconf_get_panel(panel) for panel in set([
+            rx.sub(r"\1", prop) for prop in [
                 k for (k, v) in self.xfconf.GetAllProperties(
-                 "xfce4-panel", "/panels").iteritems() if "alpha-normal" in k
+                 "xfce4-panel", "/panels").iteritems() if rx.match(str(k))
                 ]
-            ]
+            ])
         }
         self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
          "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
@@ -62,9 +64,9 @@ class PanelFader:
         return panel
     
     def xfconf_changed (self, channel, prop, val):
-        if channel != "xfce4-panel": return
-        for k, v in self.panels.iteritems():
-            if k in prop: self.panels[k] = self.xfconf_get_panel(k)
+        if channel != "xfce4-panel" or not rx.match(prop): return
+        panel = rx.sub(r"\1", prop)
+        self.panels[panel] = self.xfconf_get_panel(panel)
         self.check_status()
     
     # Wnck stuff.
