@@ -10,23 +10,26 @@
 import gtk
 import wnck
 import dbus
-from optparse import OptionParser
+from dbus.mainloop.glib import DBusGMainLoop
 
 class PanelFader:
-    def __init__ (self, panel, alpha_normal, alpha_max, range_x, range_y):
-        self.panel = int(panel)
-        self.alpha_normal = int(alpha_normal)
-        self.alpha_max = int(alpha_max)
+    def __init__ (self):
         self.window = None
-        self.window_handler = None
-        self.range_x = [int(i) for i in range_x.split(":")]
-        self.range_y = [int(i) for i in range_y.split(":")]
+        self.state_handler = None
+        self.wksp_handler = None
         
         self.bus = dbus.SessionBus()
         self.xfconf = dbus.Interface(self.bus.get_object(
          "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
-        self.channel = "xfce4-panel"
-        self.prop = "/panels/panel-{}/background-alpha"
+        self.panels = {p: self.xfconf_get_panel(p) for p in [
+            prop[:-12] for prop in [
+                k for (k, v) in self.xfconf.GetAllProperties(
+                 "xfce4-panel", "/panels").iteritems() if "alpha-normal" in k
+                ]
+            ]
+        }
+        self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
+         "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
         
         self.screen = wnck.screen_get_default()
         while gtk.events_pending():
@@ -37,6 +40,34 @@ class PanelFader:
         self.screen.connect("window_closed", self.check_status)
         self.active_win_change()
     
+    # Xfconf stuff.
+    def xfconf_get (self, prop_base, prop, default=None):
+        if self.xfconf.PropertyExists("xfce4-panel", prop_base + prop):
+            retval = self.xfconf.GetProperty("xfce4-panel", prop_base + prop)
+            return retval
+        else:
+            return default
+    
+    def xfconf_get_panel (self, prop_base):
+        panel = {}
+        panel["base"] = prop_base
+        panel["normal"] = self.xfconf_get(prop_base, "alpha-normal", 0)
+        panel["max"] = self.xfconf_get(prop_base, "alpha-max", 100)
+        panel["range_x"] = [int(x) for x in
+         self.xfconf_get(prop_base, "range-x", [0, 9999])]
+        if len(panel["range_x"]) != 2: panel["range_x"] = [0, 9999]
+        panel["range_y"] = [int(x) for x in
+         self.xfconf_get(prop_base, "range-y", [0, 9999])]
+        if len(panel["range_y"]) != 2: panel["range_y"] = [0, 9999]
+        return panel
+    
+    def xfconf_changed (self, channel, prop, val):
+        if channel != "xfce4-panel": return
+        for k, v in self.panels.iteritems():
+            if k in prop: self.panels[k] = self.xfconf_get_panel(k)
+        self.check_status()
+    
+    # Wnck stuff.
     def active_win_change (self, null1=None, null2=None):
         if self.window and self.state_handler and self.wksp_handler:
             self.window.disconnect(self.state_handler)
@@ -50,39 +81,27 @@ class PanelFader:
         self.check_status()
     
     def check_status (self, null1=None, null2=None, null3=None):
-        if len(self.get_wins()) > 0: self.set_panel_alpha(self.alpha_max)
-        else: self.set_panel_alpha(self.alpha_normal)
+        for k, v in self.panels.iteritems():
+            if len(self.get_wins(v)) > 0: self.set_panel_alpha(v, "max")
+            else: self.set_panel_alpha(v, "normal")
     
-    def get_wins (self):
+    def get_wins (self, panel):
         return [w for w in self.screen.get_windows_stacked() if
          w.is_visible_on_workspace(self.screen.get_active_workspace()) and
          w.is_maximized() and not w.is_skip_tasklist() and
-         w.get_window_type() == 0 and self.window_in_range(w)]
+         w.get_window_type() == 0 and self.window_in_range(w, panel)]
     
-    def window_in_range (self, window):
+    def window_in_range (self, window, panel):
         geometry = window.get_geometry()
-        return self.range_x[0] <= geometry[0] <= self.range_x[1] and \
-         self.range_y[0] <= geometry[0] <= self.range_y[1]
+        return panel["range_x"][0] <= geometry[0] <= panel["range_x"][1] and \
+         panel["range_y"][0] <= geometry[0] <= panel["range_y"][1]
 
-    def set_panel_alpha (self, alpha):
-        self.xfconf.SetProperty(
-         self.channel, self.prop.format(self.panel), alpha)
+    def set_panel_alpha (self, panel, which):
+        self.xfconf.SetProperty("xfce4-panel", panel["base"] +
+         "background-alpha", panel[which])
 
 
 if __name__ == '__main__':
-    usage = "%prog [options]"
-    parser = OptionParser(usage=usage)
-    parser.add_option("-p", "--panel", default=0,
-     help="Which panel to fade (default 0)")
-    parser.add_option("-n", "--normal", dest="alpha_normal", default=0,
-     help="Default panel bg alpha (default 0)")
-    parser.add_option("-m", "--max", dest="alpha_max", default=100,
-     help="Panel bg alpha with maximized windows (default 100)")
-    parser.add_option("-x", "--xrange", dest="range_x", default="0:32767",
-     help="Only consider windows in a certain x range: min:max")
-    parser.add_option("-y", "--yrange", dest="range_y", default="0:32767",
-     help="Only consider windows in a certain y range: min:max")
-    (options, args) = parser.parse_args()
-    fader = PanelFader(options.panel, options.alpha_normal, options.alpha_max,
-     options.range_x, options.range_y)
+    DBusGMainLoop(set_as_default=True)
+    fader = PanelFader()
     gtk.main()
