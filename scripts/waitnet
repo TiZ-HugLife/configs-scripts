@@ -2,7 +2,7 @@
 # Wait for an internet connection, then optionally run a command.
 
 # If anything blows up, jump ship.
-set -e -x
+set -e
 
 # And now we wait.
 test="$((ping -w1 -c1 google.com || ping -w1 -c1 wikipedia.com) > /dev/null 2>&1 && echo up || true)"

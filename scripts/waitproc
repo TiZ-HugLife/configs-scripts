@@ -2,7 +2,7 @@
 # Wait for specified process to exist, then optionally run a command.
 
 # If anything blows up, jump ship.
-set -e -x
+set -e
 
 # And now we wait.
 proc="$1"
