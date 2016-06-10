@@ -8,7 +8,7 @@ huepl="$(which huepl)"
 light="$1"; [[ "$light" ]] || { echo "Light index required."; exit 1; }
 to="$2"
 step="${3:-16}"
-transition="${4:-0.4}"
+delay="${4:-0.4}"
 
 regex="bri ([0-9]+)"
 [[ $("$huepl" lights | grep "light $light") =~ $regex ]]
@@ -22,5 +22,5 @@ while [[ $bri -ne $to ]]; do
     [[ $step -lt 0 ]] && [[ $bri -lt $to ]] && bri=$to;
     [[ $step -gt 0 ]] && [[ $bri -gt $to ]] && bri=$to;
     "$huepl" bri "$light" "$bri" || exit 1
-    sleep $transition
+    sleep $delay
 done

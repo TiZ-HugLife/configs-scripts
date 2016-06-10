@@ -6,7 +6,7 @@ huepl="$(which huepl)"
 [[ -x "$huepl" ]] || huepl="$(dirname "$0")/huepl"
 [[ -x "$huepl" ]] || { echo "Can't find HuePL."; exit 1; }
 light=$1; [[ "$light" ]] || { echo "Light index required."; exit 1; }
-speed=${2:-1024}
+speed=${2:-on}; speed=${speed/on/1024}
 transition=${3:-0.4}
 
 regex="hs ([0-9]+) ([0-9]+)"
