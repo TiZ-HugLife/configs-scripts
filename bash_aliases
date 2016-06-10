@@ -95,6 +95,21 @@ search () {
     find "${DIR}" ${EXTRA_ARGS}-type f -exec grep -li "${QUERY}" \{\} \; | sort
 }
 
+# For Syncthing.
+find_sync_conflicts () {
+    dirs=(
+        "$HOME/Documents"
+        "$HOME/Music"
+        "$HOME/Pictures"
+        "$HOME/Projects"
+        "$HOME/Public"
+        "$HOME/School"
+        "$HOME/Games/Saves"
+        "/home/common"
+    )
+    for dir in "${dirs[@]}"; do find "$dir" -name "*.sync-conflict-*"; done
+}
+
 # Compile Haxe programs.
 hxneko () {
     main=${1/.hx/}; shift
