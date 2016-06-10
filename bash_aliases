@@ -1,6 +1,7 @@
 # Aliases.
 alias fucking='sudo'
 alias ls='ls --color=auto'
+alias rs='rsync -avzsHXA -e ssh --rsync-path="rsync --fake-super" --progress'
 alias icoextract='wrestool -x --output=. -t14'
 alias r='rolldice --separate --random'
 alias flow='haxelib run flow'
@@ -47,7 +48,7 @@ elif [[ -x $(which apt-get 2> /dev/null) ]]; then
     alias pkg-install='pkg install'
     alias pkg-install-aur='pkg-fail'
     alias pkg-install-rec='pkg install --install-recommends'
-    alias pkg-install-file='sudo gdebi'
+    alias pkg-install-file='sudo dpkg -i'
     alias pkg-remove='pkg remove'
     alias pkg-purge='pkg purge'
     alias pkg-info='sudo apt-cache show'
