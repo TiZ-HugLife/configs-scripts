@@ -1,0 +1,6 @@
+#!/bin/bash
+# Executes separate socket for geany per workspace. Copy geany.desktop to
+# $HOME/.local/share/applications and change its exec to this to get the most
+# benefit; you'll be able to work on different text-related tasks on each
+# workspace without disrupting either window!
+exec geany --socket-file=/run/user/$(id -u)/geany-$(xdotool get_desktop) "$@"
