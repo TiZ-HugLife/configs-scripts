@@ -10,6 +10,8 @@ app = application name
 class = window class
 role = window role
 name = title bar contents
+min_width = window width is this or higher
+min_height = window height is this or higher
 type = window type, specified without the WINDOW_TYPE_ prefix and whatever case
        you want. if nil, assumed to be normal. if *, all types.
 exc_name = exclude window name
@@ -25,17 +27,21 @@ no_task = hide from tasklist
 no_page = hide from pager
 set_type = change the window's type. see type above.
 top, bottom, shade, max, min, undeco, stick, pin = do these to the window.
+fswin = borderless fullscreen window. aspect scales window to fill screen.
 ]]
 
 
 function do_rules(...)
+    _, _, win_w, win_h = get_window_client_geometry()
     for _, v in ipairs(arg) do
         if
             (not v.app or v.app == get_application_name()) and
             (not v.class or v.class == get_window_class()) and
             (not v.role or v.role == get_window_role()) and
             (not v.name or v.name == get_window_name()) and
-            (not v.exc_name or v.class ~= get_window_name()) and
+            (not v.min_width or v.min_width >= win_w) and
+            (not v.min_height or v.min_height >= win_h) and
+            (not v.exc_name or v.exc_name ~= get_window_name()) and
             (v.type == "*" or
                 "WINDOW_TYPE_"..string.upper(v.type or "normal") ==
                 get_window_type()) and
@@ -63,6 +69,22 @@ function do_rules(...)
             if v.stick then stick_window() end
             if v.set_type then
                 set_window_type("WINDOW_TYPE_"..string.upper(v.set_type))
+            end
+            if v.fswin then
+                screen_w, screen_h = get_screen_geometry()
+                if win_w / win_h <= (screen_w / screen_h) then
+                    new_w = (screen_h / win_h) * win_w
+                    new_h = screen_h
+                    new_x = (screen_w - new_w) / 2
+                    new_y = 0
+                else
+                    new_w = screen_w
+                    new_h = new_w / (win_w / win_h)
+                    new_x = 0
+                    new_y = (screen_h - new_h) / 2
+                end
+                undecorate_window()
+                set_window_geometry2(new_x, new_y, new_w, new_h)
             end
         end
     end
