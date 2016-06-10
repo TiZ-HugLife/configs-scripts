@@ -173,7 +173,7 @@ style "mod-whisker-colors" {
 	text[INSENSITIVE]  = mix (0.5, @whisker_bg_color, @whisker_fg_color)
 }
 
-widget "whiskermenu-window*" style "mod-whisker-colors"
+#widget "whiskermenu-window*" style "mod-whisker-colors"
 
 
 ####
