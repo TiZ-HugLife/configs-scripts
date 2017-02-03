@@ -6,13 +6,11 @@
 # Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off
 #   Change per-controller defaults by editing this file.
 
-ledpath="/sys/class/leds/0005:054C:05C4"
-
 defaults=(
-    "0 20 30"
-    "30 0 20"
-    "30 10 0"
-    "10 30 0"
+    "0 50 50"
+    "50 0 50"
+    "50 50 0"
+    "50 50 50"
 )
 
 if [[ "$1" == "install" ]]; then
@@ -26,11 +24,11 @@ EOF
 elif [[ "$1" == "setup" ]]; then
     # Make leds user writable.
     [[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
-    for led in $ledpath.*; do
-        chmod a+w $led/brightness;
+    for syspath in /sys/bus/hid/drivers/sony/0*/leds; do
+        chmod a+w $syspath/*/brightness;
     done
-    # Set default light.
-    "$0" newest default
+    # Set lights as controllers come and go.
+    "$0" all default
 elif [[ "$#" =~ 0|1|3 ]]; then
     echo "Usage: ds4-lightbar INDEX|all|newest (R G B)|default|off"
     echo "  Edit this script to set the default color."
@@ -38,15 +36,22 @@ elif [[ "$#" =~ 0|1|3 ]]; then
 else  # Convenient light-changing API.
     index=$1; r=$2; g=$3; b=$4  # Index refers to the nth available controller.
     
-    # Find all available DS4 leds.
-    leds=(); for led in $ledpath*\:global; do
-        leds+=($(echo $led | cut -d: -f3 | cut -d. -f2))
+    # We use the syspath leds directory now because there are multiple vendor
+    # and product IDs that expose RGB LEDs, and we can also just do *red,
+    # *green, *blue, and *global since the dir only contains that device's leds.
+    # We're also going to sort each device by creation time.
+    devices=(); for syspath in /sys/bus/hid/drivers/sony/0*; do
+        if [[ -e $(echo $syspath/leds/*:global) ]]; then
+            devices+=("$(stat -c '%Y %n' $syspath/leds)")
+        fi
     done
+    leds=($(for d in "${devices[@]}"; do echo $d; done \
+     | sort -n | cut -d' ' -f2))
     
     # Define a function rather than repeating ourselves ad nauseum.
     set_led () {
         led=${leds[$1 - 1]}; [[ "$led" ]] || return
-        if [[ "$2" == "off" ]]; then echo 0 > $ledpath.$led\:global/brightness
+        if [[ "$2" == "off" ]]; then echo 0 > $led/*global/brightness
         elif [[ "$2" == "default" ]]; then
             # Bash functions have no sense of scope. We can peek at the index.
             default=${defaults[$1 - 1]}
@@ -56,10 +61,10 @@ else  # Convenient light-changing API.
             }
             set_led $1 $default
         else
-            echo 1 > $ledpath.$led\:global/brightness
-            echo $2 > $ledpath.$led\:red/brightness
-            echo $3 > $ledpath.$led\:green/brightness
-            echo $4 > $ledpath.$led\:blue/brightness
+            echo 1 > $led/*global/brightness
+            echo $2 > $led/*red/brightness
+            echo $3 > $led/*green/brightness
+            echo $4 > $led/*blue/brightness
         fi
     }
     
