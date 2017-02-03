@@ -1,0 +1,28 @@
+#!/bin/bash
+# Syncs DS4s in pairing mode.
+
+notify () { notify-send -i input-gaming "DualShock 4 Sync" "$*"; }
+
+notify Please press share+home on all controllers \
+ until the light bar begins to flash.
+
+# Repeat the process five times to catch as many controllers as possible.
+devices=()
+for s in $(seq 1 5); do
+    echo "Pass $s"
+    newdevices=($(hcitool scan --flush | grep "Wireless Controller" | \
+     cut -f2 | grep -v "farts$(tr ' ' '|' <<< " ${devices[@]}")"))
+
+    for dev in ${newdevices[@]}; do
+        notify Pairing with controller $dev
+        bluetoothctl <<EOF
+trust $dev
+pair $dev
+connect $dev
+EOF
+    done
+    devices+=(${newdevices[@]})
+    [[ $s -lt 5 ]] && sleep 1  # Prevents inquiry failed.
+done
+
+notify "Synced ${#devices[@]} controller(s)."
