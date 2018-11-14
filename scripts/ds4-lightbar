@@ -28,7 +28,6 @@ EOF
     udevadm control --reload
     exit
 elif [[ "$1" == "udev" ]]; then
-    
     dev=$(basename $DEVPATH | sed 's/:global//')
     case "$ACTION" in
     add)

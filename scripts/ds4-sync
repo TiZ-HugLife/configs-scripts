@@ -10,7 +10,7 @@ notify Please press share+home on all controllers \
 devices=(dummy)
 for s in $(seq 1 5); do
     echo "Pass $s"
-    newdevices=($(hcitool scan --length 5 --flush | \
+    newdevices=($(hcitool scan --length 5 | \
      grep "Wireless Controller" | cut -f2 | \
      egrep -v "$(tr ' ' '|' <<< "${devices[*]}")"))
 
