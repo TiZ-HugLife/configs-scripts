@@ -1,0 +1,7 @@
+#!/bin/bash
+# Re-compress videos using VP8 and hardware accel to save space.
+for f in "$@"; do
+    ffmpeg -hwaccel vaapi -vaapi_device /dev/dri/renderD128 -i "$f" \
+     -c:v vp8_vaapi -q:v 0.42 -filter:v 'format=nv12,hwupload' \
+     -c:a copy -map_metadata 0 -y "${f%.*}.mkv"
+done
