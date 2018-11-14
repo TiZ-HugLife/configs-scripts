@@ -1,16 +1,14 @@
 # Aliases.
-alias fucking='sudo'
+alias sudo='sudo '  # This nifty trick allows alias expansion for sudo.
+alias fucking='sudo '
 alias ls='ls --color=auto'
 alias rs='rsync -avzsHXA -e ssh --rsync-path="rsync --fake-super" --progress'
 alias icoextract='wrestool -x --output=. -t14'
 alias r='rolldice --separate --random'
-alias flow='haxelib run flow'
-alias nme='haxelib run nme'
-alias lime='haxelib run lime'
-alias openfl='haxelib run openfl'
-alias flixel='haxelib run flixel-tools'
 alias kpie-dump='kpie --single /usr/share/doc/kpie/examples/dump.lua > /tmp/kpie-dump; geany /tmp/kpie-dump &'
+alias usbconsole='script -f -c "picocom /dev/ttyUSB0" console.log'
 alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
+alias sshproxy='ssh -D 8080 cerebro'
 
 # Package management; consistent commands no matter what distro I'm on.
 alias pkg-fail="echo Can't do that here, sorry."
@@ -43,25 +41,40 @@ if [[ "$archlinux" ]]; then
     alias pkg-clean='pkg-fail'
     alias pkg-mirrors="sudo reflector --verbose --country 'United States' -l 25 -p http --sort rate --save /etc/pacman.d/mirrorlist"
 elif [[ -x $(which apt-get 2> /dev/null) ]]; then
-    alias pkg='sudo apt-get'
-    alias pkg-update='pkg update && pkg dist-upgrade'
+    alias pkg='sudo apt'
+    alias pkg-update='pkg update && pkg full-upgrade'
     alias pkg-install='pkg install'
     alias pkg-install-aur='pkg-fail'
     alias pkg-install-rec='pkg install --install-recommends'
     alias pkg-install-file='sudo dpkg -i'
     alias pkg-remove='pkg remove'
     alias pkg-purge='pkg purge'
-    alias pkg-info='sudo apt-cache show'
-    alias pkg-search='sudo apt-cache search'
+    alias pkg-info='pkg show'
+    alias pkg-search='pkg search'
     alias pkg-search-local='sudo dpkg --get-selections | grep'
     alias pkg-list='sudo dpkg -L'
     alias pkg-owns='sudo dpkg -S'
     alias pkg-clean='pkg autoremove && pkg autoclean'
 fi
+alias flatpak='flatpak'
 
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
+}
+
+# Extract and install bo0xvn wallpapers.
+bo0xvn () {
+    local dir=$(mktemp -d)
+    local zips=$(find . -name "*by_bo0xvn*")
+    for z in $zips; do unzip $z -d $dir; done
+    rm -r $dir/__MACOSX
+    for f in $(find $dir -name "*2880_1800*"); do
+        mv $f ~/Pictures/Wallpaper/Nature/bo0xvn/$(
+            sed -nr 's:^.+/_+([0-9]+)_([VIX]+)_.+$:\2\.0\1\.jpg:p' <<< $f
+        )
+    done
+    rm -r $dir
 }
 
 # I forgot what I use this for.
@@ -78,6 +91,15 @@ ffencode () {
      -c:a copy \
      -threads 0 \
      "$2"
+}
+
+# Symlinks kozec's dumbxinputemu into the current dir.
+# Takes one argument: Game EXE to check which architecture.
+install_xinputemu () {
+    case "$(file "$1")" in
+    x86-64) ln -sf "$HOME/Games/Etc/XInput/Dumb64/"* ./ ;;
+    *) ln -sf "$HOME/Games/Etc/XInput/Dumb32/"* ./ ;;
+    esac
 }
 
 # Generic search function.
@@ -122,32 +144,38 @@ hxcpp () {
      -cpp .hxcpp && mv .hxcpp/$main ./$main
 }
 
+# Haxe REPL.
+alias ihx="haxelib --global run ihx"
+
 # Dump and then strip album art.
 albumart_mp3 () {
     VAR=(*.mp3)
-    eyeD3 --write-images . "$VAR"
+    eyeD3 --write-images . "${VAR[0]}"
     mv FRONT_COVER.jpeg albumart.jpg
     mid3v2 --delete-frames=PIC,APIC *.mp3
 }
 
 albumart_flac () {
+    VAR=(*.flac)
+    metaflac --export-picture=albumart.jpg "${VAR[0]}"
     metaflac --remove --block-type=PICTURE,PADDING --dont-use-padding *.flac
 }
 
-# Unrotate images and strip exif data. Lossy!
+# Unrotate images, now lossless! (Might be because I do 4:3 pics now.)
 auto_orient () {
     [[ ! -d "$1" ]] && echo "Need a directory." && return 1
-    mogrify -auto-orient -quality 96% -strip "$1"/*.jpg
+    cd "$1"
+    for f in *.jpg; do
+        jhead -autorot "$f"
+        jhead -norot -rgt "$f"
+    done
+    notify-send "Auto-rotate complete"
 }
 
-# Rotate videos.
-vid_rotate () {
-    for f in "$@"; do if [[ -f "$f" ]]; then
-        ffmpeg -i "$f" -vf "transpose=1" "${f%.*}.rot.${f##*.}"
-    fi; done
-}
-
-# Silence videos.
+# Silence videos. Why would I need to do that?
+# Because I take videos of twirly cuties at conventions and my gleeful
+# squeaks don't really add anything to the experience aside from
+# embarrassing myself when I'm just trying to cheer up.
 vid_silence () {
     for f in "$@"; do if [[ -f "$f" ]]; then
         ffmpeg -i "$f" -c:v copy -an "${f%.*}.shh.${f##*.}"
