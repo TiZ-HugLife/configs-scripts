@@ -5,12 +5,14 @@
 
 style "mod-panel"
 {
+    XfcePanelWindow::autohide-size = 3
     GtkMenuBar::shadow-type = GTK_SHADOW_NONE
     
     xthickness  = 0
     ythickness  = 0
 
     engine "murrine" {
+        border_colors = FALSE
         roundness   = 0
         glowstyle   = 0
         glazestyle  = 0
@@ -32,6 +34,11 @@ style "mod-main-menu-text" = "mod-panel-text"
 
 style "mod-tasklist" = "mod-panel"
 {
+    XfceTasklist::max-button-length = 320
+    XfceTasklist::ellipsize-mode = PANGO_ELLIPSIZE_END
+    XfceTasklist::minimized-icon-lucency = 50
+    XfceTasklist::menu-max-width-chars = 24
+    
     xthickness  = 2
     ythickness  = 0
 }
@@ -92,6 +99,7 @@ widget "*Xfce*ixer*lugin*"  style "mod-indicator"
 widget "*Xfce*auncher*"     style "mod-indicator"
 widget "*Xfce*ystem*"       style "mod-meter"
 widget "*Xfce*attery*"      style "mod-meter"
+widget "*Xfce*ensor*"       style "mod-meter"
 widget "*indicator-applet*" style "mod-indicator"
 widget "*indicator-button*" style "mod-indicator"
 widget "*XfceTasklist*"     style "mod-tasklist"

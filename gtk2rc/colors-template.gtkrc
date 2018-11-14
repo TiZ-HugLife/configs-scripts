@@ -12,12 +12,12 @@
 # Sets bg color on window decorations.
 style "mod-window-decoration-colors"
 {
-	bg[NORMAL]        = @titlebar_bg_color
-	fg[NORMAL]        = @titlebar_fg_color
+	bg[NORMAL]        = @bg_color
+	fg[NORMAL]        = @fg_color
     bg[SELECTED]      = @selected_bg_color
     fg[SELECTED]      = @selected_fg_color
-    bg[INSENSITIVE]   = @titlebar_bg_color
-    fg[INSENSITIVE]   = mix (0.5, @titlebar_bg_color, @titlebar_fg_color)
+    bg[INSENSITIVE]   = @bg_color
+    fg[INSENSITIVE]   = mix (0.5, @bg_color, @fg_color)
 }
 widget "xfwm" style "mod-window-decoration-colors"
 class "MetaFrames" style "mod-window-decoration-colors"
@@ -29,36 +29,36 @@ widget_class "MetaFrames" style "mod-window-decoration-colors"
 ####
 
 style "mod-panel-colors" {   
-    bg[NORMAL]     = @panel_bg_color
-    bg[ACTIVE]     = mix (0.15, @panel_fg_color, @panel_bg_color)
+    bg[NORMAL]     = @bg_color
+    bg[ACTIVE]     = mix (0.15, @fg_color, @bg_color)
     bg[PRELIGHT]   = shade (0.85, @selected_bg_color)
-    bg[SELECTED]   = mix (0.50, @panel_bg_color, @selected_bg_color)
+    bg[SELECTED]   = mix (0.50, @bg_color, @selected_bg_color)
     
-    fg[NORMAL]     = @panel_fg_color
-    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
-    fg[ACTIVE]     = @panel_fg_color
-    fg[SELECTED]   = @panel_fg_color
+    fg[NORMAL]     = @fg_color
+    fg[PRELIGHT]   = shade (1.1, @fg_color)
+    fg[ACTIVE]     = @fg_color
+    fg[SELECTED]   = @fg_color
     
-    text[NORMAL]   = @panel_fg_color
-    text[PRELIGHT] = shade (1.1, @panel_fg_color)
-    text[ACTIVE]   = @panel_fg_color
-    text[SELECTED] = @panel_fg_color
+    text[NORMAL]   = @fg_color
+    text[PRELIGHT] = shade (1.1, @fg_color)
+    text[ACTIVE]   = @fg_color
+    text[SELECTED] = @fg_color
 }
 
 style "mod-panel-text-colors" {
-    fg[NORMAL]     = shade (1.1, @panel_fg_color)
-    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
-    fg[ACTIVE]     = shade (1.1, @panel_fg_color)
+    fg[NORMAL]     = shade (1.1, @fg_color)
+    fg[PRELIGHT]   = shade (1.1, @fg_color)
+    fg[ACTIVE]     = shade (1.1, @fg_color)
     
-    text[NORMAL]   = shade (1.1, @panel_fg_color)
-    text[PRELIGHT] = shade (1.1, @panel_fg_color)
-    text[ACTIVE]   = shade (1.1, @panel_fg_color)
+    text[NORMAL]   = shade (1.1, @fg_color)
+    text[PRELIGHT] = shade (1.1, @fg_color)
+    text[ACTIVE]   = shade (1.1, @fg_color)
 }
 
 style "mod-main-menu-text-colors" = "mod-panel-text-colors" {
     font_name = "Bold"
-    fg[PRELIGHT]   = shade (1.1, @panel_fg_color)
-    text[PRELIGHT] = shade (1.1, @panel_fg_color)
+    fg[PRELIGHT]   = shade (1.1, @fg_color)
+    text[PRELIGHT] = shade (1.1, @fg_color)
 }
 
 style "mod-workspace-switcher-colors" = "mod-panel-colors" {
@@ -66,13 +66,13 @@ style "mod-workspace-switcher-colors" = "mod-panel-colors" {
 }
 
 style "mod-tasklist-colors" = "mod-panel-colors" {
-    bg[ACTIVE]   = mix (0.5, @panel_bg_color, @selected_bg_color)
+    bg[ACTIVE]   = mix (0.5, @bg_color, @selected_bg_color)
     bg[PRELIGHT] = shade (0.85, @selected_bg_color)
     bg[SELECTED] = shade (0.85, @selected_bg_color)
     
-    fg[NORMAL]   = @panel_fg_color
-    fg[ACTIVE]   = shade (1.1, @panel_fg_color)
-    fg[PRELIGHT] = shade (1.1, @panel_fg_color)
+    fg[NORMAL]   = @fg_color
+    fg[ACTIVE]   = shade (1.1, @fg_color)
+    fg[PRELIGHT] = shade (1.1, @fg_color)
 }
 
 widget "*PanelWidget*"            style "mod-panel-colors"
@@ -150,76 +150,30 @@ widget_class "*GtkFileChooserWidget.GtkFileChooserDefault.GtkVBox.GtkHPaned.GtkV
 ####
 
 style "mod-whisker-colors" {
-	bg[NORMAL]         = @whisker_bg_color
+	bg[NORMAL]         = @bg_color
 	bg[PRELIGHT]       = @selected_bg_color
-	bg[ACTIVE]         = shade (0.9, @whisker_bg_color)
-	bg[INSENSITIVE]    = @whisker_bg_color
+	bg[ACTIVE]         = shade (0.9, @bg_color)
+	bg[INSENSITIVE]    = @bg_color
 
-	fg[NORMAL]         = @whisker_fg_color
-	fg[PRELIGHT]       = shade (1.08, @whisker_fg_color)
-	fg[SELECTED]       = shade (1.08, @whisker_fg_color)
-	fg[ACTIVE]         = @whisker_fg_color
-	fg[INSENSITIVE]    = mix (0.5, @whisker_bg_color, @whisker_fg_color)
+	fg[NORMAL]         = @fg_color
+	fg[PRELIGHT]       = shade (1.08, @fg_color)
+	fg[SELECTED]       = shade (1.08, @fg_color)
+	fg[ACTIVE]         = @fg_color
+	fg[INSENSITIVE]    = mix (0.5, @bg_color, @fg_color)
 	
-	base[NORMAL]       = mix (0.21, @whisker_fg_color, @whisker_bg_color)
+	base[NORMAL]       = mix (0.21, @fg_color, @bg_color)
 	base[PRELIGHT]     = @selected_bg_color
 	base[ACTIVE]       = @selected_bg_color
-	base[INSENSITIVE]  = shade(1.2, @whisker_bg_color)
+	base[INSENSITIVE]  = shade(1.2, @bg_color)
 
-	text[NORMAL]       = @whisker_fg_color
+	text[NORMAL]       = @fg_color
 	text[PRELIGHT]     = @selected_fg_color
 	text[SELECTED]     = @selected_fg_color
 	text[ACTIVE]       = @selected_fg_color
-	text[INSENSITIVE]  = mix (0.5, @whisker_bg_color, @whisker_fg_color)
+	text[INSENSITIVE]  = mix (0.5, @bg_color, @fg_color)
 }
 
 #widget "whiskermenu-window*" style "mod-whisker-colors"
-
-
-####
-# XFCE4-NOTIFY COLORS
-####
-
-style "mod-notify-window-colors" {
-    XfceNotifyWindow::border-color = @selected_bg_color
-    XfceNotifyWindow::border-color-hover = shade (1.1, @selected_bg_color)
-
-    bg[NORMAL] = @tooltip_bg_color
-}
-
-style "mod-notify-button-colors" {
-    bg[NORMAL]   = mix (0.25, @tooltip_fg_color, @tooltip_bg_color)
-    bg[PRELIGHT] = mix (0.4, @tooltip_fg_color, @tooltip_bg_color)
-    bg[ACTIVE]   = mix (0.6, @tooltip_fg_color, @tooltip_bg_color)
-
-    fg[NORMAL]   = @tooltip_fg_color
-    fg[PRELIGHT] = mix (0.1, @tooltip_fg_color, @tooltip_fg_color)
-    fg[ACTIVE]   = mix (0.1, @tooltip_fg_color, @tooltip_fg_color)
-}
-
-style "mod-notify-text-colors" {
-    GtkWidget::link-color = mix (0.6, @tooltip_fg_color, @selected_bg_color)
-
-    fg[NORMAL]   = @tooltip_fg_color
-    fg[PRELIGHT] = @tooltip_fg_color
-    fg[ACTIVE]   = @tooltip_fg_color
-}
-
-style "mod-notify-pb-colors" {
-    bg[NORMAL]   = @tooltip_fg_color
-	bg[ACTIVE]   = mix (0.2, @tooltip_fg_color, @tooltip_bg_color)
-    bg[SELECTED] = @tooltip_fg_color
-
-    fg[PRELIGHT] = @tooltip_bg_color
-    fg[ACTIVE]   = @tooltip_fg_color
-    fg[SELECTED] = @tooltip_bg_color
-}
-
-class "XfceNotifyWindow" style "mod-notify-window-colors"
-widget_class "XfceNotifyWindow.*.<GtkButton>" style "mod-notify-button-colors"
-widget_class "XfceNotifyWindow.*.<GtkLabel>" style "mod-notify-text-colors"
-widget_class "XfceNotifyWindow.*.<GtkProgress>" style "mod-notify-pb-colors"
-widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-pb-colors"
 
 
 ####
@@ -227,17 +181,19 @@ widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-pb-colors"
 ####
 
 style "mod-toolbar-colors" {
-    bg[NORMAL]      = @toolbar_bg_color
-	bg[PRELIGHT]    = mix (0.21, @toolbar_fg_color, @toolbar_bg_color)
-	bg[SELECTED]    = mix (0.21, @toolbar_fg_color, @toolbar_bg_color)
-	bg[ACTIVE]      = shade (0.9, @toolbar_bg_color)
-	bg[INSENSITIVE] = @toolbar_bg_color
+    GtkToolbar::shadow-type = GTK_SHADOW_INSET
+    
+    bg[NORMAL]      = @bg_color
+	bg[PRELIGHT]    = mix (0.21, @fg_color, @bg_color)
+	bg[SELECTED]    = mix (0.21, @fg_color, @bg_color)
+	bg[ACTIVE]      = shade (0.9, @bg_color)
+	bg[INSENSITIVE] = @bg_color
 
-	fg[NORMAL]      = @toolbar_fg_color
-	fg[PRELIGHT]    = shade (1.08, @toolbar_fg_color)
-	fg[SELECTED]    = shade (1.08, @toolbar_fg_color)
-	fg[ACTIVE]      = @toolbar_fg_color
-	fg[INSENSITIVE] = mix (0.5, @toolbar_bg_color, @toolbar_fg_color)
+	fg[NORMAL]      = @fg_color
+	fg[PRELIGHT]    = shade (1.08, @fg_color)
+	fg[SELECTED]    = shade (1.08, @fg_color)
+	fg[ACTIVE]      = @fg_color
+	fg[INSENSITIVE] = mix (0.5, @bg_color, @fg_color)
 
 	engine "murrine" {
 		roundness = 0
@@ -246,3 +202,49 @@ style "mod-toolbar-colors" {
 
 widget_class "ThunarWindow*<GtkToolbar>" style "mod-toolbar-colors"
 widget_class "Thunderbird*<GtkToolbar>"  style "mod-toolbar-colors"
+
+
+####
+# XFCE4-NOTIFY COLORS
+####
+
+style "mod-notify-window-colors" {
+    XfceNotifyWindow::border-color = shade (0.5, @bg_color)
+    XfceNotifyWindow::border-color-hover = shade (1.1, @selected_bg_color)
+
+    bg[NORMAL] = shade (0.5, @bg_color)
+}
+
+style "mod-notify-button-colors" {
+    bg[NORMAL]   = mix (0.25, "#ffffff", "#000000")
+    bg[PRELIGHT] = mix (0.4, "#ffffff", "#000000")
+    bg[ACTIVE]   = mix (0.6, "#ffffff", "#000000")
+
+    fg[NORMAL]   = "#ffffff"
+    fg[PRELIGHT] = mix (0.1, "#ffffff", "#ffffff")
+    fg[ACTIVE]   = mix (0.1, "#ffffff", "#ffffff")
+}
+
+style "mod-notify-text-colors" {
+    GtkWidget::link-color = mix (0.6, "#ffffff", @selected_bg_color)
+
+    fg[NORMAL]   = "#ffffff"
+    fg[PRELIGHT] = "#ffffff"
+    fg[ACTIVE]   = "#ffffff"
+}
+
+style "mod-notify-pb-colors" {
+    bg[NORMAL]   = "#ffffff"
+	bg[ACTIVE]   = mix (0.2, "#ffffff", "#000000")
+    bg[SELECTED] = "#ffffff"
+
+    fg[PRELIGHT] = "#000000"
+    fg[ACTIVE]   = "#ffffff"
+    fg[SELECTED] = "#000000"
+}
+
+class "XfceNotifyWindow" style:highest "mod-notify-window-colors"
+widget_class "XfceNotifyWindow.*.<GtkButton>" style "mod-notify-button-colors"
+widget_class "XfceNotifyWindow.*.<GtkLabel>" style "mod-notify-text-colors"
+widget_class "XfceNotifyWindow.*.<GtkProgress>" style "mod-notify-pb-colors"
+widget_class "XfceNotifyWindow.*.<GtkProgressBar>" style "mod-notify-pb-colors"

@@ -1,0 +1,39 @@
+/* Generic compacting. */
+
+/* Start with all buttons, then fix what that breaks. */
+button
+    { padding: 4px 8px; }
+toolbar button
+    { padding: 2px; }
+treeview header button
+    { padding: 3px 6px; }
+tab button, spinbutton button
+    { padding: 0px; }
+
+/* Now for other widgets. */
+entry
+    { padding: 4px; }
+spinbutton entry
+    { padding: 0px; }
+menuitem
+    { padding: 3px 4px; }
+menubar > menuitem
+    { padding: 3px 8px; }
+row revealer
+    { padding: 0px 4px; }
+header tab, header.top tab, header.bottom tab
+    { padding: 3px 4px; }
+header.left tab, header.right tab
+    { padding: 4px 3px; }
+notebook header image
+    { padding: 2px; }
+scrollbar slider
+    { min-height: 8px; min-width: 6px; }
+
+/* Header bars */
+headerbar *
+    { margin-top: 1px; margin-bottom: 1px; }
+headerbar button
+    { padding: 3px; }
+button.titlebutton
+    { padding: 1px; }

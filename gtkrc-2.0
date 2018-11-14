@@ -1,6 +1,6 @@
-gtk-icon-theme-name = "Numix-Circle"
-gtk-theme-name = "oomox-tizix_dark"
-gtk-font-name = "Liberation Sans 9"
+gtk-icon-theme-name = "Numix-Custom"
+gtk-theme-name = "TiZix Neo"
+gtk-font-name = "Avenir 12"
 
 gtk-enable-mnemonics = 0
 gtk-auto-mnemonics = 1
@@ -18,5 +18,5 @@ include ".themes/custom/apps/xfce4-notify.gtkrc"
 include ".themes/custom/apps/thunar.gtkrc"
 include ".themes/custom/apps/geany.gtkrc"
 include ".themes/custom/apps/meld-dark.gtkrc"
-include ".themes/custom/colors-tizix-dark.gtkrc"
+include ".themes/custom/colors-tizix-neo.gtkrc"
 #include ".themes/custom/colors/tizix-dark-nku.gtkrc"

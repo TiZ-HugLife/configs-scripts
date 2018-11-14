@@ -12,10 +12,10 @@ style "mod-thunar-iconview" {
 }
 
 style "mod-thunar-toolbar" {
-    GtkToolbar::shadow-type = GTK_SHADOW_INSET
+    GtkToolbar::shadow-type = GTK_SHADOW_OUT
 }
 
-widget_class "ThunarWindow*Toolbar" style "mod-thunar-toolbar"
+#widget_class "ThunarWindow*Toolbar" style "mod-thunar-toolbar"
 widget_class "*ThunarIconView*"     style "mod-thunar-iconview"
 widget_class "ThunarWindow*View"    style "mod-thunar-slim"
 widget_class "ThunarWindow*Pane"    style "mod-thunar-slim"

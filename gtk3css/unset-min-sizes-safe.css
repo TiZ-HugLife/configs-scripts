@@ -1,0 +1,11 @@
+/* Unsets minimum sizes more sarely by targeting specific problem widgets. */
+
+tab label, toolbar entry
+    { min-height: unset; min-width: unset; }
+
+/* Smaller min-sizes. */
+toolbutton
+    { min-height: 20px; min-width: 20px; }
+    
+spinbutton.vertical > *
+    { min-height: 16px; min-width: 16px; }

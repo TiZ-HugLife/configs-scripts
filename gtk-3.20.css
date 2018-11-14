@@ -1,6 +1,6 @@
 /* The imports that this uses are linked from the gtkrc folder. */
 
-@define-color selected_bg_color #158999;
+@define-color selected_bg_color #126D7A;
 @define-color theme_selected_bg_color @selected_bg_color;
 
 @import url("widgets-compact.css");

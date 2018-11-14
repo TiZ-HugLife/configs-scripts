@@ -1,0 +1,13 @@
+/* Xfce4 panel fixes */
+/*.xfce4-panel #whiskermenu-1 {
+  margin: 0px;
+  padding: 0px;
+}*/
+.xfce4-panel #whiskermenu-1 image {
+    padding: 2px;
+}
+.xfce4-panel button {
+    min-width: unset;
+    margin: 0px;
+    padding: 0px;
+}

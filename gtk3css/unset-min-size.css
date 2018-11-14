@@ -1,0 +1,11 @@
+/* Globally unsets min-height and min-width. Might be too aggressive. */
+* {
+    min-width: unset;
+    min-height: unset;
+}
+
+/* Correct widgets this definitely breaks. */
+scrollbar slider {
+    min-height: 8px;
+    min-width: 6px;
+}

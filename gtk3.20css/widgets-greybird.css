@@ -1,0 +1,277 @@
+/* This is just Greybird's gtk-widgets.css with the aesthetic styling
+ * stripped out. This forces Greybird's widget sizes onto all themes. */
+
+/* default */
+* {
+    -GtkArrow-arrow-scaling: 0.6;
+    -GtkButton-child-displacement-x: 0;
+    -GtkButton-child-displacement-y: 0;
+    -GtkButton-default-border: 0;
+    -GtkButton-image-spacing: 0;
+    -GtkButton-inner-border: 1;
+    -GtkButton-interior-focus: true;
+    -GtkCheckButton-indicator-size: 15;
+    -GtkCheckMenuItem-indicator-size: 14;
+    -GtkExpander-expander-size: 12;
+    -GtkMenu-horizontal-padding: 0;
+    -GtkMenu-vertical-padding: 0;
+    -GtkNotebook-initial-gap: 0;
+    -GtkNotebook-tab-overlap: -2;
+    -GtkPaned-handle-size: 3;
+    -GtkProgressBar-min-horizontal-bar-height: 10;
+    -GtkProgressBar-min-vertical-bar-width: 10;
+    -GtkStatusbar-shadow-type: none;
+    -GtkRange-slider-width: 8;
+    -GtkRange-trough-border: 1;
+    -GtkToolButton-icon-spacing: 6;
+    -GtkToolItemGroup-expander-size: 11;
+    -GtkTreeView-expander-size: 11;
+    -GtkWidget-focus-line-width: 1;
+    -GtkWidget-focus-padding: 0;
+    -GtkWindow-resize-grip-height: 13;
+    -GtkWindow-resize-grip-width: 13;
+    -WnckTasklist-fade-overlay-rect: 0;
+
+    padding: 0px;
+    margin: 0px;
+}
+
+
+GtkAssistant .sidebar {
+    padding: 2px;
+}
+
+.button {
+    -GtkWidget-focus-padding: 1;
+    -GtkWidget-focus-line-width: 0;
+    padding: 2px 4px;
+}
+
+/*****************
+ * column-header *
+ *****************/
+column-header .button {
+    padding: 1px 2px;
+}
+
+/****************
+ * content view *
+ ****************/
+GdMainIconView.content-view {
+    -GdMainIconView-icon-size: 40;
+}
+
+/***********
+* calendar *
+************/
+GtkCalendar {
+    padding: 0;
+}
+
+/*********
+ * entry *
+ *********/
+.entry {
+    padding: 3px;
+}
+
+.floating-bar .button {
+    -GtkButton-image-spacing: 0;
+    -GtkButton-inner-border: 0;
+}
+
+/********
+ * menu *
+ ********/
+.primary-toolbar .button .menu,
+.toolbar .menu,
+.toolbar .primary-toolbar .menu,
+.menu {
+    padding: 3px 0;
+}
+
+/***********
+ * menubar *
+ ***********/
+.menubar {
+    -GtkWidget-window-dragging: true;
+}
+
+/***************
+ * menubaritem *
+ ***************/
+.menubar.menuitem,
+.menubar .menuitem {
+    padding: 2px 7px;
+}
+
+/************
+ * menuitem *
+ ************/
+GtkTreeMenu .menuitem {
+    padding: 0;
+}
+
+.menuitem,
+.menu .menuitem {
+    padding: 3px;
+    -GtkMenuItem-arrow-scaling: 0.5;
+}
+
+/************
+ * notebook *
+ ************/
+/*.notebook {
+    padding: 0;
+}
+
+.notebook tab {
+    padding: 3px;
+}
+
+.notebook tab.top:active {
+    padding: 4px 3px;
+}
+
+.notebook tab.right:active {
+    padding: 3px 4px;
+}
+
+.notebook tab.bottom:active {
+    padding: 4px 3px;
+}
+
+.notebook tab.left:active {
+    padding: 3px 4px;
+}*/
+
+/*************************
+ * progressbar and scale *
+ *************************/
+GtkProgressBar {
+    padding: 0;
+}
+
+/* level bars as used for password quality or remaining power */
+GtkLevelBar {
+    -GtkLevelBar-min-block-width: 34;
+    -GtkLevelBar-min-block-height: 3;
+}
+
+GtkLevelBar.vertical {
+    -GtkLevelBar-min-block-width: 3;
+    -GtkLevelBar-min-block-height: 34;
+}
+
+.level-bar.trough {
+    padding: 2px;
+}
+
+.level-bar.indicator-continuous.fill-block {
+    padding: 2px;
+}
+
+.level-bar.indicator-discrete.fill-block.horizontal {
+    margin: 0 1px;
+}
+
+.level-bar.indicator-discrete.fill-block.vertical {
+    margin: 1px 0;
+}
+
+.scale {
+    padding: 0;
+}
+
+.scale.trough {
+    margin: 5px 0;
+}
+
+.scale.trough.vertical {
+    margin: 0 5px;
+}
+
+/*************
+ * separator *
+ *************/
+.menuitem.separator {
+    -GtkMenuItem-horizontal-padding: 0;
+    -GtkWidget-separator-height: 1;
+}
+
+GtkComboBox .separator {
+    /* always disable separators */
+    -GtkWidget-wide-separators: true;
+    -GtkWidget-horizontal-separator: 0;
+    -GtkWidget-vertical-separator: 0;
+}
+
+/**************
+ * spinbutton *
+ **************/
+.spinbutton .button {
+    padding: 2px 3px;
+}
+
+/*************
+ * statusbar *
+ *************/
+GtkStatusbar {
+    padding: 3px;
+}
+
+/**********
+ * switch *
+ **********/
+GtkSwitch {
+    padding: 0;
+}
+
+/*****************
+ * color chooser *
+ *****************/
+GtkColorButton.button {
+    padding: 2px;
+}
+
+/***********
+ * toolbar *
+ ***********/
+.toolbar {
+    padding: 2px;
+}
+
+/* primary-toolbar */
+.primary-toolbar,
+.primary-toolbar .toolbar,
+.primary-toolbar.toolbar {
+    -GtkWidget-window-dragging: true;
+    padding: 2px;
+}
+
+.primary-toolbar GtkComboBox,
+.primary-toolbar GtkComboBox .cell
+.primary-toolbar .button *,
+.primary-toolbar .button,
+.toolbar GtkComboBox .cell {
+    padding: 2px;
+}
+
+/* inline-toolbar */
+.inline-toolbar.toolbar {
+    -GtkToolbar-button-relief: normal;
+    padding: 1px;
+}
+
+.inline-toolbar.toolbar .button {
+    padding: 1px;
+}
+
+/************
+ * treeview *
+ ************/
+GtkTreeView {
+    -GtkTreeView-vertical-separator: 0;
+    -GtkWidget-focus-line-width: 1;
+    -GtkWidget-focus-padding: 1;
+}
