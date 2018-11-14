@@ -1,16 +1,22 @@
 #!/bin/bash
 
 target="$1"
-[[ -z "$target" ]] && target="$(cat /tmp/.conkytarget)"
+if [[ -z "$target" ]]; then
+    if [[ -e "/run/user/$UID/conky/ontop" ]];
+        then target=below
+        else target=above
+    fi
+fi
 
 if [[ "$target" = "below" ]]; then
     state="below"
     remove="above"
+    rm "/run/user/$UID/conky/ontop" || :
 else
     state="above"
     remove="below"
+    touch "/run/user/$UID/conky/ontop" || :
 fi
-    echo $remove > /tmp/.conkytarget
 
 for t in Todo-Conky QuodLibet-Conky QuodLibet-Conky-Cover; do
     wmctrl -F -r $t -b remove,$remove

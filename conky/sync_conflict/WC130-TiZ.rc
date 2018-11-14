@@ -1,0 +1,38 @@
+conky.config = {
+	update_interval = 10.0,
+	total_run_times = 0,
+
+	alignment = 'bottom_right',
+	gap_x = 2,
+	gap_y = 200,
+
+	use_xft = true,
+	override_utf8_locale = true,
+	font = 'Apres:size=11:bold',
+
+	border_width = 0,
+	border_inner_margin = 4,
+	border_outer_margin = 0,
+	draw_shades = true,
+
+	own_window = true,
+	own_window_type = 'desktop', --Change to normal when using GNOME Shell
+	own_window_title = 'SyncConflict-Conky',
+	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+	own_window_transparent = true,
+	own_window_argb_visual = true,
+
+	max_text_width = 0,
+
+	default_color = '#dcdcdc',
+	color1 = '#dcdcdc',
+
+	text_buffer_size = 65536,
+	double_buffer = true,
+	no_buffers = true,
+
+	lua_load = '../draw.lua',
+	lua_draw_hook_pre = 'draw 0x3F2B2B66 8 0 0 8',
+}
+
+conky.text = '${execpi 600 ./conky.sh ~/doc ~/mus ~/pic ~/prj ~/pub ~/gam/save /home/common}'

@@ -1,21 +1,12 @@
 #!/bin/bash
-kill $(pgrep conkies | grep -v ^$$\$); pkill conky
-{
-    while
-        $HOME/.conky/todo.txt/todoview.sh -c "Work School" > /tmp/.todo_conky.tmp
-        mv /tmp/.todo_conky.tmp /tmp/.todo_conky
-        inotifywait -qqe modify $HOME/Documents/todo && sleep 0.1
-    do :; done
-} & pid1=$!
-{
-    while
-        $HOME/.conky/QLInfo/qlinfo.sh -w \
-         -f"Liberation Sans" -F"VL PGothic" -s9 -t12 -A \
-         -h -S8 -T11 -i64 -v26 -a74 -r4 > /tmp/.ql_conky.tmp
-        mv /tmp/.ql_conky.tmp /tmp/.ql_conky
-        inotifywait -qqe modify --exclude 'control|config*' $HOME/.quodlibet \
-         && sleep 0.1
-    do :; done
-} & pid2=$!
-conky -d -c $HOME/.conky/todo.txt/conkyrc & pid3=$!
-conky -d -c $HOME/.conky/QLInfo/conkyrc & pid4=$!
+# Whew, way simpler! :D
+pkill conky
+for dir1 in "$HOME/.conky" "${XDG_CONFIG_HOME:-$HOME/.config}/conky"; do
+    if [[ -d "$dir1" ]]; then
+        for dir2 in "$dir1/"*; do
+            if [[ -f "$dir2/$HOSTNAME.rc" ]]; then
+                cd "$dir2"; conky -d -c "$HOSTNAME.rc"
+            fi
+        done
+    fi
+done
