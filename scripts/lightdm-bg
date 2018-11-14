@@ -1,7 +1,10 @@
-#!/bin/bash
-[[ "$(whoami)" != "root" ]] && exit 1
-[[ "$(hostname)" = "TiZLappy" ]] && res="1600x900" #&& mon="0"
-[[ "$(hostname)" = "WC130-TiZ" ]] && res="1440x900" #&& mon="0"
-[[ -z "$res" ]] && exit 1
-wall="$(xmlstarlet sel -t -v "//property[@name='monitor0']/property[@name='workspace0']/property[@name='last-image']/@value" /home/trent/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml)"
-gm convert "$wall" -resize $res^ -gravity center -extent $res -blur 0x5 /var/lib/lightdm/background.png
+#!/bin/sh
+[ "$(whoami)" != "root" ] && exit 1
+[ "$(hostname)" = "TiZLappy" ] && res="1920x1080" #&& mon="0"
+[ "$(hostname)" = "WC130-TiZ" ] && res="1440x1024" #&& mon="0"
+[ -z "$res" ] && exit 1
+wall="$(xmlstarlet sel -t -v "//property[@name='monitor0']/property[@name='workspace0']/property[@name='last-image']/@value" /home/tiz/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml)"
+convert -verbose -verbose -verbose "$wall" -resize $res^ -gravity center -extent $res -blur 0x5 /var/lib/lightdm/background.png
+#[ "$(hostname)" = "TiZLappy" ] && {
+#    PATH="/sbin:$PATH" /home/common/bin/arcadia nvidia off > /tmp/nvidia-off 2>&1 || :
+#}

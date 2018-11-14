@@ -1,15 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 # Automated keyboard brightness changer for Asus G46VW.
-[[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+[ "$(id -un)" != "root" ] && exec sudo "$0" "$@"
 
 dev=/sys/class/leds/asus::kbd_backlight
 step=1
 
-/home/common/bin/waitfile $dev || exit
+timer=0; while ! [ -e "$dev" ] && [ "$timer" -lt 30 ]; do
+    sleep 1; timer=$((timer + 1)); done
+if ! [ -e "$dev" ]; then exit; fi
 
 case $1 in
-    +)  echo $(($(< $dev/brightness) + $step)) > $dev/brightness ;;
-    -)  echo $(($(< $dev/brightness) - $step)) > $dev/brightness ;;
-    *)  echo $1 > $dev/brightness ;;
+    +)  echo $(($(cat $dev/brightness) + step)) > "$dev/brightness" ;;
+    -)  echo $(($(cat $dev/brightness) - step)) > "$dev/brightness" ;;
+    *)  echo "$1" > "$dev/brightness" ;;
 esac
 
