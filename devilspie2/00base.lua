@@ -16,6 +16,7 @@ type = window type, specified without the WINDOW_TYPE_ prefix and whatever case
        you want. if nil, assumed to be normal. if *, all types.
 exc_name = exclude window name
 exc_type = exclude window type
+onlyfirst = only act on the first window matching the other criteria to open
 
 ACTION CRITERIA
 alpha = window opacity
@@ -28,17 +29,25 @@ no_page = hide from pager
 set_type = change the window's type. see type above.
 top, bottom, shade, max, min, undeco, stick, pin = do these to the window.
 fswin = borderless fullscreen window. aspect scales window to fill screen.
+run = run script on window with args followed by window id.
 ]]
 
+debug_print("Name: " .. get_window_name() .. ", " ..
+            "App: " .. get_application_name() .. ", " ..
+            "Class: " .. get_window_class() .. ", " ..
+            "Class2: " .. get_class_instance_name() .. ", " ..
+            "Role: " .. get_window_role() .. ", " ..
+            "Command: " .. get_window_property("WM_COMMAND"))
 
-function do_rules(...)
+function do_rules (...)
     _, _, win_w, win_h = get_window_client_geometry()
     for _, v in ipairs(arg) do
         if
-            (not v.app or v.app == get_application_name()) and
-            (not v.class or v.class == get_window_class()) and
-            (not v.role or v.role == get_window_role()) and
-            (not v.name or v.name == get_window_name()) and
+            (not v.app or v.app:lower() == get_application_name():lower()) and
+            (not v.class or v.class:lower() == get_window_class():lower()) and
+            (not v.class2 or v.class2:lower() == get_class_instance_name():lower()) and
+            (not v.role or get_window_role():match(v.role)) and
+            (not v.name or get_window_name():match(v.name)) and
             (not v.min_width or v.min_width >= win_w) and
             (not v.min_height or v.min_height >= win_h) and
             (not v.exc_name or v.exc_name ~= get_window_name()) and
@@ -46,8 +55,10 @@ function do_rules(...)
                 "WINDOW_TYPE_"..string.upper(v.type or "normal") ==
                 get_window_type()) and
             (not v.exc_type or "WINDOW_TYPE_"..string.upper(v.exc_type) ~=
-                get_window_type())
+                get_window_type()) and
+            (not v.nth or is_nth(v))
         then
+            debug_print("Window matched!")
             if v.pos then set_window_position(v.pos.x, v.pos.y) end
             if v.size then set_window_size(v.size.w, v.size.h) end
             if v.alpha then set_opacity(v.alpha) end
@@ -70,9 +81,19 @@ function do_rules(...)
             if v.set_type then
                 set_window_type("WINDOW_TYPE_"..string.upper(v.set_type))
             end
+            if v.run then
+                os.execute(v.run .. " " .. get_window_xid())
+            end
             if v.fswin then
                 screen_w, screen_h = get_screen_geometry()
-                if win_w / win_h <= (screen_w / screen_h) then
+                if v.fsw_aspect ~= "" then
+                    debug_print("Forcing fsw aspect ratio to " .. v.fsw_aspect)
+                    if v.fsw_aspect == "4:3" then
+                        new_w = screen_h * 4 / 3
+                        new_x = (screen_w - new_w) / 2
+                        new_h, new_y = screen_h, 0
+                    end
+                elseif win_w / win_h <= (screen_w / screen_h) then
                     new_w = (screen_h / win_h) * win_w
                     new_h = screen_h
                     new_x = (screen_w - new_w) / 2
@@ -88,4 +109,19 @@ function do_rules(...)
             end
         end
     end
+end
+
+function is_nth (v)
+    local count = 0
+    local class = v.class or ".+"
+    local app = v.app or ".+"
+    local name = v.name or ".+"
+    local find = class .. "%." .. app .. "\t" .. name
+    local handle = io.popen("wmctrl -lx | awk '{print $3 \"\t\" $4}'")
+    local result = handle:read("*a")
+    handle:close()
+    for line in result:gmatch('[^\r\n]+') do
+        if line:find(find) then count = count + 1 end
+    end
+    return count == v.nth
 end
