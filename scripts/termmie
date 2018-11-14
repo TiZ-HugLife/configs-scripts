@@ -2,7 +2,8 @@
 # hOI!!! im termmie put dis in yur bashrc!
 # get many... DETERMINALATION!!! yayA!!!
 
-if [ "$TERM" == "xterm" ] && [ "$DISPLAY" ] && [ ! "$SSH_CLIENT$SSH_TTY" ]; then
+if [[ "$TERM" =~ xterm ]] && [[ "$DISPLAY" ]] && \
+ [[ ! "$SSH_CLIENT$SSH_TTY" ]]; then
     termmies=(
         "hOI!!! im termmie!!!"
         "an dis is my friend... termmie!!!"
