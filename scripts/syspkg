@@ -1,0 +1,97 @@
+#!/bin/sh
+# Wrapper for various system package managers.
+set -eu
+
+unsupported () {
+    printf %s\\n "The system package manager doesn't support ${action:-}."
+    exit 1
+}
+
+use_apt () {
+    s_apt () { sudo apt "$@"; }
+    refresh () { s_apt update; }
+    update () { s_apt update && s_apt full-upgrade; }
+    install () { s_apt install "$@"; }
+    install_file () { sudo dpkg -i "$@"; }
+    remove () { s_apt remove "$@"; }
+    remove_recursive () { s_apt remove "$@" && s_apt autoremove -y; }
+    purge () { s_apt purge "$@"; }
+    purge_recursive () { s_apt purge "$@" && s_apt autoremove --purge -y; }
+    info () { s_apt show "$@"; }
+    info_local () { apt-cache show "$@"; }
+    search () { s_apt search "$@"; }
+    search_local () { sudo dpkg --get-selections | grep "$@"; }
+    list () { sudo dpkg -L "$@"; }
+    owns () { sudo dpkg -S "$@"; }
+    clean () { s_apt autoremove && s_apt autoclean; }
+}
+
+use_pacman () {
+    s_pacman () { sudo pacman "$@"; }
+    refresh () { s_pacman -Sy; }
+    update () { s_pacman -Syu; }
+    install () { s_pacman -S "$@"; }
+    install_file () { s_pacman -U "$@"; }
+    remove () { s_pacman -R "$@"; }
+    remove_recursive () { s_pacman -Rsc "$@"; }
+    purge () { s_pacman -Rn "$@"; }
+    purge_recursive () { s_pacman -Rnsc "$@"; }
+    info () { s_pacman -Si "$@"; }
+    info_local () { s_pacman -Qi "$@"; }
+    search () { s_pacman -Ss "$@"; }
+    search_local () { s_pacman -Qs "$@"; }
+    list () { s_pacman -Ql "$@"; }
+    owns () { s_pacman -Qo "$@"; }
+    clean () { unsupported; }
+}
+
+if [ -x "$(command -v apt)" ]; then use_apt;
+elif [ -x "$(command -v pacman)" ]; then use_pacman;
+# TODO: other package managers
+fi
+
+action="$1"; shift
+case "$action" in
+f|-f|refresh|--refresh)             refresh "$@" ;;
+u|-u|update|--update)               update "$@" ;;
+i|-i|install|--install)             install "$@" ;;
+I|-I|install-file|--install-file)   install_file "$@" ;;
+r|-r|remove|--remove)               remove "$@" ;;
+R|-R|remove-rec*|--remove-rec*)     remove_recursive "$@" ;;
+p|-p|purge|--purge)                 purge "$@" ;;
+P|-P|purge-rec*|--purge-rec*)       purge_recursive "$@" ;;
+n|-n|info|--info)                   info "$@" ;;
+N|-N|info-local|--info-local)       info_local "$@" ;;
+s|-s|search|--search)               search "$@" ;;
+S|-S|search-local|--search-local)   search_local "$@" ;;
+l|-l|list|--list)                   list "$@" ;;
+o|-o|owns|--owns)                   owns "$@" ;;
+c|-c|clean|--clean)                 clean "$@" ;;
+h|-h|help|--help|usage|--usage)
+cat <<EOF
+syspkg -- system package manager wrapper
+Automatically detects which package manager is in use by the current distro and
+runs the requested operation using it.
+
+Usage: syspkg <operation> [operands ...]
+
+Operations - Support varies by underlying package manager:
+f, -f, refresh, --refresh: Update the package list without updating packages.
+u, -u, update, --update: Update package list and packages.
+i, -i, install, --install: Install a package.
+I, -I, install-file, --install-file: Install a package from a file.
+r, -r, remove, --remove: Remove a package.
+R, -R, remove-rec, --remove-rec: Remove a package and its dependencies.
+p, -p, purge, --purge: Remove a package and its configurations.
+P, -P, purge-rec, --purge-rec: Remove package, configurations, and dependencies.
+n, -n, info, --info: Show information about a remote package.
+N, -N, info-local, --info-local: Show information about an installed package.
+s, -s, search, --search: Search package list for a given term.
+S, -S, search-local, --search-local: Search installed packages for a term.
+l, -l, list, --list: List a package's contents.
+o, -o, owns, --owns: Find out which package owns a given file.
+c, -c, clean, --clean: Remove unused dependencies and clean package cache.
+EOF
+;;
+*) unsupported;
+esac

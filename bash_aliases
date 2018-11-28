@@ -10,54 +10,6 @@ alias usbconsole='script -f -c "picocom /dev/ttyUSB0" console.log'
 alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
 alias sshproxy='ssh -D 8080 cerebro'
 
-# Package management; consistent commands no matter what distro I'm on.
-alias pkg-fail="echo Can't do that here, sorry."
-if [[ -x $(which bauerbill 2> /dev/null) ]]; then
-    alias pkg='bb_wrapper_wrapper --build-dir /home/tiz/Source'
-    export archlinux=1
-    
-    # Now we're getting silly.
-    bb_wrapper_wrapper () {
-        pushd () { command pushd "$@" > /dev/null; }; export -f pushd
-        popd ()  { command popd "$@" > /dev/null; };  export -f popd
-        bb-wrapper "$@"
-    }
-elif [[ -x $(which yaourt 2> /dev/null) ]]; then
-    alias pkg='yaourt'
-    export archlinux=1
-fi
-if [[ "$archlinux" ]]; then
-    alias pkg-update='pkg -Syu --aur'
-    alias pkg-install='pkg -S --aur'
-    alias pkg-install-file='pkg -U'
-    alias pkg-remove='pkg -R'
-    alias pkg-purge='pkg -Rnsc' 
-    alias pkg-info='pkg -Si --aur'
-    alias pkg-info-local='pkg -Qi'
-    alias pkg-search='pkg -Ss --aur'
-    alias pkg-search-local='pkg -Qs'
-    alias pkg-list='pkg -Ql'
-    alias pkg-owns='pkg -Qo'
-    alias pkg-clean='pkg-fail'
-    alias pkg-mirrors="sudo reflector --verbose --country 'United States' -l 25 -p http --sort rate --save /etc/pacman.d/mirrorlist"
-elif [[ -x $(which apt-get 2> /dev/null) ]]; then
-    alias pkg='sudo apt'
-    alias pkg-update='pkg update && pkg full-upgrade'
-    alias pkg-install='pkg install'
-    alias pkg-install-aur='pkg-fail'
-    alias pkg-install-rec='pkg install --install-recommends'
-    alias pkg-install-file='sudo dpkg -i'
-    alias pkg-remove='pkg remove'
-    alias pkg-purge='pkg purge'
-    alias pkg-info='pkg show'
-    alias pkg-search='pkg search'
-    alias pkg-search-local='sudo dpkg --get-selections | grep'
-    alias pkg-list='sudo dpkg -L'
-    alias pkg-owns='sudo dpkg -S'
-    alias pkg-clean='pkg autoremove && pkg autoclean'
-fi
-alias flatpak='flatpak'
-
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
@@ -91,15 +43,6 @@ ffencode () {
      -c:a copy \
      -threads 0 \
      "$2"
-}
-
-# Symlinks kozec's dumbxinputemu into the current dir.
-# Takes one argument: Game EXE to check which architecture.
-install_xinputemu () {
-    case "$(file "$1")" in
-    x86-64) ln -sf "$HOME/Games/Etc/XInput/Dumb64/"* ./ ;;
-    *) ln -sf "$HOME/Games/Etc/XInput/Dumb32/"* ./ ;;
-    esac
 }
 
 # Generic search function.
