@@ -1,0 +1,304 @@
+#!/bin/sh
+# A script to record the screen using ffmpeg.
+set -eu
+
+info () {
+    cat <<EOF
+$0: record the screen using ffmpeg.
+Supported options:
+    -v|--vaapi: Enable use of vaapi to encode.
+    +v|--no-vaapi: Disable vaapi.
+    -V|--vaapi_dev: Device to use with vaapi.
+    -k|--kms: Capture directly from KMS instead of X.
+        Requires ffmpeg's binary to have CAP_SYS_ADMIN.
+    +k|--no-kms: Disable KMS capture.
+    -K|--kms_dev: Device to use with KMS.
+    -d|--dir: Output directory for the logfile and the recording.
+    -n|--name: Prepend this title before the timestamp.
+    -r|--res|--resolution: Scale the video to the specified resolution.
+    -f|--fps: Capture at the specified framerate.
+    -C|--container|--format: An extension for a container format to use.
+    -t|--threads: Number of generic output threads.
+    -ft|--filter_threads: Number of threads to use for filter graphs.
+    -vt|--vid_threads: Number of threads to use for video encoding.
+    -vc|--vid_codec: A video codec to use. If vaapi is enabled and there
+        is no corresponding vaapi coder, this script will fail.
+    -vq|--vid_qual: Quality quantizer for the video.
+    -vr|--vid_rate: Bitrate for the video. Overrides quality.
+    -at|--aud_threads: Number of threads to use for audio encoding.
+    -ac|--aud_codec: An audio codec to use.
+    -ar|--aud_rate: Bitrate for the audio.
+    -w|--wrapper: Prepend a shell-quoted string to the final command.
+        A good use of this is schedtool to isolate cores or set niceness.
+EOF
+}
+
+# Set all variables to default values.
+cmd=""
+directory="${HOME:?}/Videos/Recordings"
+resolution="1280x720"
+fps="30"
+gen_threads="0"
+filter_threads=""
+video_threads=""
+video_codec="h264"
+video_preset=""
+video_quality=""
+video_bitrate=""
+video_cbr=""
+audio="pulse"
+audio_threads=""
+audio_device=""
+audio_codec="mp3"
+audio_bitrate=""
+audio_cbr=""
+container="mkv"
+kms="no"
+kms_dev="/dev/dri/card0"
+vaapi="no"
+vaapi_dev="/dev/dri/renderD128"
+quiet="no"
+start_sound=""
+stop_sound=""
+error_sound=""
+wrapper=""
+pulse_latency="60"
+tqs=""
+probesize=""
+continue_if_dead=""
+no_save=""
+
+
+# Convenience functions.
+puts () { printf %s\\n "$*"; }
+err () { puts "$*" >&2; }
+die () { err "$*"; exit 1; }
+# shellcheck disable=SC1090
+src_opt () { if [ -f "$1" ]; then . "$1"; fi; }
+is () {
+    case "$(puts "$1" | tr '[:upper:]' '[:lower:]')" in
+        yes|on|true) true ;;
+        no|off|false) false ;;
+        *) [ "$1" -gt 0 ] 2> /dev/null ;;
+    esac
+}
+int () { [ "$1" -eq 0 -o "$1" -ne 0 ] 2> /dev/null; }
+aorb () { if is "$1"; then puts "$2"; else puts "$3"; fi; }
+snd () { if [ -r "${1:?}" ] && ! is "$quiet"; then play -q -V1 "$1"; fi; }
+
+
+# Config files are just sourced into here; be responsible.
+src_opt "/etc/record.rc"
+src_opt "${XDG_CONFIG_HOME:-$HOME/.config}/record.rc"
+
+# Parse the command line.
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -v|--vaapi) vaapi=yes;;
+        +v|--no-vaapi) vaapi=no;;
+        -k|--kms) kms=yes;;
+        +k|--no-kms) kms=no;;
+        -q|--quiet) quiet=yes;;
+        -V|--vaapi_dev) vaapi_dev="$2"; shift;;
+        +K|--kms_dev) kms_dev="$2"; shift;;
+        -d|--dir|--directory) directory="$2"; shift;;
+        -n|--name) name="$2"; shift;;
+        -r|--res|--resolution) resolution="$2"; shift;;
+        -f|--fps) fps="$2"; shift;;
+        -C|--container|--format) container="$2"; shift;;
+        -t|--threads) gen_threads="$2"; shift;;
+        -ft|--filter_threads) filter_threads="$2"; shift;;
+        -vt|--vid_threads) video_threads="$2"; shift;;
+        -vc|--vid_codec) video_codec="$2"; shift;;
+        -vq|--vid_qual) video_quality="$2"; shift;;
+        -vr|--vid_rate) video_bitrate="$2"; shift;;
+        -at|--aud_threads) audio_threads="$2"; shift;;
+        -ac|--aud_codec) audio_codec="$2"; shift;;
+        -aq|--aud_qual) audio_quality="$2"; shift;;
+        -ar|--aud_rate) audio_bitrate="$2"; shift;;
+        -w|--wrapper) wrapper="$2"; shift;;
+        *) err "Unrecognized option: $1"; info; die;;
+    esac; shift
+done
+
+# Sanity checks.
+int "$fps" || die fps must be an integer.
+
+
+# Stop running instance if invoked with one running.
+if [ -w "/run/user/$(id -u)" ]; then pidfile="/run/user/$(id -u)/record.pid"
+else pidfile="/tmp/record.pid"; fi
+if [ -e "$pidfile" ]; then
+    puts "Stopping capture."
+    pid=$(cat "$pidfile")
+    rm "$pidfile" || :
+    if [ -e "/proc/$pid" ]; then
+        kill "$pid"
+        snd "$stop_sound"
+        exit 0
+    else
+        if is "$continue_if_dead"; then
+            puts "PID $pid didn't exist; continuing as normal."
+        else
+            puts "PID $pid didn't exist; stopping."
+            exit 0
+        fi
+    fi
+fi
+
+
+# Find ffmpeg.
+[ -x "$cmd" ] || cmd="$(command -v ffmpeg)"
+[ -x "$cmd" ] || die Please put a working ffmpeg binary in your PATH.
+
+# We have to quote it properly in case it exists somewhere with spaces.
+# This string will get passed to eval.
+cmd="\"$cmd\""
+
+# Input flags.
+flags=""
+if int "$tqs"; then flags="$flags -thread_queue_size $tqs"; fi
+if int "$probesize"; then flags="$flags -probesize $probesize"; fi
+
+# Video device setup.
+if is "$kms"; then
+    vaapi=1
+    cmd="$cmd -device '$kms_dev'$flags -f kmsgrab -framerate $fps -i -"
+else
+    if is "$vaapi"; then cmd="$cmd -vaapi_device '$vaapi_dev'"; fi
+    input_res=$(xwininfo -root | awk '/-geo/{print $2}' | cut -d+ -f1)
+    cmd="$cmd$flags -f x11grab -framerate $fps -s $input_res -i '$DISPLAY'"
+fi
+
+# Audio device setup.
+if [ "$audio" = "alsa" ]; then
+    if ! [ "$audio_device" ]; then audio_device="pulse"; fi
+    cmd="$cmd$flags -f alsa -i '$audio_device'"
+elif [ "$audio" = "openal" ]; then
+    if ! [ "$audio_device" ]; then
+        audio_device=$(ffmpeg -list_devices true -f openal -i dummy - 2>&1 | \
+         sed -nr 's/^.+(Monitor of .+)$/\1/p' | head -1)
+    fi
+    cmd="$cmd$flags -f openal -i '$audio_device'"
+elif [ "$audio" = "pulse" ]; then
+    if ! [ "$audio_device" ]; then
+        audio_device=$(pactl info | sed -nr 's/^Default Sink: (.+)$/\1/p')
+        audio_device="$audio_device.monitor"
+    fi
+    cmd="$cmd$flags -f pulse -i '$audio_device'"
+fi
+
+# Filter graph setup.
+width=$(puts "$resolution" | cut -dx -f1)
+height=$(puts "$resolution" | cut -dx -f2)
+if int "$filter_threads"; then cmd="$cmd -filter_threads $filter_threads"; fi
+cmd="$cmd -filter:a 'aresample=async=1'"
+cmd="$cmd -filter:v '"
+if is "$kms"; then
+    cmd="${cmd}hwmap=derive_device=vaapi"
+    cmd="$cmd,scale_vaapi=w=$width:h=$height:format=nv12"
+else
+    if [ "${extra_video_filter:-}" ]; then cmd="$cmd$extra_video_filter,"; fi
+    if is "$vaapi"; then
+        cmd="${cmd}format=nv12,hwupload,scale_vaapi=w=$width:h=$height"
+    else
+        cmd="${cmd}scale=w=$width:h=$height"
+    fi
+fi
+cmd="$cmd'"
+
+# Video codec selection.
+case "$video_codec" in
+    h264|libx264) video_codec=$(aorb "$vaapi" h264_vaapi libx264) ;;
+    h265|hevc|libx265) video_codec=$(aorb "$vaapi" hevc_vaapi libx265) ;;
+    vp8|libvpx) video_codec=$(aorb "$vaapi" vp8_vaapi vp8) ;;
+    vp9) video_codec=$(aorb "$vaapi" vp9_vaapi vp9) ;;
+    mjpeg) video_codec=$(aorb "$vaapi" mjpeg_vaapi mjpeg) ;;
+    *) if is "$vaapi"; then
+        die "Requested codec $video_codec does not have a vaapi encoder."; fi ;;
+esac
+
+# Audio codec selection.
+case "$audio_codec" in
+    aac) audio_codec="libfdk_aac" ;;
+    mp3) audio_codec="libmp3lame" ;;
+    ogg|vorbis) audio_codec="libvorbis" ;;
+    opus) audio_codec="libopus" ;;
+    *) : ;;
+esac
+
+# Video encode.
+if int "$video_threads"; then cmd="$cmd -threads:v $video_threads"; fi
+cmd="$cmd -c:v '$video_codec'"
+cmd="$cmd -g $((fps * 2)) -keyint_min $fps"
+if ! is "$vaapi"; then cmd="$cmd -pix_fmt:v yuv420p"; fi
+if [ "$video_preset" ] && ! is "$vaapi"; then
+    cmd="$cmd -preset '$video_preset'"
+fi
+if int "$video_bitrate"; then
+    cmd="$cmd -b:v ${video_bitrate}k -bufsize:v $((video_bitrate * 2))k"
+    if is "$video_cbr"; then
+        cmd="$cmd -minrate:v ${video_bitrate}k -maxrate:v ${video_bitrate}k"
+    fi
+elif int "$video_crf"; then
+    cmd="$cmd -crf $video_crf"
+elif [ "$video_quality" ]; then
+    cmd="$cmd -qp:v '$video_quality'"
+fi
+
+# Audio encode.
+if [ "$audio" != "none" ]; then
+    if int "$audio_threads"; then cmd="$cmd -threads:v $audio_threads"; fi
+    cmd="$cmd -c:a '$audio_codec'"
+    if int "$audio_bitrate"; then
+        cmd="$cmd -b:a ${audio_bitrate}k -bufsize:a $((audio_bitrate * 2))k"
+        if is "$audio_cbr"; then
+            cmd="$cmd -minrate:a ${audio_bitrate}k -maxrate:a ${audio_bitrate}k"
+        fi
+    elif [ "$audio_quality" ]; then
+        cmd="$cmd -qp:a '$audio_quality'"
+    fi
+fi
+
+# Set up output.
+mkdir -p "$directory" || die "Failed to make directory $directory."
+output="$(date +%Y%m%d-%H%M%S).$container"
+if [ "${name:-}" ]; then output="$name $output"; fi
+cmd="$cmd -r '$fps'"
+if int "$gen_threads"; then cmd="$cmd -threads $gen_threads"; fi
+if is "$no_save"; then
+    cmd="$cmd -map 0 -f null -"
+else
+    cmd="$cmd -y \"$directory/$output\""
+fi
+
+
+# Capturing from pulse slows everything down without this.
+if int "$pulse_latency"; then
+    export PULSE_LATENCY_MSEC="$pulse_latency"
+fi
+
+# Set up other wrappers if requested, like schedtool.
+if [ "$wrapper" ]; then cmd="$wrapper $cmd"; fi
+
+# Notify of record start.
+snd "$start_sound"
+puts "Starting capture."
+
+if [ -e "$directory/00-record.log" ]; then
+    mv "$directory/00-record.log" "$directory/00-record-prev.log"
+fi
+# This lets us redirect more easily.
+{
+    puts "Executing command: $cmd"
+    eval "$cmd &"
+    puts "$!" > "$pidfile"
+} > "$directory/00-record.log" 2>&1
+
+# Ensure ffmpeg actually started successfully.
+sleep 2
+if [ -e "$pidfile" ] && ! [ -e "/proc/$(cat "$pidfile")" ]; then
+    err "ffmpeg appears to have died for some reason. Check logs."
+    snd "$error_sound"
+    rm "$pidfile" || :
+fi
