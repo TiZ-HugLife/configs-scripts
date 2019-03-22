@@ -1,17 +1,21 @@
 #!/usr/bin/env python2
+#
 # Sets panel to specified opacity depending on the visilibity of a maximized
 # window on the current workspace. Basically hacks together what wingpanel does.
 # You need xfce4-dockbarx-plugin >= 0.4 for this to work properly with it.
 # 
-# Usage: xfce4-panel-fader panel# alpha_normal alpha_max
+# Uses xfconf properties within each panel that you want to control.
+# For just alpha changing, alpha-normal and alpha-max.
+# For color changing, color-normal and color-max.
+# For image changing, image-normal and image-max.
+# You can mix and match color and image for different states.
+# For multi-monitor, use range-x and range-y to set the pixel range to look for
+#   relevant windows in.
 #
 # by Trent "TiZ" McPheron. MIT/X11 License.
 
-import gtk
-import wnck
-import dbus
+import gtk, wnck, dbus, re
 from dbus.mainloop.glib import DBusGMainLoop
-import re
 rx = re.compile(
  r"^(/panels/panel-.+/)(?:(?:alpha|color)-(?:normal|max)|range-(?:x|y))$")
 
