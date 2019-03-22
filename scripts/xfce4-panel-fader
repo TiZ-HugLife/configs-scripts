@@ -12,7 +12,8 @@ import wnck
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 import re
-rx = re.compile(r"^(/panels/panel-.+/)(?:alpha-(?:normal|max)|range-(?:x|y))$")
+rx = re.compile(
+ r"^(/panels/panel-.+/)(?:(?:alpha|color)-(?:normal|max)|range-(?:x|y))$")
 
 class PanelFader:
     def __init__ (self):
@@ -50,17 +51,39 @@ class PanelFader:
         else:
             return default
     
+    def xfconf_set (self, panel, prop, value):
+        self.xfconf.SetProperty("xfce4-panel", panel["base"] + prop, value)
+    
     def xfconf_get_panel (self, prop_base):
         panel = {}
         panel["base"] = prop_base
-        panel["normal"] = self.xfconf_get(prop_base, "alpha-normal", 0)
-        panel["max"] = self.xfconf_get(prop_base, "alpha-max", 100)
-        panel["range_x"] = [int(x) for x in
-         self.xfconf_get(prop_base, "range-x", [0, 9999])]
-        if len(panel["range_x"]) != 2: panel["range_x"] = [0, 9999]
-        panel["range_y"] = [int(x) for x in
-         self.xfconf_get(prop_base, "range-y", [0, 9999])]
-        if len(panel["range_y"]) != 2: panel["range_y"] = [0, 9999]
+        
+        for state in (("normal", 0), ("max", 100)):
+            alpha = "alpha-" + state[0]
+            color = "color-" + state[0]
+            image = "image-" + state[0]
+            
+            panel[alpha] = self.xfconf_get(prop_base, alpha, state[1])
+            panel[image] = self.xfconf_get(prop_base, image, None)
+        
+            panel[color] = self.parse_color(self.xfconf_get(prop_base, 
+             color, None))
+            if panel[color]:
+                if len(panel[color]) == 4:
+                    panel[alpha] = panel[color][3] * 100 / 65536
+                    panel[color][3] = 65536
+                else: panel[color].append(65536)
+                # This is the way panel colors come out over DBus,
+                # so this is the way they have to go back in.
+                panel[color] = dbus.Array([dbus.UInt32(i, variant_level=1)
+                 for i in panel[color]], signature=dbus.Signature('v'),
+                 variant_level=1)
+        
+        for r in ("x", "y"):
+            panel["range-" + r] = [int(i) for i in
+             self.xfconf_get(prop_base, "range-" + r, [0, 9999])]
+            if len(panel["range-" + r]) != 2: panel["range-" + r] = [0, 9999]
+        
         return panel
     
     def xfconf_changed (self, channel, prop, val):
@@ -68,6 +91,25 @@ class PanelFader:
         panel = rx.sub(r"\1", prop)
         self.panels[panel] = self.xfconf_get_panel(panel)
         self.check_status()
+    
+    # Allows colors to be stored as strings.
+    def parse_color (self, color):
+        if isinstance(color, (list, tuple, dbus.Array)):
+            return list(color)
+        elif isinstance(color, (str, dbus.String)):
+            color = str(color)
+            if color[0] == '#':
+                color = color[1:]
+            if len(color) in (3, 4): digits = 1
+            elif len(color) in (6, 8): digits = 2
+            elif len(color) in (12, 16): digits = 4
+            else: return None
+            return [
+                int(color[i:i+digits] * (4 / digits) , 16)
+                for i in range(0, len(color), digits)
+            ]
+        else:
+            return None
     
     # Wnck stuff.
     def active_win_change (self, null1=None, null2=None):
@@ -84,8 +126,8 @@ class PanelFader:
     
     def check_status (self, null1=None, null2=None, null3=None):
         for k, v in self.panels.iteritems():
-            if len(self.get_wins(v)) > 0: self.set_panel_alpha(v, "max")
-            else: self.set_panel_alpha(v, "normal")
+            if len(self.get_wins(v)) > 0: self.set_panel_state(v, "max")
+            else: self.set_panel_state(v, "normal")
     
     def get_wins (self, panel):
         return [w for w in self.screen.get_windows_stacked() if
@@ -95,12 +137,18 @@ class PanelFader:
     
     def window_in_range (self, window, panel):
         geometry = window.get_geometry()
-        return panel["range_x"][0] <= geometry[0] <= panel["range_x"][1] and \
-         panel["range_y"][0] <= geometry[0] <= panel["range_y"][1]
-
-    def set_panel_alpha (self, panel, which):
-        self.xfconf.SetProperty("xfce4-panel", panel["base"] +
-         "background-alpha", panel[which])
+        return panel["range-x"][0] <= geometry[0] <= panel["range-x"][1] and \
+         panel["range-y"][0] <= geometry[0] <= panel["range-y"][1]
+    
+    # Where the actual magic is done.
+    def set_panel_state (self, panel, state):
+        self.xfconf_set(panel, "background-alpha", panel["alpha-" + state])
+        if panel["image-" + state]:
+            self.xfconf_set(panel, "background-style", 2)
+            self.xfconf_set(panel, "background-image", panel["image-" + state])
+        elif panel["color-" + state]:
+            self.xfconf_set(panel, "background-style", 1)
+            self.xfconf_set(panel, "background-color", panel["color-" + state])
 
 
 if __name__ == '__main__':
