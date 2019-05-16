@@ -1,0 +1,121 @@
+#!/bin/sh
+set -eu
+
+die_usage () {
+    cat <<EOF
+wfi / wait-for-it
+Wait for the appearance or disappearance of a process, file, window, or
+an internet connection. Then, optionally, execute a command afterward.
+You can use -- if you just want to sleep before executing commands.
+Wait for network requires wget, and wait for window requires xdotool.
+Exits status 1 if timeout is hit.
+Usage:
+    wfi [global opts] <proc|process|file> <target> [command to exec]
+    wfi [global opts] <net|network|internet> [command to exec]
+    wfi [global opts] <win|window> [win opts] <target> [command to exec]
+    wfi [global opts] -- [command to exec]
+Global options:
+    -i|--interval: Time in seconds to sleep before checking again, default 1.
+    -d|--pre-delay: Time in seconds to sleep before starting, default 0.
+    -D|--post-delay: Time in seconds to wait after matching, default 0.
+    -t|--timeout: Time in seconds to spend trying, default 60.
+Window options:
+    -v|--visible: Only search for visible windows.
+    -a|--classname: Search by classname; the default behavior.
+    -c|--class: Search by class.
+    -n|--name|--title: Search by window name.
+Special command - output: Print process IDs or window XIDs to standard output.
+EOF
+exit 1
+}
+if [ "$#" -eq 0 ]; then die_usage; fi
+
+interval=1
+pre_delay=0
+post_delay=0
+timeout=60
+
+while printf %s "$1" | grep -q '^\-'; do
+    case "$1" in
+    -i|--interval) interval="${2:?}"; shift;;
+    -d|--pre-delay) pre_delay="${2:?}"; shift;;
+    -D|--post-delay) post_delay="${2:?}"; shift;;
+    -t|--timeout) timeout="${2:?}"; shift;;
+    -h|--help) die_usage;;
+    --) break;;  # This is the do-nothing option.
+    *) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+    esac; shift
+done
+
+if [ "$#" -eq 0 ]; then die_usage; fi
+action="$1"; shift
+
+# Check for inversion.
+check () { condition; }
+if printf %s "$action" | grep -q '^no'; then
+    action=${action#no}
+    check () { ! condition; }
+fi
+
+case "$action" in
+    --)
+        condition () { :; } ;;
+    proc|process)
+        if [ "$#" -eq 0 ]; then die_usage; fi
+        target="$1"; shift
+        output_ok=1
+        condition () { output=$(pgrep -n "$target"); } ;;
+    file)
+        if [ "$#" -eq 0 ]; then die_usage; fi
+        target="$1"; shift
+        condition () { [ -e "$target" ]; } ;;
+    net|network|internet)
+        if ! [ -x "$(command -v wget)" ]; then
+            printf "Wait for network requires wget.\n"; exit 1
+        fi
+        condition () {
+            [ "$(wget -q -O- http://network-test.debian.org/nm)" \
+               = "NetworkManager is online" ]
+        } ;;
+    win|window)
+        if ! [ -x "$(command -v xdotool)" ]; then
+            printf "Wait for window requires xdotool.\n"; exit 1
+        fi
+        if [ "$#" -eq 0 ]; then die_usage; fi
+        target="$1"; shift
+        search="--classname"
+        condition () { output=$(xdotool search "$search" "$target"); }
+        output_ok=1
+        while printf %s "${1:-}" | grep -q '^\-'; do
+            case "$1" in
+            -v|--visible) condition () {
+                output=$(xdotool search --onlyvisible "$search" "$target")
+            };;
+            -c|--class) search="--class";;
+            -a|--classname) search="--classname";;
+            -t|--title|--name) search="--name";;
+            *) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+            esac; shift
+        done ;;
+    *) printf "Invalid action: %s\n" "$action" >&2; die_usage;;
+esac
+
+sleep "$pre_delay"
+
+start=$(date +%s)
+end=$((start + timeout))
+
+while :; do
+    if check > /dev/null 2>&1 || [ "$(date +%s)" -gt "$end" ]; then break; fi
+    sleep "$interval"
+done
+
+if [ "$(date +%s)" -gt "$end" ]; then exit 1; fi
+
+sleep "$post_delay"
+
+if [ "$#" -gt 0 ]; then
+    if [ "$1" = "output" ] && [ "${output_ok:-}" ]; then
+        printf %s\\n "$output"
+    else exec "$@"; fi
+fi
