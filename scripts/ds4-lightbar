@@ -1,83 +1,106 @@
-#!/bin/bash
+#!/bin/sh
 # Change the color of DualShock 4 LEDS, and also setup udev rules and perms.
 # This is a stark contrast to the xpad-leds script; games like Transistor and
 # TowerFall make use of the light bar so it needs to be user writable.
-
+#
 # Usage: ds4-lightbar INDEX|all (R G B)|default|off
-#   Change per-controller defaults by editing this file.
+# Install requisite udev rules and config with ds4-lightbar install.
+# Change per-controller defaults by editing /etc/ds4-lightbar.colors.
+set -eu
 
 rundir=/var/run/ds4-lightbar
 sysdir=/sys/bus/hid/drivers/sony
+colorlist=/etc/ds4-lightbar.colors
 
-defaults=(
-    "0 50 50"
-    "50 0 40"
-    "50 50 0"
-    "50 50 50"
-)
-
-if [[ "$1" == "install" ]]; then
+if [ "$1" = "install" ]; then
     # Install udev rule.
-    [[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@"
+    if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
     cat > /etc/udev/rules.d/50-ds4-lightbar.rules <<EOF
 # Only DS4 lightbars have the "global" led.
 ACTION=="add", SUBSYSTEM=="leds", DRIVERS=="sony", DEVPATH=="*:global", \
  TAG+="ds4leds", RUN+="$(readlink -f "$0") udev"
 ACTION=="remove", TAG=="ds4leds", RUN+="$(readlink -f "$0") udev"
 EOF
+    if ! [ -r "$colorlist" ]; then cat > "$colorlist" <<EOF
+0 0 50
+50 0 0
+0 50 0
+50 50 0
+0 50 50
+50 0 50
+60 30 0
+50 50 50
+EOF
+fi
     udevadm control --reload
     exit
-elif [[ "$1" == "udev" ]]; then
-    dev=$(basename $DEVPATH | sed 's/:global//')
+elif [ "$1" = "udev" ]; then
+    if [ "$(id -u)" -gt 0 ]; then exit 1; fi
+    dev=$(basename "$DEVPATH" | sed 's/:global//')
     case "$ACTION" in
     add)
         # Make leds user writeable.
-        chmod a+w $sysdir/$dev/leds/*/brightness;
+        chmod a+w "$sysdir/$dev"/leds/*/brightness;
         # We're going to use a run directory from now on so that we don't have
         # to sort by creation time every time we run the script, and so that
         # it can imitate the behavior of MoltenGampead where slots aren't
         # flattened down.
-        mkdir -p $rundir
+        mkdir -p "$rundir"
         # Find a free index.
-        for ((index = 0; ; index++)); do
-            if ! [[ -d $rundir/$index ]]; then
-                ln -s $sysdir/$dev/leds $rundir/$index
+        index=0
+        while true; do
+            if ! [ -d "$rundir/$index" ]; then
+                mkdir "$rundir/$index"
+                ln -s "$(find "$sysdir/$dev/leds/" -name "*global")" \
+                 "$rundir/$index/global"
+                ln -s "$(find "$sysdir/$dev/leds/" -name "*red")" \
+                 "$rundir/$index/red"
+                ln -s "$(find "$sysdir/$dev/leds/" -name "*green")" \
+                 "$rundir/$index/green"
+                ln -s "$(find "$sysdir/$dev/leds/" -name "*blue")" \
+                 "$rundir/$index/blue"
                 "$0" $((index + 1)) default
                 break
             fi
+            index=$((index + 1))
         done ;;
     remove)
-        for dir in $rundir/*; do
-            [[ ! -e "$dir" || -e "$dir/$dev:global" ]] && rm $dir
+        for dir in "$rundir"/*; do
+            if [ ! -e "$dir/global" ] || [ -e "$dir/global/$dev:global" ]; then
+                rm -r "$dir"; fi
         done ;;
     esac
-elif [[ "$#" =~ 0|1|3 ]]; then
-    echo "Usage: ds4-lightbar INDEX|all (R G B)|default|off"
-    echo "  Edit this script to set the default colors."
+elif [ "$#" -le 1 ] || [ "$#" -eq 3 ]; then
+    printf "Usage: ds4-lightbar INDEX|all (R G B)|default|off\n"
+    printf "  Edit this script to set the default colors.\n"
     exit 1
 else  # Convenient light-changing API.
-    index=$1;  # Index refers to the nth available controller.
-    r=$2; g=$3; b=$4
+    index="${1:?}";  # Index refers to the nth available controller.
+    r="${2:?}"; g="${3:-}"; b="${4:-}"
     
     # Define a function rather than repeating ourselves ad nauseum.
     set_led () {
-        local index=$(($1 - 1))
-        led=$rundir/$index; [[ -e "$led" ]] || return
-        if [[ "$2" == "off" ]]; then
-            echo 0 > $led/*global/brightness
-        elif [[ "$2" == "default" ]]; then
-            set_led $1 ${defaults[index % ${#defaults[@]}]}
+        idx=$((${1:?} - 1))
+        led="$rundir/$idx";
+        if ! [ -e "$led" ]; then return; fi
+        if [ "${2:?}" = "off" ]; then
+            echo 0 > "$led"/global/brightness
+        elif [ "${2:?}" = "default" ]; then
+            colors=$(wc -l "$colorlist" | cut -f1 -d" ")
+            idx=$((idx % colors))
+            # shellcheck disable=SC2046
+            set_led "$1" $(sed -n "$((idx + 1)){p;q;}" < "$colorlist")
         else
-            echo 1 > $led/*global/brightness
-            echo $2 > $led/*red/brightness
-            echo $3 > $led/*green/brightness
-            echo $4 > $led/*blue/brightness
+            printf 1 > "$led"/global/brightness
+            printf %s "${2:-}" > "$led"/red/brightness
+            printf %s "${3:-}" > "$led"/green/brightness
+            printf %s "${4:-}" > "$led"/blue/brightness
         fi
     }
     
-    if [[ "$index" == "all" ]]; then
-        for i in $(seq 1 $(ls -1 $rundir | wc -l)); do
-            set_led $i $r $g $b;
-        done;
-    else set_led $index $r $g $b; fi
+    if [ "$index" = "all" ]; then
+        for i in $(seq 1 "$(find $rundir | wc -l)"); do
+            set_led "$i" "$r" "$g" "$b"
+        done
+    else set_led "$index" "$r" "$g" "$b"; fi
 fi
