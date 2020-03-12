@@ -1,0 +1,135 @@
+#!/bin/sh
+# Execute given tasks in the current environment.
+# First, execute with --daemon to create a fifo and start waiting.
+# Regular invocation executes predefined tasks in "$XDG_CONFIG_HOME/env-task".
+# Normally tasks are queued up without any regard to their status, but you can
+# choose to have a task block by affixing :block to its name.
+set -eu
+
+main_daemon () {
+    rundir="/run"
+    taskdir="/etc/env-task"
+    if [ "$(id -u)" -gt 0 ]; then
+        rundir="/run/user/$(id -u)"
+        taskdir="${XDG_CONFIG_HOME:-$HOME/.config}/env-task"
+    fi
+    fifo="$rundir/env-task"
+    
+    exec > "$rundir/env-task.log" 2>&1
+    
+    trap rm_fifo INT QUIT TERM EXIT
+    
+    if ! [ -p "$fifo.in" ]; then mkfifo "$fifo.in"; fi
+    if ! [ -p "$fifo.out" ]; then mkfifo "$fifo.out"; fi
+    printf "FIFOs created; waiting for tasks.\n"
+
+    exec 3< "$fifo.in"    
+    while :; do
+        while read -r task; do
+            exec_style="queue"
+            if [ "${task%:*}" != "$task" ]; then
+                exec_style=${task#*:}
+                task=${task%:*}
+            fi
+            read -r arg1; read -r arg2; read -r arg3
+            if verify_task "$task"; then
+                printf "Executing %s with args:\n" "$task"
+                printf "arg1: %s\n" "${arg1:-(empty)}"
+                printf "arg2: %s\n" "${arg2:-(empty)}"
+                printf "arg3: %s\n" "${arg3:-(empty)}"
+                case "$exec_style" in
+                block)
+                    if "$taskdir/$task" "$arg1" "$arg2" "$arg3"
+                    then fifo_out "ok"; else fifo_out "fail"; fi ;;
+                queue)
+                    "$taskdir/$task" "$arg1" "$arg2" "$arg3" || : ;;
+                bg)
+                    "$taskdir/$task" "$arg1" "$arg2" "$arg3" || : & ;;
+                *)
+                    printf "Unknown exec style: %s\n" "$exec_style" ;;
+                esac < /dev/null
+            elif ! [ -e "$taskdir/$task" ]; then
+                printf "%s doesn't exist.\n" "$task"
+                fifo_out "no-exist"
+            elif ! [ -x "$taskdir/$task" ]; then
+                printf "%s is not executable.\n" "$task"
+                fifo_out "no-exec"
+            else
+                printf "%s failed hash verification!\n" "$task"
+                fifo_out "bad-hash"
+            fi
+        done <&3
+        sleep 0.1
+    done
+    printf "Exiting.\n"
+}
+
+main_client () {
+    id=$(id -u)
+    if [ "$id" -eq 0 ]; then
+        id=$(id -u "$(who | grep "$(cat /sys/class/tty/tty0/active)" | \
+         awk '{ print $1 }')")
+    fi
+    fifo="/run/user/$id/env-task"
+    
+    if [ "$1" = "--wait" ]; then shift; fi 
+    if [ "$1" != "--nowait" ]; then
+        count=0
+        until [ -p "$fifo.in" ] && [ -p "$fifo.out" ]; do
+            sleep 1
+            count=$((count + 1))
+            if [ "$count" -gt 10 ]; then break; fi
+        done
+    else shift
+    fi
+    
+    if [ -p "$fifo.in" ] && [ -p "$fifo.out" ]; then
+        task=${1:-}; shift
+        exec_style=${task#*:}
+        {
+            printf %s\\n "$task"
+            printf %s\\n "${1:-}"
+            printf %s\\n "${2:-}"
+            printf %s\\n "${3:-}"
+        } > "$fifo.in"
+        if [ "${exec_style:-}" = "block" ]; then
+            read -r status < "$fifo.out"
+            if [ "$status" = "ok" ]; then
+                exit 0
+            elif [ "$status" = "fail" ]; then
+                printf "%s failed.\n" "$task"
+                exit 1
+            elif [ "$status" = "no-exist" ]; then
+                printf "%s doesn't exist.\n" "$task"
+                exit 1
+            elif [ "$status" = "no-exec" ]; then
+                printf "%s is not executable.\n" "$task"
+                exit 1
+            elif [ "$status" = "bad-hash" ]; then
+                printf "%s failed hash verification!\n" "$task"
+                exit 1
+            fi
+        fi
+    else
+        printf "env-task daemon is currently not running."
+        exit 1
+    fi
+}
+
+rm_fifo () { rm -f "$fifo.in" "$fifo.out" || :; exit; }
+
+fifo_out () {
+    if [ "${exec_style}" = "block" ]; then
+        printf %s\\n "$*" > "$fifo.out"
+    fi
+}
+
+verify_task () { (
+    cd "$taskdir"
+    [ -x "${1:-}" ] && {
+        ! [ -r sha1sums ] || grep -e " $1\$" sha1sums | sha1sum -c --status
+    }
+) }
+
+if [ "$1" = "--daemon" ]; then main_daemon
+else main_client "$@"; fi
