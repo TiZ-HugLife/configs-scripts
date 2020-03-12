@@ -1,0 +1,109 @@
+#!/bin/sh
+# Monitor MoltenGamepad to track slots and send notifications on slot events.
+# Run as root, gamepad, or a user in the gamepad group.
+set -eu
+
+puts ()    { printf %s\\n "$*"; }
+match ()   { puts "$line" | grep -E "$1"; }
+first ()   { puts "$line" | sed -r 's/^.* "(.*)" "(.*)".*$/\1/'; }
+second ()  { puts "$line" | sed -r 's/^.* "(.*)" "(.*)".*$/\2/'; }
+devnum ()  { puts "${1##*_}"; }
+slotnum () { puts "${1#virtpad}"; }
+
+controller_type () {
+    case "$1" in
+    xpad_*)           puts "XBox controller" ;;
+    ps4_*)            puts "PlayStation 4 controller" ;;
+    ds3_*)            puts "DualShock 3" ;;
+    mfps2_*)          puts "Mayflash PS2 adapter" ;;
+    switch_pro_*)     puts "Switch Pro Controller" ;;
+    8bitdo_zero_*)    puts "8BitDo Zero" ;;
+    8bitdo_n30pro_*)  puts "8BitDo N30 Pro" ;;
+    ps_*) 
+        if [ -e "$rundir/devices/$1/is_ds4" ]; then
+            puts "DualShock 4"
+        else puts "DualShock 3/4"; fi ;;
+    *)  puts "Unknown controller" ;;
+    esac
+}
+
+controller_notes () {
+    notes=""
+    case "$1" in
+    switch_pro_*)     physical=1 ;;
+    8bitdo_n30pro_*)  physical=1; flip_triggers=1 ;;
+    *) : ;;
+    esac
+    if [ "${physical:-}" ]; then
+        notes="$notes\nPhysical layout used instead of semantic."
+        notes="$notes\nIn other words, south button is A, east B, etc."
+    fi
+    if [ "${flip_triggers:-}" ]; then
+        notes="$notes\nR1/R2 and L1/L2 are flipped for ergonomic reasons."
+    fi
+    puts "$notes"
+}
+
+rundir=/run/moltengamepad
+mkdir -p "$rundir/slots" "$rundir/devices"
+connection=0
+
+# Sleep infinity allows it to run without a terminal. Without a terminal
+# stdin is just /dev/null and it immediately closes. With sleep infinity,
+# input will just never ever come.
+sleep infinity | moltengamepadctl -S /run/moltengamepad/socket -i | \
+while read -r line; do
+    if match '^/devplug:.*"add"'; then
+        connection=1
+        device=$(first)
+        devdir="$rundir/devices/$device"
+        mkdir -p "$devdir"
+        puts "$device" > "$devdir/mgdev"
+        sleep 0.5
+        # A udev rule will echo the event device into this file.
+        if [ -r "$rundir/newest-evdev" ]; then
+            evdev=$(cat "$rundir/newest-evdev")
+            puts "$evdev" > "$devdir/evdev"
+            sysfs=$(udevadm info -q path "$evdev")
+            sysfs="/sys/${sysfs%/*/*/*}"
+            uuid=${sysfs##*/}; puts "$uuid" > "$devdir/uuid"
+            ln -sfn "$sysfs" "$devdir/sysfs"
+            if [ -d "$sysfs/leds/$uuid:global" ]; then
+                touch "$devdir/ds4"
+            fi
+            btaddr=$(udevadm info -a /dev/input/event23 | \
+             sed -nr 's/^.*ATTRS\{phys\}=="(.+)".*$/\1/p')
+            if [ "$btaddr" ]; then puts "$btaddr" > "$devdir/btaddr"; fi
+        fi
+    elif match '^/devslot:'; then
+        device=$(first)
+        slot=$(second)
+        devnum=$(devnum "$device")
+        slotnum=$(slotnum "$slot")
+        name=$(controller_type "$device")
+        body="Assigned to slot ${slotnum}P."
+        notes=$(controller_notes "$device")
+        if [ "$slotnum" -eq 2 ] && [ "$connection" -eq 1 ]; then
+            notes="$notes\nPress Win+S to swap 1P and 2P."
+        fi
+        action="connected"
+        if [ "$connection" -eq 0 ]; then action="reassigned"; fi
+        env-task mg-notify "$name $devnum $action" "$body" "$notes" || :
+        puts "$slotnum" > "$rundir/devices/$device/slot"
+        ln -sfn "$rundir/devices/$device" "$rundir/slots/$slotnum"
+        if [ -e "$rundir/devices/$device/ds4" ] && \
+         [ -x "$(command -v ds4-lightbar)" ]; then
+            ds4-lightbar "$(cat "$rundir/devices/$device/uuid")" \
+             "default$slotnum"
+        fi
+        connection=0
+    elif match '^/devplug:.*"remove"'; then
+        device=$(first)
+        devnum=$(devnum "$device")
+        slotnum=$(cat "$rundir/devices/$device/slot")
+        name=$(controller_type "$device")
+        env-task mg-notify "$name $devnum disconnected." \
+         "Removed from slot ${slotnum}P."
+        rm -r "$rundir/devices/$device" "$rundir/slots/$slotnum"
+    fi
+done

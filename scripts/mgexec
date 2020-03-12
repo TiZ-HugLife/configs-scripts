@@ -1,0 +1,15 @@
+#!/bin/sh
+# Simple wrapper for moltengamepadctl that includes default socket.
+set -eu
+
+MOLTENGAMEPAD_SOCKET=${MOLTENGAMEPAD_SOCKET:-/var/run/moltengamepad/socket}
+MOLTENGAMEPAD_FIFO=${MOLTENGAMEPAD_FIFO:-/var/run/moltengamepad/fifo}
+
+if [ -w "$MOLTENGAMEPAD_SOCKET" ]; then
+    exec moltengamepadctl -S "$MOLTENGAMEPAD_SOCKET" -e "$*"
+elif [ -w "$MOLTENGAMEPAD_FIFO" ]; then
+    printf "%s\\n" "$*" > "$MOLTENGAMEPAD_FIFO"
+else
+    printf "No way to control MG...\n"
+    exit 1
+fi

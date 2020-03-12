@@ -1,0 +1,22 @@
+#!/bin/sh
+# Swap 1st and 2nd player slots for games where player order matters.
+set -eu
+
+slotdir=/run/moltengamepad/slots
+
+if ! [ -e "$slotdir" ]; then
+    env-task mg-notify "Can't swap" "MG monitor isn't running."
+    exit 1
+elif ! [ -e "$slotdir/1" ]; then
+    env-task mg-notify "Can't swap" "No controllers connected."
+    exit 1
+elif ! [ -e "$slotdir/2" ]; then
+    env-task mg-notify "Can't swap" "There is no second player."
+    exit 1
+fi
+
+first=$(cat "$slotdir/1/mgdev")
+second=$(cat "$slotdir/2/mgdev")
+
+mgexec "move $first to virtpad2"
+mgexec "move $second to virtpad1"
