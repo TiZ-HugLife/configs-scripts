@@ -3,12 +3,12 @@ conky.config = {
 	total_run_times = 0,
 
 	alignment = 'bottom_right',
-	gap_x = 1442,
-	gap_y = 2,
+	gap_x = 4,
+	gap_y = 4,
 
 	use_xft = true,
 	override_utf8_locale = true,
-	font = 'Apres:size=10',
+	font = 'Avenir:size=12',
 
 	border_width = 0,
 	border_inner_margin = 4,
@@ -16,14 +16,14 @@ conky.config = {
 	draw_shades = true,
 
 	own_window = true,
-	own_window_type = 'desktop', --Change to normal when using GNOME Shell
+	own_window_type = 'desktop',--Change to normal when using GNOME Shell
 	own_window_title = 'QuodLibet-Conky',
 	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
 	own_window_transparent = true,
 	own_window_argb_visual = true,
 
 	max_text_width = 0,
-	minimum_height = 104,
+	minimum_height = 156,
 
 	default_color = '#dcdcdc',
 	color1 = '#dcdcdc',
@@ -33,7 +33,7 @@ conky.config = {
 	no_buffers = true,
 
 	lua_load = '../draw.lua',
-	lua_draw_hook_pre = 'draw_ql 0x2B3B3F66 8 0 0 0 50 0 0 4 1 0',
+	lua_draw_hook_pre = 'draw_ql 0x2B3B3F66 8 0 0 0 90 0 0 20 1 0',
 }
 
-conky.text = '${execp ./conky.sh -w -A -h -s11 -t14 -S10 -T13 -i96 -v48 -V43 -a104 -r4 -f Apres -F "VL PGothic"}'
+conky.text = '${execp ./newconky.sh right 88 88 "Apres Regular" 12 9 "VL PGothic" 12 9}'

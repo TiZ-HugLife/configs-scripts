@@ -3,7 +3,7 @@
 # Requires imagemagick. Configure Quod Libet's Picture Saver plugin to save
 # the cover to $HOME/.cache/ql.current.cover
 
-if [ -z "$(pgrep -f python.*quodlibet)" ] || [ ! -e ~/.quodlibet/current ];
+if [ -z "$(pgrep -f python.*quodlibet)" ] || ! [ -e ~/.quodlibet/current ];
     then exit 0; fi
 
 if [ ! -x "$(command -v quodlibet)" ] && [ -x "$(command -v flatpak)" ]; then
@@ -91,7 +91,7 @@ if [ "$watchmode" ] || [ "$(cat ql_current)" != "$cur" ]; then
     else
         mv .qli-step3.png conkycover.png
     fi
-    rm .qli-step*.png .qli-mask.png .qli-draw.mvg
+    #rm .qli-step*.png .qli-mask.png .qli-draw.mvg
     puts "$cur" > ql_current
 fi
 if [ "$alignr" ]; then

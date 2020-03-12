@@ -1,7 +1,7 @@
 require 'cairo'
 
 -- Change this if your UID isn't 1000. $UID is bash-only.
-rundir = "/run/user/1000/conky"
+rundir = "/run/user/1000/song-info"
 
 -- Converts a hex string to a RGBA tuple.
 local function rgba_tuple (color)
@@ -19,9 +19,6 @@ function conky_draw (color, tl, tr, br, bl)
 	local w = conky_window.width
 	local h = conky_window.height
 	if w < 24 then return end
-	--local topfile = io.open(rundir.."/ontop")
-	--if topfile == nil then return end
-	--topfile:close()
 	
 	local cs = cairo_xlib_surface_create(
 	 conky_window.display,
@@ -47,7 +44,7 @@ function conky_draw (color, tl, tr, br, bl)
 	cairo_destroy(cr)
 end
 
--- Draw a translucent background and the cover at rundir../conkycover.png.
+-- Draw a translucent background and the cover at rundir../cover.png.
 -- color: RGBA hex string
 -- tl, tr, br, bl: corner radii
 -- top, bottom: displacement of background from top/bottom edges
@@ -72,10 +69,10 @@ function conky_draw_ql (color, tl, tr, br, bl, top, bottom, x, y, right, middle)
 	local cs = cairo_xlib_surface_create(
 	  conky_window.display,
 	  conky_window.drawable,
-	  conky_window.visual, w, h)
+	  conky_window.visual, conky_window.width, conky_window.height)
 	local cr = cairo_create(cs)
 	
-	local image = cairo_image_surface_create_from_png(rundir.."/conkycover.png")
+	local image = cairo_image_surface_create_from_png(rundir.."/cover.png")
 	if image then img_w = cairo_image_surface_get_width(image) end
 	if middle then if right then w = w - img_w / 2 else left = img_w / 2 end end
 	

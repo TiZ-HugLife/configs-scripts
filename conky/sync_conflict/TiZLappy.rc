@@ -35,4 +35,4 @@ conky.config = {
 	lua_draw_hook_pre = 'draw 0x3F2B2B99 8 0 0 8',
 }
 
-conky.text = '${execpi 600 ./conky.sh ~/doc ~/mus ~/pic ~/prj ~/pub ~/gam/save /home/common}'
+conky.text = '${execpi 600 ./conky.sh ~/doc ~/mus ~/pic ~/prj ~/pub ~/gam/sav /home/common ~/xdg/sync}'

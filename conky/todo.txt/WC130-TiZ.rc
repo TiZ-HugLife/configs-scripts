@@ -4,7 +4,7 @@ conky.config = {
 
 	alignment = 'bottom_left',
 	gap_x = 2,
-	gap_y = 72,
+	gap_y = 2,
 
 	use_xft = true,
 	override_utf8_locale = true,

@@ -23,7 +23,7 @@ if [[ -e "$rundir/todo_cache" ]]; then
 fi
 
 font="Liberation Sans"; fontsize="9"
-numvoffset="0"
+numvoffset="0:0"
 other_header="Other"
 args=(-d $HOME/.todo/config-conky -Pn)
 dateoffset="-4hours"
@@ -47,12 +47,15 @@ while getopts rbo:c:f:s:n:N:v:d: OPT; do case $OPT in
 esac; done; shift $((OPTIND - 1))
 numfont="${numfont:-$font}"
 numfontsize="${numfontsize:-$fontsize}"
+numvostart="$(cut -d: -f1 <<< "$numvoffset")"
+numvoend="$(cut -d: -f2 <<< "$numvoffset")"
+numvoend="${numvoend:--$numvostart}"
 
 today=$(date -d "$dateoffset" +%Y-%m-%d)
 header_start='${font '"$font"':size='"$fontsize"':weight=bold}'
 header_end='${font '"$font"':size='"$fontsize"'}'
-num_start='${font '"$numfont"':size='"$numfontsize"'}${voffset '"$numvoffset"'}'
-num_end='${font '"$font"':size='"$fontsize"'}${voffset -'"$numvoffset"'}'
+num_start='${font '"$numfont"':size='"$numfontsize"'}${voffset '"$numvostart"'}'
+num_end='${font '"$font"':size='"$fontsize"'}${voffset '"$numvoend"'}'
 
 if [[ "${right:-}" ]]; then
     switch='\1\3 \| '"$num_start"'\2'"$num_end"
