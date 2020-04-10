@@ -1,0 +1,15 @@
+#back-button .toolbarbutton-icon, #forward-button .toolbarbutton-icon,
+#home-button .toolbarbutton-icon, #ctraddon_back-forward-button .toolbarbutton-icon
+{ -moz-image-region: auto !important; }
+#back-button .toolbarbutton-icon, #ctraddon_back-button .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=menu") !important; }
+#forward-button .toolbarbutton-icon, #ctraddon_forward-button .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=menu") !important; }
+#home-button .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-home?size=menu") !important; }
+#back-button[disabled="true"] .toolbarbutton-icon, #ctraddon_back-button[disabled="true"] .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-go-back-ltr?size=menu&state=disabled") !important; }
+#forward-button[disabled="true"] .toolbarbutton-icon, #ctraddon_forward-button[disabled="true"] .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-go-forward-ltr?size=menu&state=disabled") !important; }
+#home-button[disabled="true"] .toolbarbutton-icon
+{ list-style-image: url("moz-icon://stock/gtk-home?size=menu&state=disabled") !important; }

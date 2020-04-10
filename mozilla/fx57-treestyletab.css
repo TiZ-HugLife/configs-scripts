@@ -1,0 +1,35 @@
+/* Match GTK theme */
+#tabbar {
+  border-top: none;
+  margin-top: -1px;
+}
+.tab .label {
+  margin-top: 2px;
+}
+
+/* tab height */
+:root { --tab-height: 22px !important; }
+.tab { height: var(--tab-height) !important; }
+
+/* tab icon size */
+:root { --svg-small-icon-size: 12px; }
+
+/* hide close button */
+.tab .closebox { display: none !important; }
+
+/* new tab button */
+.newtab-button::before { position:relative; top: 0px; }
+.newtab-button {
+  --svg-small-icon-size: 10px;
+  height: 16px !important;
+}
+
+/* Show title of unread tabs with italic font */
+.tab.unread .label {
+  font-style: italic !important;
+}
+
+/* Add private browsing indicator per tab */
+.tab.private-browsing .label:before {
+  content: "🕶";
+}

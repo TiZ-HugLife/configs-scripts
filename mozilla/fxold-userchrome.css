@@ -1,0 +1,79 @@
+#sidebar-box[checked] {
+    background-color: window !important;
+    display: -moz-box !important;
+    -moz-box-direction: reverse !important;
+}
+#sidebar-box[hidden] { display: none !important; }
+#sidebar-header {
+    padding: 1px !important;
+    border-top: 1px buttonshadow solid !important;
+    border-bottom: none !important;
+    font-size: unset !important;
+    font-weight: unset !important;
+}
+#sidebar-close, #sidebar-header spacer {
+    display: none !important;
+}
+#sidebar-header toolbarbutton {
+    padding: 1px !important;
+    margin: 0px !important;
+}
+#sidebar-switcher-arrow {
+    list-style-image: url(chrome://global/skin/icons/spinner-arrow-up.svg) !important;
+    width: 10px !important;
+    height: 10px !important;
+    margin-right: 2px;
+}
+.sidebar-splitter {
+    width: 2px !important;
+}
+
+#TabsToolbar {
+    visibility: collapse !important;
+}
+
+:root {
+    --toolbarbutton-height: 20px !important;
+    --toolbarbutton-internal-padding: 3px !important;
+}
+#nav-bar {
+    min-height: unset !important;
+    padding: 0px !important;
+    /*border-top: none !important;*/
+    -moz-appearance: menubar !important;
+    /*background-color: none !important;
+    /*background-color: #222d32 !important;
+    background-image: none !important;*/
+}
+#nav-bar toolbarbutton, #nav-bar toolbarbutton .toolbarbutton-badge-stack {
+    padding: 0px 1px !important;
+}
+#nav-bar toolbarbutton .toolbarbutton-icon {
+    padding: 3px !important;
+    width: unset !important;
+    height: unset !important;
+}
+
+#urlbar {
+    margin: 2px 1px 1px 1px !important;
+}
+#urlbar .urlbar-input-box {
+    max-height: 20px !important;
+    min-height: 20px !important;
+}
+#urlbar #page-action-buttons image, #urlbar .urlbar-history-dropmarker {
+    padding: 3px 2px !important;
+}
+#urlbar #identity-box {
+    padding-left: 6px !important;
+}
+
+[uidensity="compact"]:root #urlbar, [uidensity="compact"]:root .searchbar-textbox {
+    min-height: unset !important;
+}
+[uidensity="compact"]:root .urlbar-icon {
+    width: unset !important;
+    height: unset !important;
+}
+
+/*@import url(./moz-css/fx57-treestyletab.css);*/

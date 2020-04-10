@@ -1,0 +1,24 @@
+/* This can't be loaded externally; it doesn't work if you do.*/
+@namespace url(http://www.w3.org/1999/xhtml);
+
+input:not(.urlbar-input):not(.textbox-input) {
+  /*-moz-appearance: none !important;*/
+  background-color: white !important;
+  color: black !important;
+}
+
+#downloads-indicator-counter {
+  color: white !important;
+}
+
+textarea {
+  /*-moz-appearance: none !important;*/
+  background-color: white !important;
+  color: black !important;
+}
+
+select {
+  /*-moz-appearance: none !important;*/
+  background-color: white !important;
+  color: black !important;
+}

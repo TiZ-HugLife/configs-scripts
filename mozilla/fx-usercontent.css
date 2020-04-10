@@ -1,0 +1,16 @@
+/* This can't be loaded externally; it doesn't work if you do.*/
+@namespace url(http://www.w3.org/1999/xhtml);
+
+/* Remove underlines from links */
+a { text-decoration: none ! important }
+a:hover { text-decoration: underline ! important }
+
+/* Add mail icon to mailto links */
+a[href^="mailto:"]:before { content: "\2709 " }
+
+/* Make javascript links green */
+/*a[href^="javascript:"] { color: green ! important }*/
+
+/* Showy effects can fuck off. */
+blink { text-decoration: none ! important }
+marquee { -moz-binding: none ! important }

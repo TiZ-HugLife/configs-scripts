@@ -1,0 +1,24 @@
+/* This can't be loaded externally; it doesn't work if you do.*/
+@namespace url(http://www.w3.org/1999/xhtml);
+
+.ytp-tooltip.ytp-preview .ytp-tooltip-text {
+    padding: 0px !important;
+    background-color:transparent;
+    text-shadow:
+     -1px -1px 0 #000,
+      1px -1px 0 #000,
+      1px 1px 0 #000,
+     -1px 1px 0 #000;
+    font-weight: bold;
+    transform: scale(0.7, 0.7);
+    transform-origin: 0% 100% !important;
+    position: absolute !important;
+    left: 2px !important;
+    bottom: -5px !important;
+}
+.ytp-tooltip.ytp-preview {
+    transform: scale(1.5,1.5) !important;
+    transform-origin: 50% 100% !important;
+}
+
+#a11y-skip-nav { display: none; }
