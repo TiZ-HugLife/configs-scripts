@@ -1,6 +1,8 @@
 #!/bin/sh
 
-target="$1"; UID=$(id -u)
+hide=0
+
+target="${1:-}"; UID=$(id -u)
 if [ -z "$target" ]; then
     if [ -e "/run/user/$UID/conky/ontop" ];
         then target=below
@@ -8,17 +10,16 @@ if [ -z "$target" ]; then
     fi
 fi
 
-if [ "$target" = "below" ]; then
-    state="below"
-    remove="above"
-    rm "/run/user/$UID/conky/ontop" || :
-else
-    state="above"
-    remove="below"
-    touch "/run/user/$UID/conky/ontop" || :
-fi
-
-for t in Todo-Conky QuodLibet-Conky QuodLibet-Conky-Cover; do
-    wmctrl -F -r "$t" -b "remove,$remove"
-    wmctrl -F -r "$t" -b "add,$state"
+for t in Todo-Conky Music-Conky; do
+    if [ "$target" = "below" ]; then
+        wmctrl -F -r "$t" -b remove,above
+        wmctrl -F -r "$t" -b add,below
+        if [ "$hide" = "1" ]; then xdotool search --name "$t" windowunmap; fi
+        rm "/run/user/$UID/conky/ontop" || :
+    else
+        if [ "$hide" = "1" ]; then xdotool search --name "$t" windowmap; fi
+        wmctrl -F -r "$t" -b remove,below
+        wmctrl -F -r "$t" -b add,above
+        touch "/run/user/$UID/conky/ontop" || :
+    fi
 done

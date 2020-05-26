@@ -8,7 +8,7 @@ conky.config = {
 
 	use_xft = true,
 	override_utf8_locale = true,
-	font = 'Apres Regular:size=9',
+	font = 'Apres Regular:size=11',
 
 	border_width = 0,
 	border_inner_margin = 4,
@@ -18,7 +18,7 @@ conky.config = {
 	own_window = true,
 	own_window_type = 'desktop', --Change to normal when using GNOME Shell
 	own_window_title = 'Todo-Conky',
-	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+	own_window_hints = 'above,sticky',
 	own_window_transparent = true,
 	own_window_argb_visual = true,
 
@@ -35,4 +35,4 @@ conky.config = {
 	lua_draw_hook_pre = 'draw 0x2B3B3F66 0 8 0 0',
 }
 
-conky.text = '${execp ./conky.sh -f "Apres Regular" -s 9 -n "Ubuntu Mono" -v -1:-1 -c "Work School"}'
+conky.text = '${execp ./conky.sh -f "Apres Regular" -s 11 -n "Ubuntu Mono" -v -1:-1 -c "Work School"}'

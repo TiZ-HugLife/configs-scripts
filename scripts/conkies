@@ -10,3 +10,4 @@ for dir1 in "$HOME/.conky" "${XDG_CONFIG_HOME:-$HOME/.config}/conky"; do
         done
     fi
 done
+conkytoggle below

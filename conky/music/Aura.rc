@@ -16,9 +16,9 @@ conky.config = {
 	draw_shades = true,
 
 	own_window = true,
-	own_window_type = 'desktop',--Change to normal when using GNOME Shell
-	own_window_title = 'QuodLibet-Conky',
-	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+	own_window_type = 'desktop', --Change to normal when using GNOME Shell
+	own_window_title = 'Music-Conky',
+	own_window_hints = 'above,sticky',
 	own_window_transparent = true,
 	own_window_argb_visual = true,
 
@@ -33,7 +33,7 @@ conky.config = {
 	no_buffers = true,
 
 	lua_load = '../draw.lua',
-	lua_draw_hook_pre = 'draw_ql 0x2B3B3F66 8 0 0 0 90 0 0 20 1 0',
+	lua_draw_hook_pre = 'draw_ql 0x2B3B3F66 8 0 0 0 80 0 0 20 1 0',
 }
 
-conky.text = '${execp ./newconky.sh right 88 88 "Apres Regular" 12 9 "VL PGothic" 12 9}'
+conky.text = '${execp ./conky.sh right 78 78 "Apres Regular" 14 11 "VL PGothic" 14 11}'
