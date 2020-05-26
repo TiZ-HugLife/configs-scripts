@@ -1,0 +1,32 @@
+#!/bin/bash
+[[ "$(whoami)" != "root" ]] && exec sudo "$0" "$@" 
+. /etc/lsb-release
+args=(-avzsHAX -e ssh --progress --stats --remote-option --fake-super
+ --delete --delete-excluded --delete-delay --ignore-errors
+ --exclude-from=/home/tiz/xdg/sync/backup-exclude)
+case "$HOSTNAME" in
+"Cerebro")
+    rsync "${args[@]}" / \
+     /home/cerebro/Backups/$HOSTNAME-$DISTRIB_ID-$DISTRIB_RELEASE \
+     > >(tee /var/log/backup-out) 2> >(tee /var/log/backup-err) ;;
+"Maxwell")
+    rsync "${args[@]}" / \
+     /home/maxwell/Backups/$HOSTNAME-$DISTRIB_ID-$DISTRIB_RELEASE \
+     > >(tee /var/log/backup-out) 2> >(tee /var/log/backup-err) ;;
+*)
+    rsync "${args[@]}" / \
+     tiz@maxwell:/home/tiz/bak/$HOSTNAME/$DISTRIB_ID-$DISTRIB_RELEASE \
+     > >(tee /var/log/backup-out) 2> >(tee /var/log/backup-err)
+    rsync "${args[@]}" /xusr/ \
+     tiz@maxwell:/home/tiz/bak/$HOSTNAME/XUsr \
+     >> >(tee -a /var/log/backup-out) 2>> >(tee -a /var/log/backup-err)
+    rsync "${args[@]}" /home/ \
+     tiz@maxwell:/home/tiz/bak/$HOSTNAME/Home \
+     >> >(tee -a /var/log/backup-out) 2>> >(tee -a /var/log/backup-err)
+    if [[ "$HOSTNAME" == "Aura" && -d /mnt/windows ]]; then
+        rsync "${args[@]}" /mnt/windows/ \
+         tiz@maxwell:/home/tiz/bak/Aura/Windows10 \
+         >> >(tee -a /var/log/backup-out) 2>> >(tee -a /var/log/backup-err)
+    fi
+    ;;
+esac

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Set default options for borg.
+set -eu
+
+if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
+
+export BORG_REPO="ssh://maxwell@maxwell/~/borg"
+BORG_PASSPHRASE=$(sudo -H -u tiz pass show borg)
+export BORG_PASSPHRASE
+
+cmd=${1}; shift
+
+exec borg "$cmd" --verbose --progress --show-rc "$@"
