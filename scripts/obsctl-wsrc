@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# Command line remote for a running OBS instance using obs-websockets.
+
+import asyncio, argparse, configparser, os, sys
+from obswsrc import OBSWS
+from obswsrc.requests import *
+from obswsrc.types import *
+
+def check_response(response):
+    if response.status != ResponseStatus.OK:
+        print(response.error)
+        sys.exit(1)
+
+async def main(cfg, args):
+    try:
+        async with OBSWS(cfg["hostname"], cfg["port"], cfg["password"]) as obsws:
+            if args.getrecstatus or args.getstreamstatus:
+                response = await obsws.require(GetStreamingStatusRequest())
+                check_response(response)
+                if args.getrecstatus:
+                    print("Recording: {}".format(response.recording))
+                if args.getstreamstatus:
+                    print("Streaming: {}".format(response.streaming))
+            # Not supported yet.
+            #if args.getfileformat:
+            #    response = await obsws.require(GetFilenameFormattingRequest())
+            #    check_response(response)
+            #    print("Filename Format: {}".format(response.filename-formatting))
+            if args.getfolder:
+                response = await obsws.require(GetRecordingFolderRequest())
+                check_response(response)
+                print("Recording Folder: {}".format(response.rec_folder))
+            elif args.setfolder:
+                response = await obsws.require(SetRecordingFolderRequest(
+                 {"rec-folder": args.setfolder}))
+                check_response(response)
+            if args.getprofile:
+                response = await obsws.require(GetCurrentProfileRequest())
+                check_response(response)
+                print("Profile: {}".format(response.profile_name))
+            elif args.setprofile:
+                response = await obsws.require(SetCurrentProfileRequest(
+                 {"profile-name": args.setprofile}))
+                check_response(response)
+            if args.getscenecol:
+                response = await obsws.require(GetCurrentSceneCollectionRequest())
+                check_response(response)
+                print("Scene Collection: {}".format(response.sc_name))
+            elif args.setscenecol:
+                response = await obsws.require(SetCurrentSceneCollectionRequest(
+                 {"sc-name": args.setscenecol}))
+                check_response(response)
+            if args.getscene:
+                response = await obsws.require(GetCurrentSceneRequest())
+                check_response(response)
+                print("Scene: {}".format(response.name))
+            elif args.setscene:
+                response = await obsws.require(SetCurrentSceneRequest(
+                 {"scene-name": args.setscenecol}))
+                check_response(response)
+            if args.startrec:
+                response = await obsws.require(StartRecordingRequest())
+                check_response(response)
+            elif args.stoprec:
+                response = await obsws.require(StopRecordingRequest())
+                check_response(response)
+            if args.startstream:
+                response = await obsws.require(StartStreamingRequest())
+                check_response(response)
+            elif args.stopstream:
+                response = await obsws.require(StopStreamingRequest())
+                check_response(response)
+    except OSError:
+        print("OBS isn't running.")
+        sys.exit(1)
+
+
+# Load settings file.
+cfg = configparser.ConfigParser()
+cfg["OBSCtl"] = {
+    "HostName": "localhost",
+    "Port": "4444",
+    "Password": ""
+}
+cfg.read(os.path.join(os.getenv("XDG_CONFIG_HOME", os.path.join(
+ os.getenv("HOME", "~") + ".config")), "obsctl.cfg"))
+
+# Command line args.
+parser = argparse.ArgumentParser(
+ description="Control a running OBS Studio instance.")
+for i in [
+    ("--startrec", "Request Studio to start recording."),
+    ("--stoprec", "Request Studio to stop recording."),
+    ("--startstream", "Request Studio to start streaming."),
+    ("--stopstream", "Request Studio to stop streaming."),
+    ("--getrecstatus", "Output recording status."),
+    ("--getstreamstatus", "Output streaming status."),
+    ("--getfileformat", "Output current file format."),
+    ("--getfolder", "Output recording folder."),
+    ("--getprofile", "Output current profile."),
+    ("--getscenecol", "Output current scene collection."),
+    ("--getscene", "Output current scene."),
+]: parser.add_argument(i[0], action="store_true", help=i[1])
+for i in [
+    ("--setfileformat", "Set filename formatting."),
+    ("--setfolder", "Set recording folder."),
+    ("--setprofile", "Set current profile."),
+    ("--setscenecol", "Set current scene collection."),
+    ("--setscene", "Set current scene."),
+]: parser.add_argument(i[0], metavar="X", help=i[1])
+args = parser.parse_args()
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main(cfg["OBSCtl"], args))
+loop.close()
