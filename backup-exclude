@@ -1,0 +1,42 @@
+# Include
++ /dev/console
++ /dev/initctl
++ /dev/null
++ /dev/zero
++ /common/icons
++ /common/icons/*
+
+# Exclude
+- /cerebro/*
+- /dev/*
+- /proc/*
+- /sys/*
+- /run/*
+- /tmp/*
+- /media/*
+- /mnt/*
+- /xusr/*
+- /home/*
+- /usr/lib/cups/backend*
+- /vmdisks/*
+- lost+found/*
+- .gvfs*
+- .cache/*
+- Trash/*
+- wine/user/Music/*
+- wine/user/Pictures/*
+- wine/user/Videos/*
+
+# Space-wasters
+- /tiz/vid/rec/*
+- /tiz/gam/steam/*
+
+# Redundant due to Syncthing.
+- /common/*
+- /tiz/doc/*
+- /tiz/mus/*
+- /tiz/pic/*
+- /tiz/prj/*
+- /tiz/pub/*
+- /tiz/sch/*
+- /tiz/wrk/*
