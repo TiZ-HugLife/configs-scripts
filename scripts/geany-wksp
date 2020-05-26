@@ -3,5 +3,5 @@
 # $HOME/.local/share/applications and change its exec to this to get the most
 # benefit; you'll be able to work on different text-related tasks on each
 # workspace without disrupting either window!
-exec /usr/bin/geany \
- --socket-file="/run/user/$(id -u)/geany-$(xdotool get_desktop)" "$@"
+exec flatpak run --file-forwarding org.geany.Geany \
+    --socket-file="$HOME/xdg/cache/geany-$(xdotool get_desktop)" @@ "$@" @@
