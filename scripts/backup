@@ -1,1 +1,48 @@
-backup-borg
+#!/bin/sh
+# Backup to Maxwell's borg repository.
+set -eu
+
+# Self-sudo.
+if [ "$(id -u)" -gt 0 ]; then exec sudo "$0"; fi
+
+# Export necessary env vars.
+export BORG_REPO="ssh://maxwell@maxwell/~/borg"
+BORG_PASSPHRASE=$(sudo -H -u tiz pass show borg)
+export BORG_PASSPHRASE
+
+# Saves some code duplication.
+borg_cmd () { cmd=${1}; shift; borg "$cmd" -v -p --show-rc "$@"; }
+borg_create () {
+    borg_cmd create --list --stats --filter AME --compression zstd,16 \
+     --exclude-caches -e "*/.cache/*" -e "*/cache/*" -e "*/tmp/*" "$@"
+}
+
+# Aura and Workbox use BTRFS + subvolumes. Maxwell and Cerebro use EXT4.
+if [ -d /mnt/btrfs ]; then  # Aura and Workbox.
+    # CD here so that each subvolume is considered the root.
+    cd /mnt/btrfs
+    
+    # Exclude home, ensure it's done last.
+    # shellcheck disable=SC2012 # It works fine, shut up.
+    subvols="$(ls | sed 's/@//' | grep -Ev '\.off|\.bak|^home$') home"
+
+    # Backup step.
+    for vol in $subvols; do
+        borg_create "::{hostname}-$vol-{now:%y%m%d%H%M}" "@$vol"
+    done
+else  # Maxwell and Cerebro.
+    subvols="root xusr"
+    borg_create -e "/dev/*" -e "/sys/*" -e "/proc/*" -e "/run/*" \
+     -e "/home/*" -e "/xusr/*" "::{hostname}-root-{now:%y%m%d%H%M}" "/"
+    borg_create "::{hostname}-xusr-{now:%y%m%d%H%M}" "/xusr"
+fi
+
+# Prune step.
+for vol in $subvols; do
+    case "$vol" in
+        home) daily=5; weekly=3; monthly=2 ;;
+        *)    daily=7; weekly=4; monthly=4 ;;
+    esac
+    borg_cmd prune --list --stats --prefix "{hostname}-$vol-" --keep-last 3 \
+     --keep-daily "$daily" --keep-weekly "$weekly" --keep-monthly "$monthly"
+done
