@@ -27,25 +27,36 @@ vport = target viewport starting from 1
 no_task = hide from tasklist
 no_page = hide from pager
 set_type = change the window's type. see type above.
+set_class = change the window's class.
 top, bottom, shade, max, min, undeco, stick, pin = do these to the window.
 fswin = borderless fullscreen window. aspect scales window to fill screen.
 run = run script on window with args followed by window id.
 ]]
 
-debug_print("Name: " .. get_window_name() .. ", " ..
-            "App: " .. get_application_name() .. ", " ..
-            "Class: " .. get_window_class() .. ", " ..
-            "Class2: " .. get_class_instance_name() .. ", " ..
-            "Role: " .. get_window_role() .. ", " ..
-            "Command: " .. get_window_property("WM_COMMAND"))
+win_name = (get_window_name() or "")
+app_name = (get_application_name() or "")
+win_class = (get_window_class() or "")
+class_instance = (get_class_instance_name() or "")
+win_role = (get_window_role() or "")
+win_x, win_y, win_w, win_h = get_window_client_geometry()
+
+debug_print("Name: " .. win_name)
+debug_print("App: " .. app_name)
+debug_print("Class: " .. win_class)
+debug_print("Class2: " .. class_instance)
+debug_print("Role: " .. win_role)
+debug_print("Location: " .. win_x .. ", " .. win_y)
+debug_print("Geometry: " .. win_w .. " x " .. win_h)
+debug_print("Command: " .. get_window_property("WM_COMMAND"))
+debug_print("----------------")
 
 function do_rules (...)
     _, _, win_w, win_h = get_window_client_geometry()
     for _, v in ipairs(arg) do
         if
-            (not v.app or v.app:lower() == get_application_name():lower()) and
-            (not v.class or v.class:lower() == get_window_class():lower()) and
-            (not v.class2 or v.class2:lower() == get_class_instance_name():lower()) and
+            (not v.app or v.app:lower() == app_name:lower()) and
+            (not v.class or v.class:lower() == win_class:lower()) and
+            (not v.class2 or v.class2:lower() == class_instance:lower()) and
             (not v.role or get_window_role():match(v.role)) and
             (not v.name or get_window_name():match(v.name)) and
             (not v.min_width or v.min_width >= win_w) and
@@ -59,7 +70,7 @@ function do_rules (...)
             (not v.nth or is_nth(v))
         then
             debug_print("Window matched!")
-            if v.pos then set_window_position(v.pos.x, v.pos.y) end
+            if v.pos then set_window_position2(v.pos.x, v.pos.y) end
             if v.size then set_window_size(v.size.w, v.size.h) end
             if v.alpha then set_opacity(v.alpha) end
             if v.wksp then
@@ -81,6 +92,9 @@ function do_rules (...)
             if v.set_type then
                 set_window_type("WINDOW_TYPE_"..string.upper(v.set_type))
             end
+            --if v.set_class then
+                --set_window_property("WM_CLASS", v.set_class)
+            --end
             if v.run then
                 os.execute(v.run .. " " .. get_window_xid())
             end
