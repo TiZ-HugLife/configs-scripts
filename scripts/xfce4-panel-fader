@@ -1,20 +1,25 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
-# Sets panel to specified opacity depending on the visilibity of a maximized
+# Sets panel bg to specified opacity depending on the visilibity of a maximized
 # window on the current workspace. Basically hacks together what wingpanel does.
 # You need xfce4-dockbarx-plugin >= 0.4 for this to work properly with it.
 # 
 # Uses xfconf properties within each panel that you want to control.
 # For just alpha changing, alpha-normal and alpha-max.
-# For color changing, color-normal and color-max.
-# For image changing, image-normal and image-max.
+# For bg color changing, color-normal and color-max.
+# For bg image changing, image-normal and image-max.
 # You can mix and match color and image for different states.
 # For multi-monitor, use range-x and range-y to set the pixel range to look for
 #   relevant windows in.
 #
 # by Trent "TiZ" McPheron. MIT/X11 License.
 
-import gtk, wnck, dbus, re
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+gi.require_version("Wnck", "3.0")
+from gi.repository import Wnck
+import dbus, re
 from dbus.mainloop.glib import DBusGMainLoop
 rx = re.compile(
  r"^(/panels/panel-.+/)(?:(?:alpha|color)-(?:normal|max)|range-(?:x|y))$")
@@ -31,16 +36,16 @@ class PanelFader:
         self.panels = {panel: self.xfconf_get_panel(panel) for panel in set([
             rx.sub(r"\1", prop) for prop in [
                 k for (k, v) in self.xfconf.GetAllProperties(
-                 "xfce4-panel", "/panels").iteritems() if rx.match(str(k))
+                 "xfce4-panel", "/panels").items() if rx.match(str(k))
                 ]
             ])
         }
         self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
          "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
         
-        self.screen = wnck.screen_get_default()
-        while gtk.events_pending():
-            gtk.main_iteration()
+        self.screen = Wnck.Screen.get_default()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
         self.screen.connect("active_window_changed", self.active_win_change)
         self.screen.connect("active_workspace_changed", self.check_status)
         self.screen.connect("window_opened", self.check_status)
@@ -109,7 +114,7 @@ class PanelFader:
             elif len(color) in (12, 16): digits = 4
             else: return None
             return [
-                int(color[i:i+digits] * (4 / digits) , 16)
+                int(color[i:i+digits] * (4 // digits) , 16)
                 for i in range(0, len(color), digits)
             ]
         else:
@@ -129,7 +134,7 @@ class PanelFader:
         self.check_status()
     
     def check_status (self, null1=None, null2=None, null3=None):
-        for k, v in self.panels.iteritems():
+        for k, v in self.panels.items():
             if len(self.get_wins(v)) > 0: self.set_panel_state(v, "max")
             else: self.set_panel_state(v, "normal")
     
@@ -140,9 +145,11 @@ class PanelFader:
          w.get_window_type() == 0 and self.window_in_range(w, panel)]
     
     def window_in_range (self, window, panel):
+        #print(window)
         geometry = window.get_geometry()
+        #print(geometry)
         return panel["range-x"][0] <= geometry[0] <= panel["range-x"][1] and \
-         panel["range-y"][0] <= geometry[0] <= panel["range-y"][1]
+         panel["range-y"][0] <= geometry[1] <= panel["range-y"][1]
     
     # Where the actual magic is done.
     def set_panel_state (self, panel, state):
@@ -158,4 +165,4 @@ class PanelFader:
 if __name__ == '__main__':
     DBusGMainLoop(set_as_default=True)
     fader = PanelFader()
-    gtk.main()
+    Gtk.main()
