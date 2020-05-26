@@ -19,6 +19,8 @@ menuitem
     { padding: 3px 4px; }
 menubar > menuitem
     { padding: 3px 8px; }
+row
+    { padding: 0px 2px; }
 row revealer
     { padding: 0px 4px; }
 header tab, header.top tab, header.bottom tab
@@ -27,13 +29,22 @@ header.left tab, header.right tab
     { padding: 4px 3px; }
 notebook header image
     { padding: 2px; }
-scrollbar slider
-    { min-height: 8px; min-width: 6px; }
+scrollbar.vertical slider
+    { min-height: 20px; min-width: 8px; }
+scrollbar.horizontal slider
+    { min-width: 20px; min-height: 8px; }
 
 /* Header bars */
-headerbar *
+headerbar > *
     { margin-top: 1px; margin-bottom: 1px; }
 headerbar button
-    { padding: 3px; }
-button.titlebutton
     { padding: 1px; }
+headerbar button.image-button,
+headerbar button.titlebutton
+    { padding: 2px; }
+headerbar stackswitcher button
+    { padding: 2px 4px; margin: 0px 2px; }
+/*button.titlebutton
+    { padding: 1px; margin-left: 1px; margin-right: 0px; }*/
+headerbar button
+    { min-width: 20px; min-height: 20px; }

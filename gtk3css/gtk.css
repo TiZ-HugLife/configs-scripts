@@ -1,5 +1,11 @@
 /*@import url("unset-min-size.css");*/
 @import url("unset-min-sizes-safe.css");
+@import url("kill-gtk3-shadows.css");
 @import url("compact.css");
 @import url("panel.css");
 @import url("apps.css");
+
+/* Use this stupid rule if you need to make sure this CSS is being loaded. */
+/*menuitem label {
+    color: #00FFFF;
+}*/

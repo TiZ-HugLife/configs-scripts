@@ -10,21 +10,6 @@ style "mod-panel"
     
     xthickness  = 0
     ythickness  = 0
-
-    engine "murrine" {
-        border_colors = FALSE
-        roundness   = 0
-        glowstyle   = 0
-        glazestyle  = 0
-        lightborder_shade = 1.0
-        highlight_shade = 1.0
-        contrast = 0.0
-        gradient_shades = { 1.0, 0.85, 0.85, 0.7 }
-        roundness   = 0
-        reliefstyle = 0
-        textstyle   = 1
-        text_shade  = 0.2
-    }
 }
 
 style "mod-main-menu-text" = "mod-panel-text"
