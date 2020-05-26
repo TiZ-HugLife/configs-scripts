@@ -1,0 +1,18 @@
+#!/bin/sh
+# Make required bind mounts, then chroot in. Then clean up after.
+set -eu
+
+# Self-sudo.
+if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
+
+dirs="dev proc sys xusr"
+for dir in $dirs; do
+    if [ -d "$1/$dir" ]; then mount -o bind "/$dir" "$1/$dir"; fi
+done
+cp /etc/resolv.conf "$1/etc/resolv.conf"
+
+chroot "$@"
+
+for dir in $dirs; do
+    if [ -d "$1/$dir" ]; then umount "$1/$dir"; fi
+done
