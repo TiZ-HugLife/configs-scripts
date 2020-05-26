@@ -1,5 +1,0 @@
-#!/bin/sh
-quodlibet () { flatpak run io.github.quodlibet.QuodLibet "$@"; }
-song=$(quodlibet --print-playing '<artist> - <title>')
-echo "$song @Music" >> "$HOME/doc/todo/todo_music.txt"
-notify-send -i quodlibet "Song Saved" "Added <i>$song</i> to list."
