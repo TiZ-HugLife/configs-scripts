@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-die_usage () {
+usage () {
     cat <<EOF
 wfi / wait-for-it
 Wait for the appearance or disappearance of a process, file, window, or
@@ -18,7 +18,9 @@ Global options:
     -i|--interval: Time in seconds to sleep before checking again, default 1.
     -d|--pre-delay: Time in seconds to sleep before starting, default 0.
     -D|--post-delay: Time in seconds to wait after matching, default 0.
-    -t|--timeout: Time in seconds to spend trying, default 60.
+    -t|--timeout: Time in seconds to spend trying or none, default 60.
+    -n|--number: Succeed on this many of the target, default 1.
+        This option is only meaningful for process and window targets.
 Window options:
     -v|--visible: Only search for visible windows.
     -a|--classname: Search by classname; the default behavior.
@@ -26,33 +28,35 @@ Window options:
     -n|--name|--title: Search by window name.
 Special command - output: Print process IDs or window XIDs to standard output.
 EOF
-exit 1
+exit "${1:-1}"
 }
-if [ "$#" -eq 0 ]; then die_usage; fi
+if [ "$#" -eq 0 ]; then usage 1; fi
 
 interval=1
 pre_delay=0
 post_delay=0
 timeout=60
+number=1
 
-while printf %s "$1" | grep -q '^\-'; do
+while [ "${1#-}" != "$1" ]; do
     case "$1" in
     -i|--interval) interval="${2:?}"; shift;;
     -d|--pre-delay) pre_delay="${2:?}"; shift;;
     -D|--post-delay) post_delay="${2:?}"; shift;;
     -t|--timeout) timeout="${2:?}"; shift;;
-    -h|--help) die_usage;;
+    -n|--number) number="${2:?}"; shift;;
+    -h|--help) usage 0;;
     --) break;;  # This is the do-nothing option.
-    *) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+    *) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
     esac; shift
 done
 
-if [ "$#" -eq 0 ]; then die_usage; fi
+if [ "$#" -eq 0 ]; then usage 1; fi
 action="$1"; shift
 
 # Check for inversion.
 check () { condition; }
-if printf %s "$action" | grep -q '^no'; then
+if [ "${action#no}" != "$action" ]; then
     action=${action#no}
     check () { ! condition; }
 fi
@@ -61,12 +65,16 @@ case "$action" in
     --)
         condition () { :; } ;;
     proc|process)
-        if [ "$#" -eq 0 ]; then die_usage; fi
+        if [ "$#" -eq 0 ]; then usage 1; fi
         target="$1"; shift
         output_ok=1
-        condition () { output=$(pgrep -n "$target"); } ;;
+        condition () {
+            output=$(pgrep "$target")
+            if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
+                return 0; else return 1; fi
+        } ;;
     file)
-        if [ "$#" -eq 0 ]; then die_usage; fi
+        if [ "$#" -eq 0 ]; then usage 1; fi
         target="$1"; shift
         condition () { [ -e "$target" ]; } ;;
     net|network|internet)
@@ -81,36 +89,46 @@ case "$action" in
         if ! [ -x "$(command -v xdotool)" ]; then
             printf "Wait for window requires xdotool.\n"; exit 1
         fi
-        if [ "$#" -eq 0 ]; then die_usage; fi
-        target="$1"; shift
-        search="--classname"
-        condition () { output=$(xdotool search "$search" "$target"); }
+        if [ "$#" -eq 0 ]; then usage 1; fi
+        search="--class"
+        condition () {
+            output=$(xdotool search "$search" "$target")
+            if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
+                return 0; else return 1; fi
+        }
         output_ok=1
-        while printf %s "${1:-}" | grep -q '^\-'; do
+        while [ "${1:-}" ] && [ "${1#-}" != "$1" ]; do
             case "$1" in
             -v|--visible) condition () {
-                output=$(xdotool search --onlyvisible "$search" "$target")
+                output=$(xdotool search --desktop "$(xdotool get_desktop)" \
+                 --onlyvisible "$search" "$target")
+                if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
+                    return 0; else return 1; fi
             };;
             -c|--class) search="--class";;
             -a|--classname) search="--classname";;
             -t|--title|--name) search="--name";;
             *) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
             esac; shift
-        done ;;
+        done
+        target="$1"; shift;;
     *) printf "Invalid action: %s\n" "$action" >&2; die_usage;;
 esac
 
 sleep "$pre_delay"
 
 start=$(date +%s)
-end=$((start + timeout))
+if [ "$timeout" -ge 0 ] 2> /dev/null; then end=$((start + timeout))
+# Cheat and stick a 9 in front of the current timestamp for no timeout.
+else end="9$start"; fi
 
 while :; do
-    if check > /dev/null 2>&1 || [ "$(date +%s)" -gt "$end" ]; then break; fi
+    if check >/dev/null 2>&1; then success=1; break
+    elif [ "$(date +%s)" -ge "$end" ]; then break; fi
     sleep "$interval"
 done
 
-if [ "$(date +%s)" -gt "$end" ]; then exit 1; fi
+if ! [ "${success:-}" ]; then exit 1; fi
 
 sleep "$post_delay"
 
