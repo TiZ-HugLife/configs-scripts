@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# Command line remote for a running OBS instance using obs-websockets.
+
+import asyncio, argparse, configparser, os, sys
+from obswebsocket import obsws
+from obswebsocket.requests import *
+
+def call(request):
+    response = ws.call(request)
+    if not response.status:
+        print(response.dataout["error"], file=sys.stderr)
+        sys.exit(1)
+    else: return response
+
+
+# Load settings file.
+cfg = configparser.ConfigParser()
+cfg["OBSCtl"] = {
+    "HostName": "localhost",
+    "Port": "4444",
+    "Password": ""
+}
+cfg.read(os.path.join(os.getenv("XDG_CONFIG_HOME", os.path.join(
+ os.getenv("HOME", "~") + ".config")), "obsctl.cfg"))
+cfg = cfg["OBSCtl"]  # There's only the one section, so.
+
+# Command line args.
+parser = argparse.ArgumentParser(
+ description="Control a running OBS Studio instance.")
+for i in [
+    ("--startrec", "Request Studio to start recording."),
+    ("--stoprec", "Request Studio to stop recording."),
+    ("--startstream", "Request Studio to start streaming."),
+    ("--stopstream", "Request Studio to stop streaming."),
+    ("--getrecstatus", "Output recording status."),
+    ("--getstreamstatus", "Output streaming status."),
+    ("--getnameformat", "Output current filename format."),
+    ("--getfolder", "Output recording folder."),
+    ("--getprofile", "Output current profile."),
+    ("--getscenecol", "Output current scene collection."),
+    ("--getscene", "Output current scene."),
+]: parser.add_argument(i[0], action="store_true", help=i[1])
+for i in [
+    ("--setnameformat", "Set filename format."),
+    ("--setfolder", "Set recording folder."),
+    ("--setprofile", "Set current profile."),
+    ("--setscenecol", "Set current scene collection."),
+    ("--setscene", "Set current scene."),
+]: parser.add_argument(i[0], metavar="X", help=i[1])
+args = parser.parse_args()
+
+ws = obsws(cfg["HostName"], cfg["Port"], cfg["Password"])
+try:
+    ws.connect()
+except:
+    print("OBS isn't running, or authentication failed.", file=sys.stderr)
+    sys.exit(1)
+
+# Recording / Streaming.
+if args.getrecstatus or args.getstreamstatus:
+    response = call(GetStreamingStatus())
+    if args.getrecstatus:
+        if response.datain["recording-paused"]:
+            print("Recording: Paused")
+        else:
+            print("Recording: {}".format(response.getRecording()))
+    if args.getstreamstatus:
+        print("Streaming: {}".format(response.getStreaming()))
+else:
+    if args.startrec:
+        call(StartRecording())
+        print("Recording started.")
+    elif args.stoprec:
+        call(StopRecording())
+        print("Recording stopped.")
+    if args.startstream:
+        call(StartStreaming())
+        print("Streaming started.")
+    elif args.stopstream:
+        call(StopStreaming())
+        print("Streaming stopped.")
+
+# Settings queries and changes.
+if args.getfolder:
+    response = call(GetRecordingFolder())
+    print("Recording Folder: {}".format(response.getRecFolder()))
+elif args.setfolder:
+    response = call(SetRecordingFolder(args.setfolder))
+    result = call(GetRecordingFolder()).getRecFolder()
+    print("Recording Folder: {}".format(result))
+if args.getnameformat:
+    response = call(GetFilenameFormatting())
+    print("Filename Format: {}".format(response.getFilenameFormatting()))
+elif args.setnameformat:
+    response = call(SetFilenameFormatting(args.setnameformat))
+    result = call(GetFilenameFormatting()).getFilenameFormatting()
+    print("Filename Format: {}".format(result))
+if args.getprofile:
+    response = call(GetCurrentProfile())
+    print("Profile: {}".format(response.getProfileName()))
+elif args.setprofile:
+    response = call(SetCurrentProfile(args.setprofile))
+    result = call(GetCurrentProfile()).getProfileName()
+    print("Profile: {}".format(result))
+if args.getscenecol:
+    response = call(GetCurrentSceneCollection())
+    print("Scene Collection: {}".format(response.getScName()))
+elif args.setscenecol:
+    response = call(SetCurrentSceneCollection(args.setscenecol))
+    result = call(GetCurrentSceneCollection()).getScName()
+    print("Scene Collection: {}".format(result))
+if args.getscene:
+    response = call(GetCurrentScene())
+    print("Scene: {}".format(response.getName()))
+elif args.setscene:
+    response = call(SetCurrentScene(args.setscene))
+    result = call(GetCurrentScene()).getName()
+    print("Scene: {}".format(result))
