@@ -1,0 +1,54 @@
+#!/bin/sh
+# A Steam wrapper that waits for the launched game to finish before returning.
+# Useful if you want to exceute actions before and after running games.
+# If Steam is not already running, then it will close Steam afterwards.
+# If Steam is installed *ONLY* via flatpak, you can use this as `steam`.
+set -eu
+
+wait_app=0; steam_running=0; flatpak_steam=0
+
+for opt in "$@"; do case "$opt" in
+    -applaunch) wait_app=1 ;;
+    steam://run*) wait_app=1 ;;
+    *) : ;;
+esac; done
+
+if [ "$(pgrep '^steam$' | grep -v "$$" || :)" ]; then steam_running=1; fi
+
+if ! [ -x "$(command -v steam)" ] || \
+ [ "$(command -v steam)" = "$(realpath -s "$0")" ]; then
+    if [ -x "$(command -v flatpak)" ] && \
+     flatpak --command=true run com.valvesoftware.Steam; then
+        flatpak_steam=1
+        steam () { flatpak run com.valvesoftware.Steam "$@"; }
+    else
+        exit 1
+    fi
+fi
+
+if [ "$wait_app" -eq 1 ]; then
+    {
+        until [ "${pid:-}" ]; do
+            pid=$(pgrep SteamChildMonit || :)
+            sleep 1
+        done
+        while [ -e "/proc/$pid" ]; do sleep 1; done
+        if ! [ "$steam_running" -eq 1 ]; then
+            steam -shutdown
+            {
+                # Deal with the unfortunate case of Steam shutdown hanging.
+                sleep 15
+                if [ "$(pgrep '^steam$' | grep -v "$$" || :)" ]; then
+                    if [ "$flatpak_steam" -eq 1 ]; then
+                        flatpak kill com.valvesoftware.Steam
+                    else pkill steam; fi
+                fi
+            } &
+        fi
+    } &
+    waiter_pid="$!"
+    steam "$@" || : &
+    wait "$waiter_pid"
+else
+    exec steam "$@"
+fi
