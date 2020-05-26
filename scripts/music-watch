@@ -2,12 +2,12 @@
 # Outputs information about current song for use by both conky and OBS.
 # Requires imagemagick. Configure Quod Libet's Picture Saver plugin to save
 # the cover to $HOME/.cache/ql.current.cover
-set -eux
+set -eu
 
 [ "$(command -v convert)" ]
 [ "$(command -v playerctl)" ]
 
-players="spotify,quodlibet"
+players_base="spotify,quodlibet"
 rundir="/run/user/$(id -u)/song-info"
 nocover="$HOME/xdg/sync/conky/QLInfo/nocover.png"
 artdir="$HOME/mus/art"
@@ -17,8 +17,18 @@ size="128"
 pctl () { playerctl -p "$players" "$@"; }
 qrm () { rm "$1" 2> /dev/null || :; }
 
+spotpris_update () {
+    players=${players_base}
+    spotpris=$(playerctl -l | grep spotpris | head -n1)
+    if [ "$spotpris" ]; then players="$spotpris,$players"; fi
+}
+
 metadata () {
-    sed -nE 's/^\w+ (xesam|mpris):'"$1"'\s+(.+)$/\2/p' "metadata.txt"
+    sed -nE 's/^[a-z0-9.]+ (xesam|mpris):'"$1"'\s+(.+)$/\2/p' "metadata.txt"
+}
+
+artUrl () {
+    metadata artUrl | sed -E 's|open\.spotify\.com|i\.scdn\.co|'
 }
 
 filter () { sed -E -f "${HOME}/xdg/sync/music-watch.sed"; }
@@ -82,6 +92,7 @@ make_cover () {
 mkdir -p "$rundir"; cd "$rundir"
 clear_info
 exec > music-watch.log 2>&1
+spotpris_update
 
 { pctl metadata mpris:trackid || :; pctl -F metadata mpris:trackid
 } 2> /dev/null | while read -r line; do
@@ -90,7 +101,8 @@ exec > music-watch.log 2>&1
     if ! [ "$line" ]; then clear_info
     else
         title=$(metadata title | filter)
-        artist=$(metadata artist | filter)
+        if ! [ "${title## }" ]; then clear_info; continue; fi
+        artist=$(metadata artist | sed ':a;N;$!ba;s/\n/, /g' | filter)
         album=$(metadata album | filter)
         if ! [ "$album" ]; then
             album=$(sed -nr 's/^website=(.+)$/\1/p' "$qlpath/current")
@@ -106,7 +118,7 @@ exec > music-watch.log 2>&1
         if [ -r "$artcache" ]; then
             cp "$artcache" cover-start
         else
-            if ! curl -sL -o "$artcache" "$(metadata artUrl)"; then
+            if ! curl -sL -o "$artcache" "$(artUrl)"; then
                 cover="$HOME/.cache/ql.current.cover"
                 if ! [ -r "$cover" ]; then cover="$nocover"; fi
                 cp "$cover" cover-start
