@@ -1,0 +1,226 @@
+#!/bin/sh
+# A frontend for changing three-zone LED keyboard colors driven through
+# the tuxedo_keyboard module.
+set -eu
+
+sys="/sys/devices/platform/tuxedo_keyboard"
+
+install () {
+    if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" install; fi
+    
+    cat > /etc/systemd/system/tuxkb-init.service <<EOF
+[Unit]
+Description=Writeable TuxKB LEDs
+
+[Service]
+Type=oneshot
+ExecStart=$0 init
+
+[Install]
+WantedBy=default.target
+EOF
+    cat > /etc/udev/rules.d/50-tuxkb-leds.rules <<EOF
+ACTION=="add", SUBSYSTEM=="platform", DRIVER=="tuxedo_keyboard", RUN+="$0 init"
+EOF
+    systemctl daemon-reload
+    systemctl enable tuxkb-init
+    udevadm control --reload
+    get > /etc/tuxkb.conf
+}
+
+init () {
+    if [ "$(id -u)" -gt 0 ]; then
+        printf "Only root can do that.\n"
+        exit 1
+    fi
+    chgrp leds "$sys" "$sys/color_"* "$sys/brightness" "$sys/mode" "$sys/state"
+    chmod g+w "$sys" "$sys/color_"* "$sys/brightness" "$sys/mode" "$sys/state"
+    defaults
+}
+
+get () {
+    printf left=%s\\n "$(sed s/0x// $sys/color_left)"
+    printf center=%s\\n "$(sed s/0x// $sys/color_center)"
+    printf right=%s\\n "$(sed s/0x// $sys/color_right)"
+    printf extra=%s\\n "$(sed s/0x// $sys/color_extra)"
+    printf mode=%s\\n "$(cat $sys/mode)"
+    printf brightness=%s\\n "$(cat $sys/brightness)"
+    printf state=%s\\n "$(cat $sys/state)"
+}
+
+_set () { printf %s\\n "$2" > "$sys/$1"; }
+is_hex () { printf %s\\n "${1:-}" | grep -qE '^[0-9a-fA-F]{6}$'; }
+
+# shellcheck disable=SC1091,SC2154
+defaults () {
+    . /etc/tuxkb.conf
+    _set state "$state"
+    _set mode "$mode"
+    _set brightness "$brightness"
+    colors "$left" "$center" "$right" "$extra"
+}
+
+colors () {
+    if is_hex "$1"; then _set color_left "0x$1"; fi
+    if is_hex "$2"; then _set color_center "0x$2"; fi
+    if is_hex "$3"; then _set color_right "0x$3"; fi
+    if is_hex "${4:-}"; then _set color_extra "0x${4:-}"; fi
+}
+
+brightness () {
+    if [ "$1" -le 255 ] && [ "$1" -ge 0 ]; then _set brightness "$1"; fi
+}
+
+state () {
+    case "$1" in
+        1|on|ON) _set state 1 ;;
+        0|off|OFF) _set state 0 ;;
+        *)
+            printf "Unsupported state: %s\n" "$1"
+            exit 1 ;;
+    esac
+}
+
+mode () {
+    mode=$(printf %s\\n "$1" | tr '[:upper:]' '[:lower:]')
+    case "$mode" in
+        0|custom) _set mode 0 ;;
+        1|breathe) _set mode 1 ;;
+        2|cycle) _set mode 2 ;;
+        3|dance) _set mode 3 ;;
+        4|flash) _set mode 4 ;;
+        5|random) _set mode 5 ;;
+        6|tempo) _set mode 6 ;;
+        7|wave) _set mode 7 ;;
+        *)
+            printf "Unsupported mode %s\n" "$mode"
+            exit 1 ;;
+    esac
+}
+
+blink () {
+    eval "$("$0" get)"
+    _set brightness 255
+    _set state 0
+    colors "$1" "$1" "$1"
+    sleep "$3"
+    for _ in $(seq 1 "$2"); do
+        state 1
+        sleep "$3"
+        state 0
+        sleep "$3"
+    done
+    _set state 1
+    _set brightness "$brightness"
+    colors "$left" "$center" "$right"
+}
+
+inout () {
+    eval "$("$0" get)"
+    _set brightness 255
+    for _ in $(seq 1 "$2"); do
+        colors "$1" 000000 "$1"
+        sleep "$3"
+        colors 000000 "$1" 000000
+        sleep "$3"
+    done
+    _set brightness "$brightness"
+    colors "$left" "$center" "$right"
+}
+
+wave_right () {
+    eval "$("$0" get)"
+    _set brightness 255
+    for _ in $(seq 1 "$2"); do
+        colors "$1" 000000 000000
+        sleep "$3"
+        colors 000000 "$1" 000000
+        sleep "$3"
+        colors 000000 000000 "$1"
+        sleep "$3"
+    done
+    _set brightness "$brightness"
+    colors "$left" "$center" "$right"
+}
+
+wave_left () {
+    eval "$("$0" get)"
+    _set brightness 255
+    for _ in $(seq 1 "$2"); do
+        colors 000000 000000 "$1"
+        sleep "$3"
+        colors 000000 "$1" 000000
+        sleep "$3"
+        colors "$1" 000000 000000
+        sleep "$3"
+    done
+    _set brightness "$brightness"
+    colors "$left" "$center" "$right"
+}
+
+
+case "${1:?}" in
+    -i|--init|init) init ;;
+    --install|install) install ;;
+    -g|--get|get) get ;;
+    -d|--defaults|defaults) defaults ;;
+    -c|--colors|c|colors)
+        if [ "$#" -lt 4 ]; then
+            printf "Specify three colors in six-digit hex format.\n"
+            printf "An invalid argument will leave the zone unchanged.\n"
+            exit 1
+        fi
+        colors "${2:?}" "${3:?}" "${4:?}" "${5:-}" ;;
+    -s|--state|state)
+        if [ "$#" -lt 2 ]; then
+            printf "Set state 1|on or 0|off.\n"
+            exit 1
+        fi
+        state "${2:?}" ;;
+    --on|on) state 1 ;;
+    --off|off) state 0 ;;
+    -b|--brightness|brightness)
+        if [ "$#" -lt 2 ]; then
+            printf "Specify brightness between 0 and 255.\n"
+            exit 1
+        fi
+        brightness "${2:?}" ;;
+    -m|--mode|mode)
+        if [ "$#" -lt 2 ]; then
+            printf "Specify one of custom, breathe, cycle, dance, flash,\n"
+            printf "random, tempo, or wave."
+            exit 1
+        fi
+        mode "${2:?}" ;;
+    --blink|blink)
+        if [ "$#" -lt 2 ]; then
+            printf "Uniformly blink one color on and off.\n"
+            printf "Usage: tuxkb %s <color> [reps] [delay]\n" "$1"
+        fi
+        is_hex "${2:?}"
+        blink "$2" "${3:-3}" "${4:-0.15}" ;;
+    --inout|inout)
+        if [ "$#" -lt 2 ]; then
+            printf "Alternate blinking center and outer lights.\n"
+            printf "Usage: tuxkb %s <color> [reps] [delay]\n" "$1"
+        fi
+        is_hex "${2:?}"
+        inout "$2" "${3:-3}" "${4:-0.15}" ;;
+    --wave-right|wave-right)
+        if [ "$#" -lt 2 ]; then
+            printf "Wave one color from left to right.\n"
+            printf "Usage: tuxkb %s <color> [reps] [delay]\n" "$1"
+        fi
+        is_hex "${2:?}"
+        wave_right "$2" "${3:-3}" "${4:-0.15}" ;;
+    --wave-left|wave-left)
+        if [ "$#" -lt 2 ]; then
+            printf "Wave one color from right to left.\n"
+            printf "Usage: tuxkb %s <color> [reps] [delay]\n" "$1"
+        fi
+        is_hex "${2:?}"
+        wave_left "$2" "${3:-3}" "${4:-0.15}" ;;
+    *)
+        printf "Sorry, can't help you with that one.\n"
+        exit 1 ;;
+esac
