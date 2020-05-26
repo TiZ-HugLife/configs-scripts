@@ -1,29 +1,51 @@
 # Aliases.
 alias sudo='sudo '  # This nifty trick allows alias expansion for sudo.
 alias fucking='sudo '
-alias ls='ls --color=auto'
-alias rs='rsync -avzsHXA -e ssh --rsync-path="rsync --fake-super" --progress'
+alias ls='ls --color=auto '
+alias rs='rsync -avzsHXA -e ssh --progress '
+alias rsbak='rs --remote-option --fake-super '
 alias icoextract='wrestool -x --output=. -t14'
 alias r='rolldice --separate --random'
 alias kpie-dump='kpie --single /usr/share/doc/kpie/examples/dump.lua > /tmp/kpie-dump; geany /tmp/kpie-dump &'
 alias usbconsole='script -f -c "picocom /dev/ttyUSB0" console.log'
 alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
-alias sshproxy='ssh -D 8080 cerebro'
+alias sshproxy='ssh -D 28080 maxwell'
+alias flatpak-xusr='flatpak --installation=xusr '
+alias borg-create='borg-wrap create --list --stats --filter AME --compression=zstd,18 --exclude-caches -e "*/.cache/*" -e "*/cache/*" -e "*/tmp/*"'
+alias protontricks='flatpak run --command=protontricks com.valvesoftware.Steam --no-runtime'
 
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
 }
 
+# Update links to the default kernel for custom GRUB entries.
+default_kernel () {
+    cd /boot
+    #ver=$(ls | sed -n s/vmlinuz-//p | tail -1)
+    ver=$(uname -r)
+    sudo ln -sfn "initrd.img-$ver" default-initrd.img
+    sudo ln -sfn "vmlinuz-$ver" default-vmlinuz
+    printf "default kernel set to %s.\n" "$ver"
+}
+
 # Extract and install bo0xvn wallpapers.
 bo0xvn () {
     local dir=$(mktemp -d)
     local zips=$(find . -name "*by_bo0xvn*")
-    for z in $zips; do unzip $z -d $dir; done
+    for z in $zips; do unzip -qq $z -d $dir; done
     rm -r $dir/__MACOSX
     for f in $(find $dir -name "*2880_1800*"); do
-        mv $f ~/Pictures/Wallpaper/Nature/bo0xvn/$(
-            sed -nr 's:^.+/_+([0-9]+)_([VIX]+)_.+$:\2\.0\1\.jpg:p' <<< $f
+        basename "$f"
+        mv $f ~/pic/wal/bo0xvn/$(
+            sed -nr 's:^.+/_+([0-9]+)_([VIX]+)_.+$:\L\2\.0\1\.jpg:p' <<< "$f"
+        )
+    done
+    # Prefer 4K.
+    for f in $(find $dir -name "*4k.jpg"); do
+        basename "$f"
+        mv $f ~/pic/wal/bo0xvn/$(
+            sed -nr 's:^.+/_+([0-9]+)_([VIX]+)_.+$:\L\2\.0\1\.jpg:p' <<< "$f"
         )
     done
     rm -r $dir
@@ -63,14 +85,13 @@ search () {
 # For Syncthing.
 find_sync_conflicts () {
     dirs=(
-        "$HOME/Documents"
-        "$HOME/Music"
-        "$HOME/Pictures"
-        "$HOME/Projects"
-        "$HOME/Public"
-        "$HOME/School"
-        "$HOME/Games/Saves"
-        "/home/common"
+        "$HOME/doc"
+        "$HOME/mus"
+        "$HOME/pic"
+        "$HOME/prj"
+        "$HOME/pub"
+        "$HOME/gam/save"
+        "$HOME/xdg/sync"
     )
     for dir in "${dirs[@]}"; do find "$dir" -name "*.sync-conflict-*"; done
 }
@@ -123,4 +144,11 @@ vid_silence () {
     for f in "$@"; do if [[ -f "$f" ]]; then
         ffmpeg -i "$f" -c:v copy -an "${f%.*}.shh.${f##*.}"
     fi; done
+}
+
+# Sometimes my save data gets corrupted.
+backup_scvi () {
+    dir="/mnt/windows/Users/TiZ/AppData/Local/SoulcaliburVI"
+    bak="$HOME/etc/SCVI_Bak"
+    scp -r "$dir" "$bak/SoulcaliburVI.$(date +%y%m%d%H%M)"
 }
