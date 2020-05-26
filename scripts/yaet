@@ -1,16 +1,23 @@
-#!/bin/bash
+#!/bin/sh
 # yaet.sh: Yet Another External Tiler
-set -e
+set -eu
 
 margin_l=0
 margin_r=0
 margin_t=0
 margin_b=0
 gap=0
-ratio=0.5
+ratio=0.5; size=""
+active=""; target=""
+actc=""; targc=""
 
-[[ -e "$HOME/.yaetrc" ]] && source "$HOME/.yaetrc"
-[[ -e "$HOME/.config/yaetrc" ]] && source "$HOME/.config/yaetrc"
+if [ -e "${XDG_CONFIG_HOME:-$HOME/.config}/yaetrc" ]; then
+    # shellcheck disable=SC1090
+    . "${XDG_CONFIG_HOME:-$HOME/.config}/yaetrc"
+fi
+
+puts () { printf %s\\n "$*"; }
+bceval () { puts "scale=0; ($1) / 1" | bc ; }
 
 while getopts r:s:a:t:A:T: OPT; do case $OPT in
     r) ratio="$OPTARG" ;;
@@ -19,35 +26,36 @@ while getopts r:s:a:t:A:T: OPT; do case $OPT in
     t) target="$OPTARG" ;;
     A) actc="$OPTARG" ;;
     T) targc="$OPTARG" ;;
+    *) printf "Unknown argument"; exit 1 ;;
 esac; done; shift $((OPTIND-1))
 action="$1"
 
-[[ "$actc" ]] && active=$(xdotool search --onlyvisible --class "$actc")
-[[ "$active" ]] || active=$(xdotool getwindowfocus)
+if [ "$actc" ]; then active=$(xdotool search --onlyvisible --class "$actc"); fi
+if ! [ "$active" ]; then active=$(xdotool getwindowfocus); fi
 
-if [[ "$action" != "main" ]]; then
-    [[ "$targc" ]] && target=$(xdotool search --onlyvisible --class "$targc")
-    [[ "$target" ]] || target=$(xdotool selectwindow)
-    [[ "$active" == "$target" ]] && exit
-    type=$(xprop -id $target | sed -nr 's/.*WINDOW_TYPE_(\S+)$/\1/p')
+if [ "$action" != "main" ]; then
+    if [ "$targc" ]; then 
+        target=$(xdotool search --onlyvisible --class "$targc")
+    fi
+    if ! [ "$target" ]; then target=$(xdotool selectwindow); fi
+    if [ "$active" = "$target" ]; then exit; fi
+    type=$(xprop -id "$target" | sed -nr 's/.*WINDOW_TYPE_(\S+)$/\1/p')
 fi
 
-act_frame=$(xprop -id $active | \
+act_frame=$(xprop -id "$active" | \
  sed -nr 's/.*FRAME_EXTENTS.* = (\S+), (\S+), (\S+), (\S+)$/\1,\2,\3,\4/p')
-act_frame_l=$(echo $act_frame | cut -d, -f1)
-act_frame_r=$(echo $act_frame | cut -d, -f2)
-act_frame_t=$(echo $act_frame | cut -d, -f3)
-act_frame_b=$(echo $act_frame | cut -d, -f4)
+act_frame_l=$(puts "$act_frame" | cut -d, -f1)
+act_frame_r=$(puts "$act_frame" | cut -d, -f2)
+act_frame_t=$(puts "$act_frame" | cut -d, -f3)
+act_frame_b=$(puts "$act_frame" | cut -d, -f4)
 act_frame_h=$((act_frame_l + act_frame_r))
 act_frame_v=$((act_frame_t + act_frame_b))
 
-function bceval () { echo "scale=0; ($1) / 1" | bc ; }
-
-function tile_main () {
-    if [[ -z "$screen_w" || -z "$screen_h" ]]; then
+tile_main () {
+    if [ -z "${screen_w:-}" ] || [ -z "${screen_h:-}" ]; then
         mode=$(xrandr | sed -nr 's/.*current ([0-9]+) x ([0-9]+),.*/\1x\2/p')
-        act_w=$(($(echo $mode | cut -dx -f1) - margin_l - margin_r))
-        act_h=$(($(echo $mode | cut -dx -f2) - margin_t - margin_b))
+        act_w=$(($(puts "$mode" | cut -dx -f1) - margin_l - margin_r))
+        act_h=$(($(puts "$mode" | cut -dx -f2) - margin_t - margin_b))
     else
         act_w=$((screen_w - margin_l - margin_r))
         act_h=$((screen_h - margin_t - margin_b))
@@ -56,9 +64,9 @@ function tile_main () {
     act_y=$margin_t
 }
 
-if [[ "$action" == "main" ]]; then
+if [ "$action" = "main" ]; then
     tile_main
-elif [[ "$type" == "DESKTOP" || "$type" == "DOCK" ]]; then
+elif [ "$type" = "DESKTOP" ] || [ "$type" = "DOCK" ]; then
     tile_main
     case $action in
         left|right)
@@ -75,35 +83,35 @@ elif [[ "$type" == "DESKTOP" || "$type" == "DOCK" ]]; then
         down)  act_y=$((margin_t + act_h - adj)) ; act_h=$adj ;;
     esac
 else
-    targ_frame=$(xprop -id $target | \
+    targ_frame=$(xprop -id "$target" | \
      sed -nr 's/.*FRAME_EXTENTS.* = (\S+), (\S+), (\S+), (\S+)$/\1,\2,\3,\4/p')
-    targ_frame_l=$(echo $targ_frame | cut -d, -f1)
-    targ_frame_r=$(echo $targ_frame | cut -d, -f2)
-    targ_frame_t=$(echo $targ_frame | cut -d, -f3)
-    targ_frame_b=$(echo $targ_frame | cut -d, -f4)
+    targ_frame_l=$(puts "$targ_frame" | cut -d, -f1)
+    targ_frame_r=$(puts "$targ_frame" | cut -d, -f2)
+    targ_frame_t=$(puts "$targ_frame" | cut -d, -f3)
+    targ_frame_b=$(puts "$targ_frame" | cut -d, -f4)
     targ_frame_h=$((targ_frame_l + targ_frame_r))
     targ_frame_v=$((targ_frame_t + targ_frame_b))
-    targ_geo=$(xdotool getwindowgeometry $target)
-    targ_pos=$(echo "$targ_geo" | \
+    targ_geo=$(xdotool getwindowgeometry "$target")
+    targ_pos=$(puts "$targ_geo" | \
         sed -nr 's/.*tion: ([0-9]+,[0-9]+).*/\1/p')
-    targ_size=$(echo "$targ_geo" | \
+    targ_size=$(puts "$targ_geo" | \
         sed -nr 's/.*etry: ([0-9]+x[0-9]+).*/\1/p')
-    targ_x=$(($(echo $targ_pos | cut -d, -f1) - (targ_frame_l * 2)))
-    targ_y=$(($(echo $targ_pos | cut -d, -f2) - (targ_frame_t * 2)))
-    targ_w=$(($(echo $targ_size | cut -dx -f1) + targ_frame_h))
-    targ_h=$(($(echo $targ_size | cut -dx -f2) + targ_frame_v))
+    targ_x=$(($(puts "$targ_pos" | cut -d, -f1) - (targ_frame_l * 2)))
+    targ_y=$(($(puts "$targ_pos" | cut -d, -f2) - (targ_frame_t * 2)))
+    targ_w=$(($(puts "$targ_size" | cut -dx -f1) + targ_frame_h))
+    targ_h=$(($(puts "$targ_size" | cut -dx -f2) + targ_frame_v))
     case $action in
         left|right)
-            [[ "$size" ]] && ((size -= targ_frame_h))
-            [[ "$size" ]] || size=$(bceval "$targ_w * $ratio")
+            if [ "$size" ]; then size=$((size - targ_frame_h))
+            else size=$(bceval "$targ_w * $ratio"); fi
             adj=$(bceval "$size - $gap / 2")
             act_y=$targ_y ; act_h=$targ_h
             targ_w=$((targ_w - adj - gap))
             act_w=$adj
             ;;
         up|down)
-            [[ "$size" ]] && ((size -= targ_frame_v))
-            [[ "$size" ]] || size=$(bceval "$targ_h * $ratio")
+            if [ "$size" ]; then size=$((size - targ_frame_v))
+            else size=$(bceval "$targ_h * $ratio"); fi
             adj=$(bceval "$size - $gap / 2")
             act_x=$targ_x ; act_w=$targ_w
             targ_h=$((targ_h - adj - gap))
@@ -116,8 +124,8 @@ else
         up)    act_y=$targ_y; targ_y=$((act_y + adj + gap)) ;;
         down)  act_y=$((targ_y + targ_h + gap)) ;;
     esac
-    ((targ_w -= targ_frame_h)) ; ((targ_h -= targ_frame_v))
-    wmctrl -i -r $target -e 1,$targ_x,$targ_y,$targ_w,$targ_h
+    targ_w=$((targ_w - targ_frame_h)) ; targ_h=$((targ_h - targ_frame_v))
+    wmctrl -i -r "$target" -e "1,$targ_x,$targ_y,$targ_w,$targ_h"
 fi
-((act_w -= act_frame_h)) ; ((act_h -= act_frame_v))
-wmctrl -i -r $active -e 1,$act_x,$act_y,$act_w,$act_h
+act_w=$((act_w - act_frame_h)) ; act_h=$((act_h - act_frame_v))
+wmctrl -i -r "$active" -e "1,$act_x,$act_y,$act_w,$act_h"
