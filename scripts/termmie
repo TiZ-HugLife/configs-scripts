@@ -1,29 +1,30 @@
-#!/bin/bash
+#!/bin/sh
 # hOI!!! im termmie put dis in yur bashrc!
 # get many... DETERMINALATION!!! yayA!!!
 
-if [[ "$TERM" =~ xterm ]] && [[ "$DISPLAY" ]] && \
- [[ ! "$SSH_CLIENT$SSH_TTY" ]]; then
-    termmies=(
-        "hOI!!! im termmie!!!"
-        "an dis is my friend... termmie!!!"
-        "don forget my friend!"
-        "Hi. I'm Bob."
-        "(Feeling of being watched.)"
-        "awawawawah!! linux... such a... CUTE!!!"
-        "term... WATCH EG!!!"
-        "eg... wil HATCH!!!"
-        "term... PROUD PARENT!!"
-        "term also allergic to windooz! hOIVS!"
-        "You have way too many temmienals."
-    )
+if [ "${TERM##xterm}" != "$TERM" ] && [ "$DISPLAY" ] && \
+ ! [ "$SSH_CLIENT$SSH_TTY" ]; then
+    termmies="
+hOI!!! im termmie!!!
+an dis is my friend... termmie!!!
+don forget my friend!
+Hi. I'm Bob.
+(Feeling of being watched.)
+awawawawah!! linux... such a... CUTE!!!
+term... WATCH EG!!!
+eg... wil HATCH!!!
+term... PROUD PARENT!!
+term also allergic to windooz! hOIVS!
+You have way too many temmienals.
+    "
     wins=$(wmctrl -l)
-    for tem in "${termmies[@]}"; do
-        if ! ( echo "$wins" | grep "$tem" &> /dev/null ); then
-            echo -ne "\033]0;$tem\007"
+    printf %s "$termmies" | while read -r tem; do
+        if ! [ "$tem" ]; then continue; fi
+        if ! printf %s "$wins" | grep -q "$tem"; then
+            printf "\033]0;%s\007" "$tem"
             break
         fi
     done
 fi
 
-echo "* You are filled with determinalation."
+printf "* You are filled with determinalation.\n"
