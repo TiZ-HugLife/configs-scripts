@@ -1,6 +1,9 @@
-archive
-geany
-moltengamepad
-oblige
-quodlibet
-Thunar
+# The directory where this git repo lives is also used by Syncthing
+# to synchronize a variety of configs between all my computers.
+# Doesn't make sense to have these in the repo.
+/archive
+/geany
+/moltengamepad
+/oblige
+/quodlibet
+/Thunar
