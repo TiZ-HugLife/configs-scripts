@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+# Implements the nuetzlich interface for receiving and displaying system
+# notifications, and also my own interface which lets you send more things.
+# I tried to implement xundeenergie's as well but I honestly just couldn't
+# figure out what the hell the code was even doing, and now this script is
+# much cleaner for having given up on it.
+#
+# This program has both a daemon to receive signals and show them with
+# libnotify, as well as a client that works just like notify-send.
+
+import dbus, argparse, gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+from gi.repository import GLib
+from dbus.mainloop.glib import DBusGMainLoop
+
+DBusGMainLoop(set_as_default=True)
+Notify.init("SystemNotify")
+
+
+# My interface is basicaly the same as nuetzlich's but it lets you send more
+# things. Note the order of arguments past the body argument.
+def notify (urgency, header, body, icon="", app_name="SystemNotify",
+ category="", timeout=-1, hints={}):
+	notif = Notify.Notification.new(header, body, icon)
+	notif.set_app_name(app_name)
+	notif.set_urgency(urgency)
+	notif.set_timeout(int(timeout))
+	if category: notif.set_category(category)
+	for hint in hints:
+		notif.set_hint(hint, hints[hint])
+	if not notif.show():
+		print("Something went wrong, sorry.")
+
+def nuetzlich_handler (header, body=""):
+	notify(1, header, body, "utilities-system-monitor")
+
+def notify_normal (*args):
+	notify(1, *args)
+
+def notify_low (*args):
+	notify(0, *args)
+
+def notify_critical (*args):
+	notify(2, *args)
+
+
+parser = argparse.ArgumentParser(add_help=False,
+ description="Send a notification to a system notification listener.")
+parser.add_argument("summary", nargs="?", default=None)
+parser.add_argument("body", nargs="?", default="")
+parser.add_argument("-?", "--help", action="store_true",
+ help="Show help options.")
+parser.add_argument("-d", "--daemon", action="store_true",
+ help="Start daemon to listen for system notifications.")
+for arg in [
+	("-u", "--urgency", "Urgency level (low, normal, critical).", "normal"),
+	("-t", "--expire-time", "Timeout in milliseconds.", -1),
+	("-a", "--app-name", "Application name for the popup.", "SystemNotify"),
+	("-i", "--icon", "Icon filename or stock icon to display.", ""),
+	("-c", "--category", "Notification category.", ""),
+	("-h", "--hint", "Basic extra data to pass. (UNIMPLEMENTED)", ""),
+]: parser.add_argument(arg[0], arg[1], help=arg[2], default=arg[3])
+args = parser.parse_args()
+
+
+systembus = dbus.SystemBus()
+if args.help:
+	parser.print_help()
+elif args.daemon or not args.summary:
+	# Nuetzlich's interface.
+	systembus.add_signal_receiver(nuetzlich_handler,
+		dbus_interface="net.nuetzlich.SystemNotifications",
+		path="/", signal_name="Notify")
+
+	# My own interface.
+	systembus.add_signal_receiver(notify_normal,
+		dbus_interface="io.github.huglifetiz.SystemNotify",
+		path="/", signal_name="Notify")
+	systembus.add_signal_receiver(notify_low,
+		dbus_interface="io.github.huglifetiz.SystemNotify",
+		path="/", signal_name="NotifyLow")
+	systembus.add_signal_receiver(notify_critical,
+		dbus_interface="io.github.huglifetiz.SystemNotify",
+		path="/", signal_name="NotifyCritical")
+
+	try:
+		GLib.MainLoop().run()
+	except KeyboardInterrupt:
+		print("OKAY FINE I'LL LEAVE")
+	except Exception as e:
+		print("What the heck?! '{}'".format(str(e)))
+	finally:
+		GLib.MainLoop().quit()
+else:
+	signals = {
+		"low": "NotifyLow",
+		"normal": "Notify",
+		"critical": "NotifyCritical"
+	}
+	message = dbus.lowlevel.SignalMessage(
+	 "/", "io.github.huglifetiz.SystemNotify", signals[args.urgency])
+	message.append(args.summary)
+	message.append(args.body)
+	message.append(args.icon)
+	message.append(args.app_name)
+	message.append(args.category)
+	message.append(args.expire_time)
+	systembus.send_message(message)
