@@ -1,0 +1,68 @@
+#!/bin/sh
+# Activate a window for an already running application, or otherwise start it
+# and then activate it. Allows dock-like funcionality for keyboard shortcuts
+# or plain panel launchers.
+set -eu
+
+
+################
+# DEPENDENCIES #
+################
+
+[ -x "$(command -v wmctrl)" ]
+[ -x "$(command -v xdg-open)" ]
+
+
+#############
+# FUNCTIONS #
+#############
+
+# Find the given .desktop file.
+# Runs itself in a subshell so it can safely modify IFS.
+find_desktop () { (
+	IFS=':'; set -o noglob
+	dirs="${XDG_DATA_HOME:-$HOME/.local/share}"
+	dirs="$dirs:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+	for dir in $dirs; do
+		if [ "$dir" ] && [ -r "$dir/applications/$target.desktop" ]; then
+			printf %s\\n "$dir/applications/$target.desktop"
+			return
+		fi
+	done
+) }
+
+
+#############
+# MAIN CODE #
+#############
+
+while [ "$#" -gt 0 ]; do case "$1" in
+-c|--class) class="$2"; shift ;;
+*) target="$1" ;;
+esac; shift; done
+
+desktop=$(find_desktop "$target")
+if ! [ "$desktop" ]; then
+	notify-send "Focus/Launch Failed" "Couldn't find desktop file."
+	exit 1
+fi
+
+if ! [ "${class:-}" ]; then
+	class=$(sed -nr 's/^StartupWMClass=(.+)$/\1/p' < "$desktop")
+fi
+
+if ! [ "${class:-}" ]; then
+	notify-send "Focus/Launch Failed" "Couldn't find window class."
+	exit 1
+fi
+
+if ! wmctrl -x -a "$class"; then
+	xdg-open "$desktop"
+	count=0; while [ "$count" -le 20 ]; do
+		if wmctrl -l | grep -q "$class"; then
+			wmctrl -x -a "$class"
+		fi
+		count=$((count + 1))
+		sleep 0.5
+	done
+fi
