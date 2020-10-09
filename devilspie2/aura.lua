@@ -16,11 +16,11 @@ do_rules(
     --{name="Whisker Menu", type="dialog", size={w=420, h=480}},
     --{app="Quod Libet", wksp=4, alpha=0.80},
 -- Specific Workspaces
-    {app="Firefox", wksp=3},
-    {class="Ferdi", wksp=4, max=true},
+    {app="Firefox", wksp=2},
+    {class="Ferdi", wksp=1, max=true},
+    {app="Evolution.bin", wksp=1},
+    {app="Spotify", wksp=1, alpha=0.85, max=true}
     --{class="teams-for-linux", wksp=4},
     --{class="Microsoft Teams - Preview", wksp=4},
-    {app="Evolution.bin", wksp=5, role="EShellWindow*"},
-    {app="Spotify", wksp=6, alpha=0.80, max=true, set_class="Spotify"}
     --{name="Microsoft Teams Notification", stick=true, no_page=true, no_task=true},
 )
