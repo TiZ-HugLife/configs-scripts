@@ -3,12 +3,19 @@
 # Run as root, gamepad, or a user in the gamepad group.
 set -eu
 
+export PATH="/home/tiz/xdg/sync/scripts:/xusr/bin:$PATH"
+
 puts ()    { printf %s\\n "$*"; }
 match ()   { puts "$line" | grep -E "$1"; }
 first ()   { puts "$line" | sed -r 's/^.* "(.*)" "(.*)".*$/\1/'; }
 second ()  { puts "$line" | sed -r 's/^.* "(.*)" "(.*)".*$/\2/'; }
 devnum ()  { puts "${1##*_}"; }
 slotnum () { puts "${1#virtpad}"; }
+
+mg_notify () {
+    stime=5000; if [ "${3:-}" ]; then time=8000; fi
+    system-notify -t 8000 -i "input-gaming-symbolic" "$1" "$2${3:-}"
+}
 
 controller_type () {
     case "$1" in
@@ -88,7 +95,7 @@ while read -r line; do
         fi
         action="connected"
         if [ "$connection" -eq 0 ]; then action="reassigned"; fi
-        env-task mg-notify "$name $devnum $action" "$body" "$notes" || :
+        mg_notify "$name $devnum $action" "$body" "$notes" || :
         puts "$slotnum" > "$rundir/devices/$device/slot"
         ln -sfn "$rundir/devices/$device" "$rundir/slots/$slotnum"
         if [ -e "$rundir/devices/$device/ds4" ] && \
@@ -102,7 +109,7 @@ while read -r line; do
         devnum=$(devnum "$device")
         slotnum=$(cat "$rundir/devices/$device/slot")
         name=$(controller_type "$device")
-        env-task mg-notify "$name $devnum disconnected." \
+        mg_notify "$name $devnum disconnected." \
          "Removed from slot ${slotnum}P."
         rm -r "$rundir/devices/$device" "$rundir/slots/$slotnum"
     fi
