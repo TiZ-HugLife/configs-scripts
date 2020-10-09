@@ -1,9 +1,0 @@
-#!/bin/sh
-int="eDP1"; ext="DP1"
-xrandr | grep -q eDP-1 && { int="eDP-1"; ext="DP-1"; }
-pgrep -f '[a]rcxinit' && DISPLAY=:5
-if (xrandr | grep -Eq "$ext connected [0-9]"); then
-    xrandr --output $int --primary --output $ext --off 
-else
-    xrandr --output $ext --mode 1920x1080 --same-as $int
-fi
