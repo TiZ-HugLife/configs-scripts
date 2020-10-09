@@ -1,13 +1,13 @@
 /* Simplified from source: https://askubuntu.com/a/1151079
- * This gets rid of GTK3 custom shadows on windows and menus so that your
- * compositor can theme them as it wishes.
- * However, this is NOT enough to fix tooltips. I have no idea how the hell
- * to fix them. I threw all these selectors at it and they did nothing. :( */
+ * This gets rid of GTK3 custom shadows on windows, menus and tooltips,
+ * so that your compositor can theme them as it wishes. */
 decoration, decoration:backdrop,
 tooltip, tooltip:backdrop,
+tooltip *, tooltip:backdrop *,
 .csd, .window-frame {
     border-radius: 0px 0px 0 0;
     border-width: 0px;
+    border-image: none;
     box-shadow: none;
     margin: 0px;
     padding: 0px;
