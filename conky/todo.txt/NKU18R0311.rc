@@ -35,4 +35,4 @@ conky.config = {
 	lua_draw_hook_pre = 'draw 0x2B3B3F66 0 8 0 0',
 }
 
-conky.text = '${execp ./conky.sh -f "Apres Regular" -s 9 -n "Ubuntu Mono" -v -1:-1 -c "Work School"}'
+conky.text = '${execp ./conky.sh -f "Apres Regular" -s 11 -n "Ubuntu Mono" -v -1:-1 -c "Work School"}'

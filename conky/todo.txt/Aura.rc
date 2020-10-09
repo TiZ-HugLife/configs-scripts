@@ -18,7 +18,7 @@ conky.config = {
 	own_window = true,
 	own_window_type = 'desktop', --Change to normal when using GNOME Shell
 	own_window_title = 'Todo-Conky',
-	own_window_hints = 'above,sticky',
+	own_window_hints = 'below,sticky',
 	own_window_transparent = true,
 	own_window_argb_visual = true,
 
