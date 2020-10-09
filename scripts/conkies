@@ -1,13 +1,15 @@
 #!/bin/sh
 # Whew, way simpler! :D
+bg_syslog () { "$@" 2>&1 | logger -i -t conky & }
 pkill conky
+rm -r "/run/user/$(id -u)/conky"
 for dir1 in "$HOME/.conky" "${XDG_CONFIG_HOME:-$HOME/.config}/conky"; do
-    if [ -d "$dir1" ]; then
-        for dir2 in "$dir1/"*; do
-            if [ -f "$dir2/$(hostname).rc" ]; then
-                cd "$dir2" || exit; conky -d -c "$(hostname).rc"
-            fi
-        done
-    fi
+	if [ -d "$dir1" ]; then
+		for dir2 in "$dir1/"*; do
+			if [ -f "$dir2/$(hostname).rc" ]; then
+				cd "$dir2" || exit; bg_syslog conky -d -c "$(hostname).rc"
+			fi
+		done
+	fi
 done
-conkytoggle below
+conky-toggle below
