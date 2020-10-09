@@ -13,21 +13,33 @@ alias sshproxy='ssh -D 28080 maxwell'
 alias flatpak-xusr='flatpak --installation=xusr '
 alias borg-create='borg-wrap create --list --stats --filter AME --compression=zstd,18 --exclude-caches -e "*/.cache/*" -e "*/cache/*" -e "*/tmp/*"'
 alias protontricks='flatpak run --command=protontricks com.valvesoftware.Steam --no-runtime'
+alias ginstall='/xusr/bin/ginstall.sh -d /xusr/bin '
+alias test-lan='iperf3 -c 192.168.102.4 -f M --get-server-output'
 
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
 }
 
+# Update PC games in Pegasus.
+update_pc_games () {
+    dir="/home/tiz/gam/pc"
+    generate-steamids "$dir"
+    steamid-to-skyscraper "$dir"
+    Skyscraper -p pc -s import
+    Skyscraper -p pc
+    #sed -i '/^extensions:/d' "$dir/metadata.pegasus.txt"
+}
+
 # Update links to the default kernel for custom GRUB entries.
-default_kernel () {
+default_kernel () { (
     cd /boot
     #ver=$(ls | sed -n s/vmlinuz-//p | tail -1)
     ver=$(uname -r)
     sudo ln -sfn "initrd.img-$ver" default-initrd.img
     sudo ln -sfn "vmlinuz-$ver" default-vmlinuz
     printf "default kernel set to %s.\n" "$ver"
-}
+) }
 
 # Extract and install bo0xvn wallpapers.
 bo0xvn () {
@@ -115,14 +127,14 @@ alias ihx="haxelib --global run ihx"
 albumart_mp3 () {
     VAR=(*.mp3)
     eyeD3 --write-images . "${VAR[0]}"
-    mv FRONT_COVER.jpeg albumart.jpg
-    mid3v2 --delete-frames=PIC,APIC *.mp3
+    mv FRONT_COVER.j* albumart.jpg
+    #mid3v2 --delete-frames=PIC,APIC *.mp3
 }
 
 albumart_flac () {
     VAR=(*.flac)
     metaflac --export-picture=albumart.jpg "${VAR[0]}"
-    metaflac --remove --block-type=PICTURE,PADDING --dont-use-padding *.flac
+    #metaflac --remove --block-type=PICTURE,PADDING --dont-use-padding *.flac
 }
 
 # Unrotate images, now lossless! (Might be because I do 4:3 pics now.)
@@ -148,7 +160,7 @@ vid_silence () {
 
 # Sometimes my save data gets corrupted.
 backup_scvi () {
-    dir="/mnt/windows/Users/TiZ/AppData/Local/SoulcaliburVI"
-    bak="$HOME/etc/SCVI_Bak"
-    scp -r "$dir" "$bak/SoulcaliburVI.$(date +%y%m%d%H%M)"
+    dir="/home/tiz/gam/save/pc/SCVI/Saved"
+    bak="/home/tiz/gam/save/pc/SCVI/Backups"
+    cp -r "$dir" "$bak/$(date +%y%m%d%H%M)"
 }
