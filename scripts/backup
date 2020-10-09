@@ -6,35 +6,50 @@ set -eu
 if [ "$(id -u)" -gt 0 ]; then exec sudo "$0"; fi
 
 # Export necessary env vars.
-export BORG_REPO="ssh://maxwell@maxwell/~/borg"
+export BORG_REPO="ssh://marina@marina/~/borg"
 BORG_PASSPHRASE=$(sudo -H -u tiz pass show borg)
 export BORG_PASSPHRASE
 
 # Saves some code duplication.
 borg_cmd () { cmd=${1}; shift; borg "$cmd" -v -p --show-rc "$@"; }
-borg_create () {
-    borg_cmd create --list --stats --filter AME --compression zstd,16 \
-     --exclude-caches -e "*/.cache/*" -e "*/cache/*" -e "*/tmp/*" "$@"
-}
+borg_create () { (
+    cd "${1:?}"; shift
+    borg_cmd create --list --stats --filter AME \
+     --compression zstd,16 --exclude-caches \
+     -e "sh:**/.cache/*" -e "sh:**/cache/*" \
+     -e "sh:**/tmp/*" -e "sh:**/dwn/*" \
+     -e "sh:**/steamapps/*" -e "sh:**/vid/rec/*" \
+     -e "sh:**/vid/clip/*" -e "sh:**/mus/arc/*" \
+     "$@" ./
+) }
 
-# Aura and Workbox use BTRFS + subvolumes. Maxwell and Cerebro use EXT4.
-if [ -d /mnt/btrfs ]; then  # Aura and Workbox.
-    # CD here so that each subvolume is considered the root.
-    cd /mnt/btrfs
-    
+# Aura, Workbox, and Marina use BTRFS + subvolumes. Cerebro uses EXT4.
+# The entire BTRFS partition is mounted at /mnt/btrfs, which means those
+# subvolumes appear as they are on-disk, and not in the active filesystem.
+# Thus, less exclusions are necessary.
+if [ -d /mnt/btrfs ]; then  # Aura, Workbox, Marina.
     # Exclude home, ensure it's done last.
     # shellcheck disable=SC2012 # It works fine, shut up.
-    subvols="$(ls | sed 's/@//' | grep -Ev '\.off|\.bak|^home$') home"
+    subvols="$(ls /mnt/btrfs | sed 's/@//' | grep -Ev '\.bak|^home$')"
+    
+    # Tack home onto the end if it exists.
+    if [ -e "/mnt/btrfs/@home" ]; then subvols="$subvols home"; fi
 
     # Backup step.
     for vol in $subvols; do
-        borg_create "::{hostname}-$vol-{now:%y%m%d%H%M}" "@$vol"
+        borg_create "/mnt/btrfs/@$vol" "::{hostname}-$vol-{now:%y%m%d%H%M}"
     done
-else  # Maxwell and Cerebro.
+else  # Cerebro.
     subvols="root xusr"
-    borg_create -e "/dev/*" -e "/sys/*" -e "/proc/*" -e "/run/*" \
-     -e "/home/*" -e "/xusr/*" "::{hostname}-root-{now:%y%m%d%H%M}" "/"
-    borg_create "::{hostname}-xusr-{now:%y%m%d%H%M}" "/xusr"
+    borg_create "/" -e "dev/" -e "sys/" -e "proc/" -e "run/" \
+     -e "home/" -e "xusr/" "::{hostname}-root-{now:%y%m%d%H%M}"
+    borg_create "/xusr" "::{hostname}-xusr-{now:%y%m%d%H%M}"
+fi
+
+# Aura has a Windows partition.
+if [ -d /mnt/windows ]; then
+    subvols="$subvols windows"
+    borg_create /mnt/windows "::{hostname}-windows-{now:%y%m%d%H%M}" || :
 fi
 
 # Prune step.

@@ -4,8 +4,8 @@
 # ever changing the lights at a time.
 set -eu
 
-if [ "$(hostname)" != "Maxwell" ]; then
-    exec ssh maxwell /home/tiz/xdg/sync/scripts/hue "$@"
+if [ "$(hostname)" != "Marina" ]; then
+    exec ssh marina /home/tiz/xdg/sync/scripts/hue "$@"
 fi
 
 huepl="/xusr/bin/huepl"; [ -x "$huepl" ]

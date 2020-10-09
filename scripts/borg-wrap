@@ -4,7 +4,7 @@ set -eu
 
 if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
 
-export BORG_REPO="ssh://maxwell@maxwell/~/borg"
+export BORG_REPO="ssh://marina@marina/~/borg"
 BORG_PASSPHRASE=$(sudo -H -u tiz pass show borg)
 export BORG_PASSPHRASE
 

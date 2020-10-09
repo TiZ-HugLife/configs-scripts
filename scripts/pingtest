@@ -1,5 +1,5 @@
 #!/bin/sh
 [ "$(id -un)" != "root" ] && exec sudo "$0" "$@"
-for addr in 192.168.102.5 1.1.1.1 8.8.8.8 8.8.4.4; do
+for addr in 192.168.102.4 1.1.1.1 8.8.8.8 8.8.4.4; do
     ping -q -i 0.0167 -c 300 "$addr"
 done
