@@ -63,7 +63,7 @@ EOF
 60 30 0
 50 50 50
 EOF
-fi
+    fi
     udevadm control --reload
     exit
 fi
