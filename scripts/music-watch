@@ -4,8 +4,8 @@
 # the cover to $HOME/.cache/ql.current.cover
 set -eu
 
-[ "$(command -v convert)" ]
-[ "$(command -v playerctl)" ]
+[ -x "$(command -v convert)" ]
+[ -x "$(command -v playerctl)" ]
 
 players_base="spotify,quodlibet"
 rundir="/run/user/$(id -u)/song-info"
@@ -18,75 +18,75 @@ pctl () { playerctl -p "$players" "$@"; }
 qrm () { rm "$1" 2> /dev/null || :; }
 
 spotpris_update () {
-    players=${players_base}
-    spotpris=$(playerctl -l | grep spotpris | head -n1)
-    if [ "$spotpris" ]; then players="$spotpris,$players"; fi
+	players=${players_base}
+	spotpris=$(playerctl -l | grep spotpris | head -n1)
+	if [ "$spotpris" ]; then players="$spotpris,$players"; fi
 }
 
 metadata () {
-    sed -nE 's/^[a-z0-9.]+ (xesam|mpris):'"$1"'\s+(.+)$/\2/p' "metadata.txt"
+	sed -nE 's/^[a-z0-9.]+ (xesam|mpris):'"$1"'\s+(.+)$/\2/p' "metadata.txt"
 }
 
 artUrl () {
-    metadata artUrl | sed -E 's|open\.spotify\.com|i\.scdn\.co|'
+	metadata artUrl | sed -E 's|open\.spotify\.com|i\.scdn\.co|'
 }
 
 filter () { sed -E -f "${HOME}/xdg/sync/music-watch.sed"; }
 
 filter_filename () {
-    sed -E -e 's|[\\\*\?;"\<\>\|]||g' -e 's|[ \.]+$||g' \
-     -e 's|: | - |g' -e 's|[:~]|-|g' -e 's|/|+|g'  # TODO
+	sed -E -e 's|[\\\*\?;"\<\>\|]||g' -e 's|[ \.]+$||g' \
+	 -e 's|: | - |g' -e 's|[:~]|-|g' -e 's|/|+|g'  # TODO
 }
 
 clear_info () {
-    printf "\n" > "title.txt"
-    printf "\n" > "artist.txt"
-    printf "\n" > "album.txt"
-    printf "\n" > "artistalbum.txt"
-    convert -size "${size}x${size}" xc:transparent png32:cover.png
+	printf "\n" > "title.txt"
+	printf "\n" > "artist.txt"
+	printf "\n" > "album.txt"
+	printf "\n" > "artistalbum.txt"
+	convert -size "${size}x${size}" xc:transparent png32:cover.png
 }
 
 make_cover () {    
-    convert cover-start \
-     -resize "${size}x${size}^" -gravity center -extent "${size}x${size}" \
-     1-resized.png
-    
-    convert 1-resized.png \
-     \( +clone  -alpha extract \
-        -draw 'fill black polygon 0,0 0,12 12,0 fill white circle 12,12 12,0' \
-        \( +clone -flip \) -compose Multiply -composite \
-        \( +clone -flop \) -compose Multiply -composite \
-     \) -alpha off -compose CopyOpacity -composite 2-rounded-corners.png
-    
-    convert 2-rounded-corners.png \
-     -alpha off -fill white -colorize 100% \
-     -draw 'fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0' \
-     \( +clone -flip \) -compose Multiply -composite \
-     \( +clone -flop \) -compose Multiply -composite \
-     -background Gray50 -alpha Shape 3-thumbnail-mask.png
-    
-    convert 3-thumbnail-mask.png \
-     -bordercolor None -border 1x1 \
-     -alpha Extract -blur 0x10  -shade 130x30 -alpha On \
-     -background gray50 -alpha background -auto-level \
-     -function polynomial  3.5,-5.05,2.05,0.3 \
-     \( +clone -alpha extract  -blur 0x2 \) \
-     -channel RGB -compose multiply -composite \
-     +channel +compose -chop 1x1 \
-     4-thumbnail-lighting.png
-    
-    convert 1-resized.png \
-     -alpha Set 4-thumbnail-lighting.png \
-     \( -clone 0,1 -alpha Opaque -compose Hardlight -composite \) \
-     -delete 0 -compose In -composite \
-     5-glass-bubble.png
-    
-    convert 5-glass-bubble.png \
-     \( +clone -background black -shadow 90x4+0+0 \) +swap \
-     -background none -layers merge +repage \
-     cover-done.png
-    
-    mv cover-done.png cover.png
+	convert cover-start \
+	 -resize "${size}x${size}^" -gravity center -extent "${size}x${size}" \
+	 1-resized.png
+	
+	convert 1-resized.png \
+	 \( +clone  -alpha extract \
+		-draw 'fill black polygon 0,0 0,12 12,0 fill white circle 12,12 12,0' \
+		\( +clone -flip \) -compose Multiply -composite \
+		\( +clone -flop \) -compose Multiply -composite \
+	 \) -alpha off -compose CopyOpacity -composite 2-rounded-corners.png
+	
+	convert 2-rounded-corners.png \
+	 -alpha off -fill white -colorize 100% \
+	 -draw 'fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0' \
+	 \( +clone -flip \) -compose Multiply -composite \
+	 \( +clone -flop \) -compose Multiply -composite \
+	 -background Gray50 -alpha Shape 3-thumbnail-mask.png
+	
+	convert 3-thumbnail-mask.png \
+	 -bordercolor None -border 1x1 \
+	 -alpha Extract -blur 0x10  -shade 130x30 -alpha On \
+	 -background gray50 -alpha background -auto-level \
+	 -function polynomial  3.5,-5.05,2.05,0.3 \
+	 \( +clone -alpha extract  -blur 0x2 \) \
+	 -channel RGB -compose multiply -composite \
+	 +channel +compose -chop 1x1 \
+	 4-thumbnail-lighting.png
+	
+	convert 1-resized.png \
+	 -alpha Set 4-thumbnail-lighting.png \
+	 \( -clone 0,1 -alpha Opaque -compose Hardlight -composite \) \
+	 -delete 0 -compose In -composite \
+	 5-glass-bubble.png
+	
+	convert 5-glass-bubble.png \
+	 \( +clone -background black -shadow 90x4+0+0 \) +swap \
+	 -background none -layers merge +repage \
+	 cover-done.png
+	
+	mv cover-done.png cover.png
 }
 
 mkdir -p "$rundir"; cd "$rundir"
@@ -96,40 +96,40 @@ spotpris_update
 
 { pctl metadata mpris:trackid || :; pctl -F metadata mpris:trackid
 } 2> /dev/null | while read -r line; do
-    sleep 0.25
-    pctl metadata > "metadata.txt" || :
-    if ! [ "$line" ]; then clear_info
-    else
-        title=$(metadata title | filter)
-        if ! [ "${title## }" ]; then clear_info; continue; fi
-        artist=$(metadata artist | sed ':a;N;$!ba;s/\n/, /g' | filter)
-        album=$(metadata album | filter)
-        if ! [ "$album" ]; then
-            album=$(sed -nr 's/^website=(.+)$/\1/p' "$qlpath/current")
-        fi
-        if ! [ "$album" ]; then album=${title}; fi
-        artist_filter=$(metadata albumArtist | filter | filter_filename)
-        album_filter=$(metadata album | filter | filter_filename)
-        artcache="$artdir/$artist_filter - $album_filter"
-        printf %s\\n "$title" > "title.txt"
-        printf %s\\n "$artist" > "artist.txt"
-        printf %s\\n "$album" > "album.txt"
-        printf "%s - %s\n" "$artist" "$album" > "artistalbum.txt"
-        if [ -r "$artcache" ]; then
-            cp "$artcache" cover-start
-        else
-            if ! curl -sL -o "$artcache" "$(artUrl)"; then
-                cover="$HOME/.cache/ql.current.cover"
-                if ! [ -r "$cover" ]; then cover="$nocover"; fi
-                cp "$cover" cover-start
-            else
-                cp "$artcache" cover-start
-            fi
-        fi
-        make_cover || :
-        # Use filtered data for notification instead of built-in.
-        if ! [ -e "/run/user/$(id -u)/game-setup/current-game-name" ]; then
-            notify-send -i "$rundir/cover-start" "$title" "$artist\n$album"
-        fi
-    fi
+	sleep 0.25
+	pctl metadata > "metadata.txt" || :
+	if ! [ "$line" ]; then clear_info
+	else
+		title=$(metadata title | filter)
+		if ! [ "${title## }" ]; then clear_info; continue; fi
+		artist=$(metadata artist | sed ':a;N;$!ba;s/\n/, /g' | filter)
+		album=$(metadata album | filter)
+		if ! [ "$album" ]; then
+			album=$(sed -nr 's/^website=(.+)$/\1/p' "$qlpath/current")
+		fi
+		if ! [ "$album" ]; then album=${title}; fi
+		artist_filter=$(metadata albumArtist | filter | filter_filename)
+		album_filter=$(metadata album | filter | filter_filename)
+		artcache="$artdir/$artist_filter - $album_filter"
+		printf %s\\n "$title" > "title.txt"
+		printf %s\\n "$artist" > "artist.txt"
+		printf %s\\n "$album" > "album.txt"
+		printf "%s - %s\n" "$artist" "$album" > "artistalbum.txt"
+		if [ -r "$artcache" ]; then
+			cp "$artcache" cover-start
+		else
+			if ! curl -sL -o "$artcache" "$(artUrl)"; then
+				cover="$HOME/.cache/ql.current.cover"
+				if ! [ -r "$cover" ]; then cover="$nocover"; fi
+				cp "$cover" cover-start
+			else
+				cp "$artcache" cover-start
+			fi
+		fi
+		make_cover || :
+		# Use filtered data for notification instead of built-in.
+		if ! { obsctl --getscene || :; } | grep -q "Song Info"; then
+			notify-send -i "$rundir/cover-start" "$title" "$artist\n$album"
+		fi
+	fi
 done
