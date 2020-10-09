@@ -22,6 +22,7 @@ Notify.init("SystemNotify")
 # things. Note the order of arguments past the body argument.
 def notify (urgency, header, body, icon="", app_name="SystemNotify",
  category="", timeout=-1, hints={}):
+	body = body.replace("\\n", "\n")
 	notif = Notify.Notification.new(header, body, icon)
 	notif.set_app_name(app_name)
 	notif.set_urgency(urgency)
