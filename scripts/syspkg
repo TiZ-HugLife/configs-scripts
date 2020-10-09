@@ -23,7 +23,12 @@ use_apt () {
     search_local () { sudo dpkg --get-selections | grep "$@"; }
     list () { sudo dpkg -L "$@"; }
     owns () { sudo dpkg -S "$@"; }
-    clean () { s_apt autoremove && s_apt autoclean; }
+    get_residual () { dpkg -l | grep '^rc' | awk '{print $2}'; }
+    clean () {
+        s_apt autoremove && s_apt autoclean
+        residual=$(get_residual)
+        if [ "$residual" ]; then s_apt purge $residual; fi
+    }
 }
 
 use_pacman () {
