@@ -19,7 +19,7 @@ do_rules(
     {app="Firefox", wksp=2},
     {class="Ferdi", wksp=1, max=true},
     {app="Evolution.bin", wksp=1},
-    {app="Spotify", wksp=1, alpha=0.85, max=true}
+    {app="Spotify", wksp=1, max=true}
     --{class="teams-for-linux", wksp=4},
     --{class="Microsoft Teams - Preview", wksp=4},
     --{name="Microsoft Teams Notification", stick=true, no_page=true, no_task=true},
