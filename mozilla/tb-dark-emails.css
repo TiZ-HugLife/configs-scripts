@@ -1,7 +1,0 @@
-@namespace url(http://www.w3.org/1999/xhtml);
-
-body, p, span, div, font {color: #dedede !important; background-color: #374e51 !important; background-image: none !important;}
-:link {color: #1CABBF}
-
-td {color: black !important; background-color: white !important;}
-td :link {color: #0000c8}
