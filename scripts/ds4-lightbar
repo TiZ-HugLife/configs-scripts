@@ -8,7 +8,7 @@
 # Change per-controller defaults by editing /etc/ds4-lightbar.colors.
 set -eu
 
-rundir=/var/run/ds4-lightbar
+rundir=/run/ds4-lightbar
 sysdir=/sys/bus/hid/drivers/sony
 colorlist=/etc/ds4-lightbar.colors
 
