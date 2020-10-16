@@ -1,18 +1,40 @@
 #!/bin/sh
 # Make required bind mounts, then chroot in. Then clean up after.
+# Can also handle just taking a partition or BTRFS subvolume and
+# automatically creating a directory for it.
 set -eu
+
+btrfs_partition="/dev/disk/by-partlabel/BTRFS1"
+chroot_dir="/mnt/chroot"
 
 # Self-sudo.
 if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
 
-dirs="dev proc sys xusr"
+# Check if a BTRFS subvolume or partition was specified and mount it somewhere.
+if printf %s "$1" | grep -Eq '^@|^/dev/sd|^/dev/disk/by-'; then
+	volume="$1"
+	mkdir -p "$chroot_dir"
+	if printf %s "$1" | grep -Eq '^@'; then
+		mount "$btrfs_partition" -o subvol="$volume" "$chroot_dir"
+	else
+		mount "$volume" "$chroot_dir"
+	fi
+	set -- "/mnt/chroot"
+elif ! [ -d "$1" ]; then exit 1
+fi
+
+# Mount all required directories and enable internet.
+dirs="dev dev/pts xusr boot/efi proc sys sys/firmware/efi/efivars"
 for dir in $dirs; do
-    if [ -d "$1/$dir" ]; then mount -o bind "/$dir" "$1/$dir"; fi
+	if [ -d "$1/$dir" ]; then
+		udirs="$dir${udirs+ $udirs}"
+		mount -o bind "/$dir" "$1/$dir"
+	fi
 done
 cp /etc/resolv.conf "$1/etc/resolv.conf"
 
 chroot "$@"
 
-for dir in $dirs; do
-    if [ -d "$1/$dir" ]; then umount "$1/$dir"; fi
-done
+# Cleanup.
+for dir in $udirs; do umount "$1/$dir"; done
+if [ "${volume:-}" ]; then umount "$chroot_dir"; fi
