@@ -55,6 +55,14 @@ rundir=/run/moltengamepad
 mkdir -p "$rundir/slots" "$rundir/devices"
 connection=0
 
+# Wait for the socket to be ready.
+timer=0; while [ "$timer" -lt 10 ]; do
+    if [ -e /run/moltengamepad/socket ]; then break; fi
+    sleep 1; timer=$((timer + 1))
+done
+if [ "$timer" -eq 10 ]; then printf "Socket wait timed out.\n"; exit 1; fi
+sleep 2  # One more wait for good measure.
+
 # Sleep infinity allows it to run without a terminal. Without a terminal
 # stdin is just /dev/null and it immediately closes. With sleep infinity,
 # input will just never ever come.
