@@ -33,7 +33,7 @@ conky.config = {
 	no_buffers = true,
 
 	lua_load = '../draw.lua',
-	lua_draw_hook_pre = 'draw_ql 0x2B3B3F66 8 0 0 0 80 0 0 20 1 0',
+	lua_draw_hook_pre = 'draw_ql 0x222d32aa 8 0 0 0 80 0 0 20 1 0',
 }
 
 conky.text = '${execp ./conky.sh right 78 78 "Apres Regular" 14 11 "VL PGothic" 14 11}'
