@@ -1,0 +1,89 @@
+#!/bin/sh
+# Given a directory containing .steamid files, scrapes information
+# from Steam's JSON API into Skyscraper's manual import store.
+set -eu
+
+json_value () { jq -cr ".[].data.$1" < "$2"; };
+
+import="$HOME/.skyscraper/import/pc"
+for d in screenshots marquees textual; do mkdir -p "$import/$d"; done
+[ -x "$(command -v jq)" ]; [ -x "$(command -v curl)" ]
+
+api_url="https://store.steampowered.com/api/appdetails/?appids="
+
+cd "$1"
+tmp=$(mktemp -d)
+
+cat > "$import/definitions.dat" <<EOF
+Title:       ###TITLE###
+Description: ###DESCRIPTION###
+Developer:   ###DEVELOPER###
+Publisher:   ###PUBLISHER###
+Release:     ###RELEASEDATE###
+EOF
+
+failed=""
+for steamid in *.steamid; do
+	if [ "$steamid" = "*.steamid" ]; then continue; fi
+	base=$(basename "$steamid")
+	base=${steamid%.*}
+	appid=""; name=""
+	while IFS= read -r line; do
+		eval "${line%%=*}="'${line#*=}'
+	done < "$steamid"
+	
+	# Skip if we can't scrape it or the scrape is already done.
+	if ! [ "$appid" ] || ! [ "$name" ] || \
+	 [ -r "$import/textual/$base.txt" ]; then continue; fi
+	
+	printf "== Fetching data for %s: %s\n" "$appid" "$name"
+	
+	attempts=0
+	while true; do
+		curl -o "$tmp/json" "$api_url$appid"
+		attempts=$((attempts + 1))
+		if [ "$(json_value "appid" "$tmp/json")" ]; then break
+		elif [ "$attempts" -ge 4 ]; then
+			failed="$failed $base"
+			continue 2
+		fi
+	done
+	
+	if [ "$(jq -cr ".[].success" < "$tmp/json")" != "true" ]; then
+		printf "Failed to fetch JSON data; moving on.\n"
+		continue
+	fi
+	
+	description=$(json_value "short_description" "$tmp/json")
+	developer=$(json_value "developers[0]" "$tmp/json")
+	publisher=$(json_value "publishers[0]" "$tmp/json")
+	reldate=$(json_value "release_date.date" "$tmp/json")
+	if [ "$reldate" != "null" ]; then
+		reldate=$(printf %s "$reldate" | date -f- +%Y-%m-%d || :)
+	else reldate=""; fi
+	screenshot=$(json_value "screenshots[0].path_full" "$tmp/json")
+	marquee=$(json_value "header_image" "$tmp/json")
+	video=$(json_value "movies[0].mp4.\"480\"" "$tmp/json" || :)
+	
+	curl -o "$import/screenshots/$base.jpg" "$screenshot"
+	curl -o "$import/marquees/$base.jpg" "$marquee"
+	ln -sf "../marquees/$base.jpg" "$import/covers/$base.jpg"
+	ln -sf "../marquees/$base.jpg" "$import/wheels/$base.jpg"
+	if [ "$video" != "null" ]; then 
+		curl -o "$import/videos/$base.mp4" "$video";
+	fi
+	cat > "$import/textual/$base.txt" <<-EOF
+		Title:       $name
+		Description: $description
+		Developer:   $developer
+		Publisher:   $publisher
+		Release:     $reldate
+	EOF
+done
+
+if [ "$failed" ]; then
+	printf "FAILED games: %s" "$failed"
+	exit 1
+fi
+
+rm -r "$tmp"
