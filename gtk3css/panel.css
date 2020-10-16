@@ -1,13 +1,38 @@
 /* Xfce4 panel fixes */
-/*.xfce4-panel #whiskermenu-1 {
-  margin: 0px;
-  padding: 0px;
+
+/* Unbreaks Adapta. */
+.xfce4-panel, .xfce4-panel frame > border { border: unset; }
+
+/*.xfce4-panel #whiskermenu-1 image {
+	padding: 2px;
 }*/
-.xfce4-panel #whiskermenu-1 image {
-    padding: 2px;
+
+.xfce4-panel * {
+    -XfceTasklist-max-button-length: 320px;
 }
+
 .xfce4-panel button {
-    min-width: unset;
-    margin: 0px;
-    padding: 0px;
+	min-width: unset;
+	margin: 0px;
+	padding: 0px;
+}
+
+/* Gross that this can't be more generic. */
+.xfce4-panel #pager-12 button {
+	padding: 0px 2px;
+}
+
+/* These can, though. */
+.xfce4-panel #windowmenu-button {
+	padding: 0px 6px;
+	-gtk-icon-transform: scale(1.6);
+}
+.xfce4-panel .tasklist button {
+	padding: 0px 4px;
+}
+.xfce4-panel #pulseaudio-button {
+	padding: 0px 3px;
+}
+.xfce4-panel #pulseaudio-button image {
+	-gtk-icon-transform: scale(0.8);
 }

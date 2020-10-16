@@ -1,0 +1,18 @@
+.xfce4-panel button:hover:not(:active):not(:checked) {
+	/*box-shadow: inset 0 -2px alpha(currentColor, 0.2);*/
+	box-shadow: none;
+	background-image: linear-gradient(to bottom, alpha(currentColor, 0.25), transparent, transparent);
+}
+
+.xfce4-panel button:checked, .xfce4-panel button:active {
+	/*box-shadow: inset 0 -2px #159292;*/
+	box-shadow: none;
+	background-image: linear-gradient(to bottom, #159292, transparent, transparent);
+}
+
+/*.xfce4-panel button:active {
+	background-color: rgba(207, 216, 220, 0.12);
+	box-shadow: inset 0 -2px #159292;
+	box-shadow: none;
+	background-image: linear-gradient(to bottom, alpha(#159292, 0.75), rgba(207, 216, 220, 0.2));
+}*/
