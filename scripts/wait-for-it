@@ -1,27 +1,40 @@
 #!/bin/sh
 set -eu
 
+self=$(basename "$0")
 usage () {
-    cat <<EOF
-wfi / wait-for-it
+	cat <<EOF
+wfi / wait-for-it / check
 Wait for the appearance or disappearance of a process, file, window, or
 an internet connection. Then, optionally, execute a command afterward.
+Prepend no to any action word to invert matching condition, like nowindow.
+This is useful if you want to wait for a window or process to exit.
 You can use -- if you just want to sleep before executing commands.
-Wait for network requires wget, and wait for window requires xdotool.
-Exits status 1 if timeout is hit.
+Wait for network requires wget. Wait for window requires wmctrl or xdotool.
+Exits status 1 if timeout is hit without a match.
 Usage:
-    wfi [global opts] <proc|process|file> <target> [command to exec]
-    wfi [global opts] <net|network|internet> [command to exec]
-    wfi [global opts] <win|window> [win opts] <target> [command to exec]
-    wfi [global opts] -- [command to exec]
+    $self [global opts] <proc|process|file> <target> [command to exec]
+    $self [global opts] <net|network|internet> [command to exec]
+    $self [global opts] <win|window> [win opts] <target> [command to exec]
+    $self [global opts] -- [command to exec]
 Global options:
     -i|--interval: Time in seconds to sleep before checking again, default 1.
     -d|--pre-delay: Time in seconds to sleep before starting, default 0.
     -D|--post-delay: Time in seconds to wait after matching, default 0.
-    -t|--timeout: Time in seconds to spend trying or none, default 60.
+    -t|--timeout: Time in seconds to spend trying, or none for no timeout.
+        If invoked as check, default is 0.
+        If invoked as wait-for-it or wfi, default is 60.
     -n|--number: Succeed on this many of the target, default 1.
         This option is only meaningful for process and window targets.
-Window options:
+Window wait provider request (must precede other window options):
+    --wmctrl: Use wmctrl.
+    --xdotool: Use xdotool.
+Window options (wmctrl):
+    -v|--visible: Only search for windows on the current workspace.
+    -c|--class: Search combined class+classname with regex; default behavior.
+    -a|--classname: Same as above.
+    -n|--name|--title: Search by window name.
+Window options (xdotool):
     -v|--visible: Only search for visible windows.
     -a|--classname: Search by classname; the default behavior.
     -c|--class: Search by class.
@@ -38,17 +51,20 @@ post_delay=0
 timeout=60
 number=1
 
+# Support a symlink where timeout defaults to 0.
+if [ "$self" = "check" ]; then timeout=0; fi
+
 while [ "${1#-}" != "$1" ]; do
-    case "$1" in
-    -i|--interval) interval="${2:?}"; shift;;
-    -d|--pre-delay) pre_delay="${2:?}"; shift;;
-    -D|--post-delay) post_delay="${2:?}"; shift;;
-    -t|--timeout) timeout="${2:?}"; shift;;
-    -n|--number) number="${2:?}"; shift;;
-    -h|--help) usage 0;;
-    --) break;;  # This is the do-nothing option.
-    *) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
-    esac; shift
+	case "$1" in
+	-i|--interval) interval="${2:?}"; shift;;
+	-d|--pre-delay) pre_delay="${2:?}"; shift;;
+	-D|--post-delay) post_delay="${2:?}"; shift;;
+	-t|--timeout) timeout="${2:?}"; shift;;
+	-n|--number) number="${2:?}"; shift;;
+	-h|--help) usage 0;;
+	--) break;;  # This is the do-nothing option.
+	*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
+	esac; shift
 done
 
 if [ "$#" -eq 0 ]; then usage 1; fi
@@ -57,62 +73,124 @@ action="$1"; shift
 # Check for inversion.
 check () { condition; }
 if [ "${action#no}" != "$action" ]; then
-    action=${action#no}
-    check () { ! condition; }
+	action=${action#no}
+	check () { ! condition; }
 fi
 
+# Setup window search with wmctrl.
+window_wmctrl () {
+	wmctrl_filter () { wmctrl "$@"; }
+	condition () {
+		output=$(wmctrl_filter -lx | awk '$3~/'"$target"'/ {print $1}')
+		if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
+			then return 0; else return 1; fi
+	} 
+	while [ "${1:-}" ] && [ "${1#-}" != "$1" ]; do
+		case "$1" in
+		-v|--visible)
+			desktop=$(wmctrl -d | sed -nE 's/^([0-9]+)\s+\*.+/\1/p')
+			wmctrl_filter () {
+				wmctrl "$@" | grep -E '0x[0-f]+\s+(-1|'"$desktop"')'
+			} ;;
+		-c|--class|-a|--classname) : ;;  # Default condition.
+		-t|--title|--name)
+			condition () {
+				output=$(wmctrl_filter -l | sed -nE \
+				 's/^(0x[0-f]+).+'"$(hostname)"'\s+.*'"$target"'.*$/\1/p')
+				if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
+					then return 0; else return 1; fi
+			} ;;
+		*) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+		esac; shift; shifts=$((shifts + 1))
+	done
+	target="$1"; shift
+}
+
+# Setup window search with xdotool.
+window_xdotool () {
+	search="--class"
+	condition () {
+		output=$(xdotool search --maxdepth 1 "$search" "$target")
+		if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
+			then return 0; else return 1; fi
+	}
+	while [ "${1:-}" ] && [ "${1#-}" != "$1" ]; do
+		case "$1" in
+		-v|--visible)
+			condition () {
+				output=$(xdotool search --desktop "$(xdotool get_desktop)" \
+				 --onlyvisible --maxdepth 1 "$search" "$target")
+				if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ] 
+					then return 0; else return 1; fi
+				}
+			;;
+		-c|--class) search="--class";;
+		-a|--classname) search="--classname";;
+		-t|--title|--name) search="--name";;
+		*) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+		esac; shift; shifts=$((shifts + 1))
+	done
+	target="$1"; shift
+}
+
 case "$action" in
-    --)
-        condition () { :; } ;;
-    proc|process)
-        if [ "$#" -eq 0 ]; then usage 1; fi
-        target="$1"; shift
-        output_ok=1
-        condition () {
-            output=$(pgrep "$target")
-            if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
-                return 0; else return 1; fi
-        } ;;
-    file)
-        if [ "$#" -eq 0 ]; then usage 1; fi
-        target="$1"; shift
-        condition () { [ -e "$target" ]; } ;;
-    net|network|internet)
-        if ! [ -x "$(command -v wget)" ]; then
-            printf "Wait for network requires wget.\n"; exit 1
-        fi
-        condition () {
-            [ "$(wget -q -O- http://network-test.debian.org/nm)" \
-               = "NetworkManager is online" ]
-        } ;;
-    win|window)
-        if ! [ -x "$(command -v xdotool)" ]; then
-            printf "Wait for window requires xdotool.\n"; exit 1
-        fi
-        if [ "$#" -eq 0 ]; then usage 1; fi
-        search="--class"
-        condition () {
-            output=$(xdotool search "$search" "$target")
-            if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
-                return 0; else return 1; fi
-        }
-        output_ok=1
-        while [ "${1:-}" ] && [ "${1#-}" != "$1" ]; do
-            case "$1" in
-            -v|--visible) condition () {
-                output=$(xdotool search --desktop "$(xdotool get_desktop)" \
-                 --onlyvisible "$search" "$target")
-                if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
-                    return 0; else return 1; fi
-            };;
-            -c|--class) search="--class";;
-            -a|--classname) search="--classname";;
-            -t|--title|--name) search="--name";;
-            *) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
-            esac; shift
-        done
-        target="$1"; shift;;
-    *) printf "Invalid action: %s\n" "$action" >&2; die_usage;;
+--)
+	condition () { :; } ;;
+proc|process)
+	if [ "$#" -eq 0 ]; then usage 1; fi
+	target="$1"; shift
+	output_ok=1
+	condition () {
+		output=$(pgrep "$target")
+		if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]; then
+			return 0; else return 1; fi
+	} ;;
+file)
+	if [ "$#" -eq 0 ]; then usage 1; fi
+	target="$1"; shift
+	condition () { [ -e "$target" ]; } ;;
+net|network|internet)
+	if ! [ -x "$(command -v wget)" ]; then
+		printf "Wait for network requires wget.\n"; exit 1
+	fi
+	condition () {
+		[ "$(wget -q -O- http://network-test.debian.org/nm)" \
+		   = "NetworkManager is online" ]
+	} ;;
+win|window)
+	if [ "$#" -eq 0 ]; then usage 1; fi
+	output_ok=1
+	shifts=1  # Keep track of how many args to throw out.
+	
+	# Check command availability.
+	if [ -x "$(command -v wmctrl)" ]; then has_wmctrl=1; fi
+	if [ -x "$(command -v xdotool)" ]; then has_xdotool=1; fi
+	
+	# First, handle explicit finder requests.
+	if [ "$1" = "--wmctrl" ]; then
+		shift
+		if [ "${has_wmctrl:-}" ]; then window_wmctrl "$@"
+		else
+			printf "wmctrl requested but not available.\n"; exit 1
+		fi
+	elif [ "$1" = "--xdotool" ]; then
+		shift
+		if [ "${has_xdotool:-}" ]; then window_xdotool "$@"
+		else
+			printf "xdotool requested but not available.\n"; exit 1
+		fi
+	
+	# Then go by order of predecence availability.
+	elif [ "${has_wmctrl:-}" ]; then window_wmctrl "$@"
+	elif [ "${has_xdotool:-}" ]; then window_xdotool "$@"
+	
+	# Lastly, let the user know if neither are available.
+	else
+		printf "Wait for window requires wmctrl or xdotool.\n"; exit 1
+	fi
+	shift "$shifts"
+	;;
+*) printf "Invalid action: %s\n" "$action" >&2; usage 1;;
 esac
 
 sleep "$pre_delay"
@@ -123,9 +201,9 @@ if [ "$timeout" -ge 0 ] 2> /dev/null; then end=$((start + timeout))
 else end="9$start"; fi
 
 while :; do
-    if check >/dev/null 2>&1; then success=1; break
-    elif [ "$(date +%s)" -ge "$end" ]; then break; fi
-    sleep "$interval"
+	if check >/dev/null 2>&1; then success=1; break
+	elif [ "$(date +%s)" -ge "$end" ]; then break; fi
+	sleep "$interval"
 done
 
 if ! [ "${success:-}" ]; then exit 1; fi
@@ -133,7 +211,7 @@ if ! [ "${success:-}" ]; then exit 1; fi
 sleep "$post_delay"
 
 if [ "$#" -gt 0 ]; then
-    if [ "$1" = "output" ] && [ "${output_ok:-}" ]; then
-        printf %s\\n "$output"
-    else exec "$@"; fi
+	if [ "$1" = "output" ] && [ "${output_ok:-}" ]; then
+		printf %s\\n "$output"
+	else exec "$@"; fi
 fi
