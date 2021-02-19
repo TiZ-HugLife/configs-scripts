@@ -33,23 +33,83 @@ fswin = borderless fullscreen window. aspect scales window to fill screen.
 run = run script on window with args followed by window id.
 ]]
 
-win_name = (get_window_name() or "")
-app_name = (get_application_name() or "")
-win_class = (get_window_class() or "")
-class_instance = (get_class_instance_name() or "")
-win_role = (get_window_role() or "")
-win_x, win_y, win_w, win_h = get_window_client_geometry()
+local string_meta = getmetatable("")
 
-debug_print("Name: " .. win_name)
-debug_print("App: " .. app_name)
-debug_print("Class: " .. win_class)
-debug_print("Class2: " .. class_instance)
-debug_print("Role: " .. win_role)
-debug_print("Location: " .. win_x .. ", " .. win_y)
-debug_print("Geometry: " .. win_w .. " x " .. win_h)
-debug_print("Command: " .. get_window_property("WM_COMMAND"))
-debug_print("----------------")
+-- Case insensitive string comparison.
+string_meta.__index["is"] = function (strA, strB)
+    return strA:lower() == strB:lower()
+end
 
+-- Case insensitive string search.
+string_meta.__index["has"] = function (strA, strB)
+    return strA:lower():find(strB:lower()) ~= nil
+end
+
+-- Shortcut functions.
+function set_type (target)
+    set_window_type("WINDOW_TYPE_"..target:upper())
+end
+function type_is (target)
+    return "WINDOW_TYPE_"..string.upper(target) == get_window_type()
+end
+
+-- Check if window is nth of its group.
+function is_nth (v)
+    local count = 0
+    local class = v.class or ".+"
+    local app = v.app or ".+"
+    local name = v.name or ".+"
+    local find = class .. "%." .. app .. "\t" .. name
+    local handle = io.popen("wmctrl -lx | awk '{print $3 \"\t\" $4}'")
+    local result = handle:read("*a")
+    handle:close()
+    for line in result:gmatch('[^\r\n]+') do
+        if line:find(find) then count = count + 1 end
+    end
+    return count == v.nth
+end
+
+-- Create an aspect-adjusted fullscreen window.
+-- Not friendly to multiple monitors, unfortunately.
+function fswin (aspect)
+    screen_w, screen_h = get_screen_geometry()
+    if aspect ~= "" then
+        debug_print("Forcing fsw aspect ratio to " .. aspect)
+        if aspect == "4:3" then
+            new_w = screen_h * 4 / 3
+            new_x = (screen_w - new_w) / 2
+            new_h, new_y = screen_h, 0
+        end
+    elseif win_w / win_h <= (screen_w / screen_h) then
+        new_w = (screen_h / win_h) * win_w
+        new_h = screen_h
+        new_x = (screen_w - new_w) / 2
+        new_y = 0
+    else
+        new_w = screen_w
+        new_h = new_w / (win_w / win_h)
+        new_x = 0
+        new_y = (screen_h - new_h) / 2
+    end
+    undecorate_window()
+    set_window_geometry2(new_x, new_y, new_w, new_h)
+end
+
+-- Handy function aliases.
+pos = set_window_position2
+size = set_window_size
+workspace = set_window_workspace
+alpha = set_window_opacity
+viewport = set_viewport
+skip_task = set_skip_tasklist
+skip_pager = set_skip_pager
+above = set_window_above
+below = set_window_below
+undecorate = undecorate_window
+pin = pin_window
+stick = stick_window
+
+-- Execute commands according to rules.
 function do_rules (...)
     _, _, win_w, win_h = get_window_client_geometry()
     for _, v in ipairs(arg) do
@@ -74,7 +134,6 @@ function do_rules (...)
             if v.size then set_window_size(v.size.w, v.size.h) end
             if v.alpha then set_opacity(v.alpha) end
             if v.wksp then
-                --change_workspace(v.wksp)
                 set_window_workspace(v.wksp)
             end
             if v.vport then set_viewport(v.vport) end
@@ -89,53 +148,31 @@ function do_rules (...)
             if v.undeco then undecorate_window() end
             if v.pin then pin_window() end
             if v.stick then stick_window() end
-            if v.set_type then
-                set_window_type("WINDOW_TYPE_"..string.upper(v.set_type))
-            end
+            if v.set_type then set_type(v.set_type) end
             --if v.set_class then
                 --set_window_property("WM_CLASS", v.set_class)
             --end
             if v.run then
                 os.execute(v.run .. " " .. get_window_xid())
             end
-            if v.fswin then
-                screen_w, screen_h = get_screen_geometry()
-                if v.fsw_aspect ~= "" then
-                    debug_print("Forcing fsw aspect ratio to " .. v.fsw_aspect)
-                    if v.fsw_aspect == "4:3" then
-                        new_w = screen_h * 4 / 3
-                        new_x = (screen_w - new_w) / 2
-                        new_h, new_y = screen_h, 0
-                    end
-                elseif win_w / win_h <= (screen_w / screen_h) then
-                    new_w = (screen_h / win_h) * win_w
-                    new_h = screen_h
-                    new_x = (screen_w - new_w) / 2
-                    new_y = 0
-                else
-                    new_w = screen_w
-                    new_h = new_w / (win_w / win_h)
-                    new_x = 0
-                    new_y = (screen_h - new_h) / 2
-                end
-                undecorate_window()
-                set_window_geometry2(new_x, new_y, new_w, new_h)
-            end
+            if v.fswin then fswin(v.fsw_aspect) end
         end
     end
 end
 
-function is_nth (v)
-    local count = 0
-    local class = v.class or ".+"
-    local app = v.app or ".+"
-    local name = v.name or ".+"
-    local find = class .. "%." .. app .. "\t" .. name
-    local handle = io.popen("wmctrl -lx | awk '{print $3 \"\t\" $4}'")
-    local result = handle:read("*a")
-    handle:close()
-    for line in result:gmatch('[^\r\n]+') do
-        if line:find(find) then count = count + 1 end
-    end
-    return count == v.nth
-end
+win_name = (get_window_name() or "")
+app_name = (get_application_name() or "")
+win_class = (get_window_class() or "")
+class_instance = (get_class_instance_name() or "")
+win_role = (get_window_role() or "")
+win_x, win_y, win_w, win_h = get_window_client_geometry()
+
+debug_print("Name: " .. win_name)
+debug_print("App: " .. app_name)
+debug_print("Class: " .. win_class)
+debug_print("Class Inst.: " .. class_instance)
+debug_print("Role: " .. win_role)
+debug_print("Location: " .. win_x .. ", " .. win_y)
+debug_print("Geometry: " .. win_w .. " x " .. win_h)
+debug_print("Command: " .. get_window_property("WM_COMMAND"))
+debug_print("----------------")
