@@ -14,6 +14,6 @@ elseif app_name:is("Spotify") then
     maximize()
 end
 
-if app_name:is("Firefox") then wksp(2) end
-if app_name:is("Geany") then size(790, 1054); pos(1130, 26) end
+if app_name:is("Firefox") then workspace(2) end
+if app_name:is("Geany") then size(790, 1054); pos(3050, 26) end
 if app_name:is("Remmina") then size(620, 280) end

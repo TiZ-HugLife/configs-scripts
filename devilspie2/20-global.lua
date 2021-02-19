@@ -1,4 +1,6 @@
 -- Rules common to all devices.
+-- To make sizing accurate, add window frames to w/h listed by wmctrl -G.
+-- For Adapta, that's +4w, +27h.
 
 if app_name:is("Xfce Terminal") or
  (win_name:is("Whisker Menu") and type_is("dialog")) then

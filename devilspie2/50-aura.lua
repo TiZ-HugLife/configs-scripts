@@ -17,12 +17,12 @@ if app_name:is("Geany") then size(790, 1054); pos(1130, 26) end
 if app_name:is("Evolution.bin") or win_class:is("Ferdi") or
  win_class:is("Caprine") or win_class:is("Discord") or
  win_class:is("Microsoft Teams - Preview") then
-    wksp(1)
+    workspace(1)
 elseif app_name:is("Spotify") then
-    wksp(2)
+    workspace(2)
     maximize()
 elseif app_name:is("Firefox") then
-    wksp(2)
+    workspace(2)
 end
 
 -- Mode-specific rules.
