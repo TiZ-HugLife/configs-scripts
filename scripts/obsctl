@@ -33,12 +33,15 @@ for i in [
     ("--startstream", "Request Studio to start streaming."),
     ("--stopstream", "Request Studio to stop streaming."),
     ("--getrecstatus", "Output recording status."),
+    ("--getrectime", "Output recording time."),
     ("--getstreamstatus", "Output streaming status."),
+    ("--getstreamtime", "Output streaming time."),
     ("--getnameformat", "Output current filename format."),
     ("--getfolder", "Output recording folder."),
     ("--getprofile", "Output current profile."),
     ("--getscenecol", "Output current scene collection."),
     ("--getscene", "Output current scene."),
+    ("--listscenes", "Output list of scenes."),
 ]: parser.add_argument(i[0], action="store_true", help=i[1])
 for i in [
     ("--setnameformat", "Set filename format."),
@@ -57,7 +60,8 @@ except:
     sys.exit(1)
 
 # Recording / Streaming.
-if args.getrecstatus or args.getstreamstatus:
+if (args.getrecstatus or args.getstreamstatus or 
+   args.getrectime or args.getstreamtime):
     response = call(GetStreamingStatus())
     if args.getrecstatus:
         if response.datain["recording-paused"]:
@@ -66,6 +70,16 @@ if args.getrecstatus or args.getstreamstatus:
             print("Recording: {}".format(response.getRecording()))
     if args.getstreamstatus:
         print("Streaming: {}".format(response.getStreaming()))
+    if args.getrectime:
+        if "rec-timecode" in response.datain:
+            print("Recording Time: {}".format(response.getRecTimecode()))
+        else:
+            print("Recording Time: N/A")
+    if args.getstreamtime:
+        if "stream-timecode" in response.datain:
+            print("Streaming Time: {}".format(response.getStreamTimecode()))
+        else:
+            print("Streaming Time: N/A")
 else:
     if args.startrec:
         call(StartRecording())
@@ -112,6 +126,11 @@ elif args.setscenecol:
 if args.getscene:
     response = call(GetCurrentScene())
     print("Scene: {}".format(response.getName()))
+elif args.listscenes:
+    response = call(GetSceneList())
+    print("Scene List:")
+    for scene in response.getScenes():
+        print("- {}".format(scene["name"]))
 elif args.setscene:
     response = call(SetCurrentScene(args.setscene))
     result = call(GetCurrentScene()).getName()
