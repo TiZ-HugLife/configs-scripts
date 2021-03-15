@@ -1,0 +1,6 @@
+.undershoot.top, .undershoot.bottom,
+.undershoot.right, .undershoot.left,
+undershoot.top, undershoot.bottom,
+undershoot.right, undershoot.left
+  { background-image: none; }
+
