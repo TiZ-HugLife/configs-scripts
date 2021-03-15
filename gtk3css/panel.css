@@ -1,15 +1,7 @@
-/* Xfce4 panel fixes */
+/* Xfce4-panel fixes */
 
 /* Unbreaks Adapta. */
 .xfce4-panel, .xfce4-panel frame > border { border: unset; }
-
-/*.xfce4-panel #whiskermenu-1 image {
-	padding: 2px;
-}*/
-
-.xfce4-panel * {
-    -XfceTasklist-max-button-length: 320px;
-}
 
 .xfce4-panel button {
 	min-width: unset;
@@ -18,7 +10,9 @@
 }
 
 /* Gross that this can't be more generic. */
-.xfce4-panel #pager-12 button {
+.xfce4-panel #pager-3 button,
+.xfce4-panel #pager-12 button,
+.xfce4-panel #pager-14 button {
 	padding: 0px 2px;
 }
 
@@ -27,12 +21,26 @@
 	padding: 0px 6px;
 	-gtk-icon-transform: scale(1.6);
 }
+.xfce4-panel * {
+    -XfceTasklist-max-button-length: 400px;
+}
 .xfce4-panel .tasklist button {
 	padding: 0px 4px;
+}
+.xfce4-panel .tasklist button * {
+	-GtkBox-spacing: 0px;
+}
+.xfce4-panel .tasklist button image {
+	padding: 0px;
+	margin-left: 4px;
 }
 .xfce4-panel #pulseaudio-button {
 	padding: 0px 3px;
 }
 .xfce4-panel #pulseaudio-button image {
 	-gtk-icon-transform: scale(0.8);
+}
+.xfce4-panel #clock-button {
+	margin-left: 4px;
+	min-width: 52px;
 }

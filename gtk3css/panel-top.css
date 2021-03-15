@@ -1,16 +1,19 @@
+/* Regular buttons. */
 .xfce4-panel button:hover:not(:active):not(:checked) {
 	box-shadow: none;
 	background-image: linear-gradient(to bottom, alpha(currentColor, 0.25), transparent, transparent);
 }
-
 .xfce4-panel button:checked, .xfce4-panel button:active {
 	box-shadow: none;
 	background-image: linear-gradient(to bottom, @theme_selected_bg_color, transparent, transparent);
 }
 
-/*.xfce4-panel button:active {
-	background-color: rgba(207, 216, 220, 0.12);
-	box-shadow: inset 0 -2px #159292;
-	box-shadow: none;
-	background-image: linear-gradient(to bottom, @theme_selected_bg_color, rgba(207, 216, 220, 0.2));
-}*/
+/* The tasklist's active button should look like a tab for the window.
+ * These only work on themes that export these named colors. */
+.xfce4-panel .tasklist button:checked {
+	background-color: @wm_bg_a;
+	font-weight: bold;
+}
+.xfce4-panel .tasklist button:checked:not(:hover) {
+	color: @theme_fg_color;
+}
