@@ -38,17 +38,32 @@ scrollbar.vertical slider
 scrollbar.horizontal slider
     { min-width: 20px; min-height: 8px; }
 
-/* Header bars */
+/* Header bars. */
+headerbar
+    { min-height: 36px; }
 headerbar > *
     { margin-top: 1px; margin-bottom: 1px; }
 headerbar button
     { padding: 1px; }
-headerbar button.image-button,
-headerbar button.titlebutton
+headerbar button.image-button, headerbar button.titlebutton
     { padding: 2px; }
 headerbar stackswitcher button
     { padding: 2px 4px; margin: 0px 2px; }
-/*button.titlebutton
-    { padding: 1px; margin-left: 1px; margin-right: 0px; }*/
 headerbar button
     { min-width: 20px; min-height: 20px; }
+
+/* Murder the goddamn headerbar sizing box. 
+ * Thanks to borschty from freenode for the idea.
+ * The reason this is necessary is because the sizing box
+ * isn't actually attached to a headerbar. */
+box .title, box .subtitle {
+    font-size: 0;
+}
+
+/* And then use a more specific rule to un-murder the real title/subtitle. */
+headerbar box .title {
+    font-size: 1.0em;
+}
+headerbar box .subtitle {
+    font-size: 0.8em;
+}
