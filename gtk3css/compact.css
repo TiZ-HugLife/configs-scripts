@@ -19,6 +19,10 @@ menuitem
     { padding: 3px 4px; }
 menubar > menuitem
     { padding: 3px 8px; }
+popover modelbutton
+    { padding: 3px 4px; }
+popover modelbutton label
+    { margin: 0px; padding: 0px; }
 row
     { padding: 0px 2px; }
 row revealer
