@@ -1,1 +1,1 @@
-scripts_window_close = {"99-whiskerclose.lua"}
+scripts_window_close = {"99-whisker-close.lua"}
