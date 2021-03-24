@@ -1,27 +1,18 @@
 #!/bin/sh
-# Backup to Maxwell's borg repository.
+# Backup to Marina's borg repository.
 set -eu
 
 # Self-sudo.
 if [ "$(id -u)" -gt 0 ]; then exec sudo "$0"; fi
 
+here=$(dirname "$(realpath "$0")")
+borg () { "$here/borg-wrap" "$@"; }
+borg_create () { borg create --exclude-from "$here/../borg-excludes" "$@"; }
+
 # Export necessary env vars.
 export BORG_REPO="ssh://marina@marina/~/borg"
-BORG_PASSPHRASE=$(sudo -H -u tiz pass show borg)
+BORG_PASSPHRASE=${BORG_PASSPHRASE:-$(sudo -H -u tiz pass show borg)}
 export BORG_PASSPHRASE
-
-# Saves some code duplication.
-borg_cmd () { cmd=${1}; shift; borg "$cmd" -v -p --show-rc "$@"; }
-borg_create () { (
-    cd "${1:?}"; shift
-    borg_cmd create --list --stats --filter AME \
-     --compression zstd,16 --exclude-caches \
-     -e "sh:**/.cache/*" -e "sh:**/cache/*" \
-     -e "sh:**/tmp/*" -e "sh:**/dwn/*" \
-     -e "sh:**/steamapps/*" -e "sh:**/vid/rec/*" \
-     -e "sh:**/vid/clip/*" -e "sh:**/mus/arc/*" \
-     "$@" ./
-) }
 
 # Aura, Workbox, and Marina use BTRFS + subvolumes. Cerebro uses EXT4.
 # The entire BTRFS partition is mounted at /mnt/btrfs, which means those
@@ -37,27 +28,28 @@ if [ -d /mnt/btrfs ]; then  # Aura, Workbox, Marina.
 
     # Backup step.
     for vol in $subvols; do
-        borg_create "/mnt/btrfs/@$vol" "::{hostname}-$vol-{now:%y%m%d%H%M}"
+        borg_create "::{hostname}-$vol-{now:%y%m%d%H%M}" "/mnt/btrfs/@$vol"
     done
 else  # Cerebro.
     subvols="root xusr"
-    borg_create "/" -e "dev/" -e "sys/" -e "proc/" -e "run/" \
-     -e "home/" -e "xusr/" "::{hostname}-root-{now:%y%m%d%H%M}"
-    borg_create "/xusr" "::{hostname}-xusr-{now:%y%m%d%H%M}"
+    borg_create -e "dev/" -e "sys/" -e "proc/" -e "run/" -e "home/" -e "xusr/" \
+     "::{hostname}-root-{now:%y%m%d%H%M}" "/"
+    borg_create "::{hostname}-xusr-{now:%y%m%d%H%M}" "/xusr"
 fi
 
 # Aura has a Windows partition.
 if [ -d /mnt/windows ]; then
     subvols="$subvols windows"
-    borg_create /mnt/windows "::{hostname}-windows-{now:%y%m%d%H%M}" || :
+    borg_create "::{hostname}-windows-{now:%y%m%d%H%M}" /mnt/windows || :
 fi
 
 # Prune step.
 for vol in $subvols; do
     case "$vol" in
-        home) daily=5; weekly=3; monthly=2 ;;
-        *)    daily=7; weekly=4; monthly=4 ;;
+        windows)  daily=0; weekly=0; monthly=4 ;;
+        home)     daily=4; weekly=2; monthly=2 ;;
+        *)        daily=7; weekly=4; monthly=4 ;;
     esac
-    borg_cmd prune --list --stats --prefix "{hostname}-$vol-" --keep-last 3 \
+    borg prune --list --stats --prefix "{hostname}-$vol-" \
      --keep-daily "$daily" --keep-weekly "$weekly" --keep-monthly "$monthly"
 done

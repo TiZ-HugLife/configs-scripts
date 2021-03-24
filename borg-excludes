@@ -1,0 +1,9 @@
+sh:**/.snapshots/*
+sh:**/.cache/*
+sh:**/cache/*
+sh:**/tmp/*
+sh:**/dwn/*
+sh:**/steamapps/*
+sh:**/vid/rec/*
+sh:**/vid/clip/*
+sh:**/mus/arc/*
