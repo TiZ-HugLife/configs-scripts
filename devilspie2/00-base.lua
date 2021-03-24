@@ -36,6 +36,20 @@ function is_nth (v)
     return count == v.nth
 end
 
+-- Modify window class.
+function set_class (class)
+    win_class = class
+    class_inst = class
+    os.execute("xdotool set_window " ..
+     "--class " .. class .. " --classname " .. class .. " " .. win_xid)
+end
+
+-- Change window icon to a .png file located in /xusr/share/icons.
+function set_icon (icon)
+   os.execute("xseticon -id " .. win_xid ..
+    " /xusr/share/icons/" .. icon .. ".png")
+end
+
 -- Create an aspect-adjusted fullscreen window.
 -- Not friendly to multiple monitors, unfortunately.
 function fswin (aspect)
@@ -77,12 +91,15 @@ pin = pin_window
 stick = stick_window
 
 -- Create handy vars to reference in each script.
+win_xid = get_window_xid()
 win_name = (get_window_name() or "")
 app_name = (get_application_name() or "")
 win_class = (get_window_class() or "")
 class_instance = (get_class_instance_name() or "")
 win_role = (get_window_role() or "")
 win_x, win_y, win_w, win_h = get_window_client_geometry()
+normal = type_is("normal")
+dialog = type_is("dialog")
 
 -- Debug info.
 debug_print("Name: " .. win_name)
