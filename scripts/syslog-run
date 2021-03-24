@@ -1,0 +1,22 @@
+#!/bin/sh
+# Send a command's output to syslog and run it in the background.
+set -eu
+
+case "$1" in
+	-t|--tag) tag="$2"; shift 2 ;;
+	*) : ;;
+esac
+
+# Find the Flatpak app name and use it as the tag.
+if [ "$(basename "$1")" = "flatpak" ] && ! [ "${tag:-}" ]; then
+	for arg; do
+		if [ "$(basename "$arg")" = "flatpak" ] || [ "$arg" = "run" ]
+			then continue
+		elif printf %s\\n "$arg" | grep -Eq '\w+\.\w+\.\w+'; then
+			tag="$arg"
+			break
+		fi
+	done
+fi
+
+"$@" 2>&1 | logger -t "${tag:-$(basename "$1")}" &
