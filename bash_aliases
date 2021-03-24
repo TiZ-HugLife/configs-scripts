@@ -21,10 +21,18 @@ altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
 }
 
+# Set the compression flag on a directory then recursively compress it.
+compress () {
+    btrfs property set "$1" compression zstd
+    btrfs filesystem defragment -vr -czstd "$1"
+}
+
 # Update PC games in Pegasus.
 update_pc_games () {
     dir="/home/tiz/gam/pc"
     generate-steamids "$dir"
+    echo "Pausing so you can check the generated steamids."
+    read -p "Press enter to continue."
     steamid-to-skyscraper "$dir"
     Skyscraper -p pc -s import
     Skyscraper -p pc
