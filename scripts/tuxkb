@@ -42,7 +42,7 @@ get () {
     printf left=%s\\n "$(sed s/0x// $sys/color_left)"
     printf center=%s\\n "$(sed s/0x// $sys/color_center)"
     printf right=%s\\n "$(sed s/0x// $sys/color_right)"
-    printf extra=%s\\n "$(sed s/0x// $sys/color_extra)"
+    printf extra=%s\\n "$(sed s/0x// $sys/extra)"
     printf mode=%s\\n "$(cat $sys/mode)"
     printf brightness=%s\\n "$(cat $sys/brightness)"
     printf state=%s\\n "$(cat $sys/state)"
@@ -64,7 +64,8 @@ colors () {
     if is_hex "$1"; then _set color_left "0x$1"; fi
     if is_hex "$2"; then _set color_center "0x$2"; fi
     if is_hex "$3"; then _set color_right "0x$3"; fi
-    if is_hex "${4:-}"; then _set color_extra "0x${4:-}"; fi
+    # Ignore extra.
+    #if is_hex "${4:-}"; then _set extra "0x${4:-}"; fi
 }
 
 brightness () {
