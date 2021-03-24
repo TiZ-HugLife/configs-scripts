@@ -1,5 +1,6 @@
 @import url("css/compact/unset-min-sizes-safe.css");
 @import url("css/compact/adapta.css");
+@import url("css/compact/headerbar-sizing-box.css");
 @import url("css/tweaks/kill-gtk3-shadows.css");
 @import url("css/tweaks/no-undershoot.css");
 @import url("css/apps/panel.css");
