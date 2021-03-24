@@ -15,4 +15,11 @@ if app_name:is("Thunar") then
     end
 end
 
-if app_name:is("Syncthing-GTK") then size(660, 500) end
+-- Stop Discord and Firefox from demanding attention on open.
+if win_class:is("Discord") or win_class:is("Firefox") then
+    os.execute("/home/tiz/xdg/sync/devilspie2/stfu.sh " .. win_xid)
+end
+
+if app_name:is("Syncthing-GTK") and normal then size(660, 500) end
+if win_class:is("Microsoft Teams - Preview") then set_class("MSTeams") end
+if win_class:is("MSTeams") then set_icon("msteams") end
