@@ -100,7 +100,7 @@ window_wmctrl () {
 				if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
 					then return 0; else return 1; fi
 			} ;;
-		*) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+		*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
 		esac; shift; shifts=$((shifts + 1))
 	done
 	target="$1"; shift
@@ -127,7 +127,7 @@ window_xdotool () {
 		-c|--class) search="--class";;
 		-a|--classname) search="--classname";;
 		-t|--title|--name) search="--name";;
-		*) printf "Invalid option: %s\n" "$1" >&2; die_usage;;
+		*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
 		esac; shift; shifts=$((shifts + 1))
 	done
 	target="$1"; shift
