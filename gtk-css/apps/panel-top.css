@@ -8,11 +8,13 @@
 	background-image: linear-gradient(to bottom, @theme_selected_bg_color, transparent, transparent);
 }
 
-/* The tasklist's active button should look like a tab for the window.
- * These only work on themes that export these named colors. */
+/* The tasklist's active button should look like a tab for the window. */
 .xfce4-panel .tasklist button:checked {
 	background-color: @wm_bg_a;
 	font-weight: bold;
+	/* We need neither corners nor borders for this effect. */
+	border: none;
+	border-radius: 0px;
 }
 .xfce4-panel .tasklist button:checked:not(:hover) {
 	color: @theme_fg_color;

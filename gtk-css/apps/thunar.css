@@ -1,5 +1,3 @@
-/* App-specific fixes. */
-
 /* GTK3 Thunar. Fortunately we can use symbolic colors. */
 .thunar {
 	-gtk-icon-style: regular;
