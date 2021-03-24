@@ -1,51 +1,13 @@
 #!/bin/sh
-# A wrapper for huepl and hue-* scripts that makes managing light states more
-# convenient. It forces Maxwell to do all the work to ensure only one source is
-# ever changing the lights at a time.
+# Make Marina do all the heavy lifting for hue-cli work.
 set -eu
 
-if [ "$(hostname)" != "Marina" ]; then
-    exec ssh marina /home/tiz/xdg/sync/scripts/hue "$@"
+if [ "$(hostname)" = "Marina" ]; then
+	if [ "$1" = "adm" ]; then
+		shift
+		/usr/bin/hueadm "$@"
+	else
+		/usr/bin/hue "$@"
+	fi
+else ssh marina /home/tiz/xdg/sync/scripts/hue "$@"
 fi
-
-huepl="/xusr/bin/huepl"; [ -x "$huepl" ]
-PATH="$PATH:/xusr/bin:/home/tiz/xdg/sync/scripts"
-
-match () { printf %s "$1" | grep -Eq "$2"; }
-match_onoff () { match "$1" '^([0-9]+|on|off)$'; }
-match_on () { match "$1" '^([0-9]+|on)$'; }
-bkg () { nohup "$@" > /dev/null 2>&1 & }
-
-lights=$(printf %s "$1" | \
- sed -f /home/tiz/xdg/sync/hue-lights.sed | sed 's/,/ /g')
-shift
-
-act="${1:?}"; shift
-for l in $lights; do
-    if match "$l" "[a-zA-Z]"; then
-        printf "Invalid light name: %s\n" "$l"
-        continue
-    fi
-    case "$act" in
-    rainbow)
-        if match_onoff "${1:?}"; then pkill -f "hue-rainbow $l"; fi
-        if match_on "${1:?}"; then bkg hue-rainbow "$l" "$@"; fi
-        ;;
-    quickfade|slowfade|brifade)
-        if match_onoff "${1:?}"; then pkill -f "hue-(quick|slow|bri)fade $l"; fi
-        if match_on "${1:?}"; then bkg "hue-$act" "$l" "$@"; fi
-        ;;
-    huefade)
-        if match_onoff "${1:?}"; then pkill -f "hue-huefade $l"; fi
-        if match_on "${1:?}"; then bkg hue-huefade "$l" "$@"; fi
-        ;;
-    hs|xy|rgb|ct)
-        pkill -f "hue-(rainbow|huefade) $l"
-        "$huepl" "$act" "$l" "$@" ;;
-    bri)
-        pkill -f "hue-(quick|slow|bri)fade $l"
-        "$huepl" bri "$l" "$@" ;;
-    *)
-        "$huepl" "$act" "$l" "$@" ;;
-    esac
-done
