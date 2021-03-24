@@ -3,7 +3,7 @@ conky.config = {
 	total_run_times = 0,
 
 	alignment = 'bottom_right',
-	gap_x = 4,
+	gap_x = 1924,
 	gap_y = 4,
 
 	use_xft = true,
@@ -16,8 +16,8 @@ conky.config = {
 	draw_shades = true,
 
 	own_window = true,
-	own_window_type = 'desktop',--Change to normal when using GNOME Shell
-	own_window_title = 'QuodLibet-Conky',
+	own_window_type = 'desktop', --Change to normal when using GNOME Shell
+	own_window_title = 'Music-Conky',
 	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
 	own_window_transparent = true,
 	own_window_argb_visual = true,
