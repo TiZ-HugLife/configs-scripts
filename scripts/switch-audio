@@ -1,0 +1,29 @@
+#!/bin/sh
+# Change audio output on Aura according to HDMI state.
+set -eu
+
+if [ "$(hostname)" != "Aura" ]; then exit; fi
+
+# The NVidia card has like six HDMI outputs and it randomly picks between
+# the first two, so we need to intelligently detect which one is available.
+detect_exp='s/^.*(output:hdmi-stereo[-a-z0-9]*):.+available: yes.*$/\1/p'
+
+nvidia_card="alsa_card.pci-0000_01_00.1"
+intel_card="alsa_card.pci-0000_00_1f.3"
+speaker_profile="output:analog-stereo+input:analog-stereo"
+off_profile="input:analog-stereo"
+hdmi_profile=$(pactl list cards | sed -nE "$detect_exp")
+
+# Catches the edp and hdmi outputs in any prime mode.
+xrandr=$(xrandr)
+#edp=$(printf %s\\n "$xrandr" | sed -nE 's/^(eDP-1(-1)?) connected.+$/\1/p')
+hdmi=$(printf %s\\n "$xrandr" | sed -nE 's/^(HDMI(-1)?-0).+$/\1/p')
+
+if printf %s\\n "$xrandr" | grep -q "^$hdmi connected"; then
+	if ! [ "$hdmi_profile" ]; then exit; fi
+	pactl set-card-profile "$intel_card" "$off_profile"
+	pactl set-card-profile "$nvidia_card" "$hdmi_profile"
+else
+	pactl set-card-profile "$nvidia_card" off
+	pactl set-card-profile "$intel_card" "$speaker_profile"
+fi
