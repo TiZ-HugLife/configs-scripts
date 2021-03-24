@@ -11,5 +11,12 @@ BORG_PASSPHRASE=${BORG_PASSPHRASE:-$(sudo -H -u tiz pass show borg)}
 export BORG_REPO BORG_PASSPHRASE
 
 cmd=${1}; shift
+case "$cmd" in
+create)
+	# Add default options.
+	set -- --list --stats --filter AME \
+	 --compression zstd,16 --exclude-caches "$@"
+	;;
+esac
 
 exec borg "$cmd" --verbose --progress --show-rc "$@"
