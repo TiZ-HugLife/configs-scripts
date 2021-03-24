@@ -59,8 +59,9 @@ fi
 if ! wmctrl -x -a "$class"; then
 	xdg-open "$desktop"
 	count=0; while [ "$count" -le 20 ]; do
-		if wmctrl -l | grep -q "$class"; then
+		if wmctrl -lx | awk '{print $3}' | grep -q "$class"; then
 			wmctrl -x -a "$class"
+			break
 		fi
 		count=$((count + 1))
 		sleep 0.5
