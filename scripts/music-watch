@@ -13,6 +13,10 @@ nocover="$HOME/xdg/sync/conky/QLInfo/nocover.png"
 artdir="$HOME/mus/art"
 qlpath="$HOME/.quodlibet"
 size="128"
+opts="${XDG_CONFIG_HOME:-$HOME/.config}/script-options"
+# shellcheck disable=SC1090
+if [ -r "$opts" ]; then . "$opts"; fi
+
 format='{{status}}
 {{mpris:trackid}}
 {{mpris:artUrl}}
@@ -143,4 +147,7 @@ pctl -f "$format" -F metadata 2> /dev/null | while read -r status; do
 		fi
 	fi
 	prev_status="$status"
+	if [ "${spoofy_genmon_id:-}" ]; then
+		xfce4-panel --plugin-event="genmon-$spoofy_genmon_id":refresh:bool:true
+	fi
 done
