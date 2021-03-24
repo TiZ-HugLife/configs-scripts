@@ -34,6 +34,7 @@ Window options (wmctrl):
     -c|--class: Search combined class+classname with regex; default behavior.
     -a|--classname: Same as above.
     -n|--name|--title: Search by window name.
+    -F|--full: Force full string match.
 Window options (xdotool):
     -v|--visible: Only search for visible windows.
     -a|--classname: Search by classname; the default behavior.
@@ -79,7 +80,8 @@ fi
 
 # Setup window search with wmctrl.
 window_wmctrl () {
-	wmctrl_filter () { wmctrl "$@"; }
+	wmctrl_cmd () { wmctrl "$@" ; }
+	wmctrl_filter () { wmctrl_cmd "$@" || :; }
 	condition () {
 		output=$(wmctrl_filter -lx | awk '$3~/'"$target"'/ {print $1}')
 		if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
@@ -87,10 +89,11 @@ window_wmctrl () {
 	} 
 	while [ "${1:-}" ] && [ "${1#-}" != "$1" ]; do
 		case "$1" in
+		-F|--full) wmctrl_cmd () { wmctrl -F "$@" ; } ;;
 		-v|--visible)
 			desktop=$(wmctrl -d | sed -nE 's/^([0-9]+)\s+\*.+/\1/p')
 			wmctrl_filter () {
-				wmctrl "$@" | grep -E '0x[0-f]+\s+(-1|'"$desktop"')'
+				wmctrl_cmd "$@" | grep -E '0x[0-f]+\s+(-1|'"$desktop"')'
 			} ;;
 		-c|--class|-a|--classname) : ;;  # Default condition.
 		-t|--title|--name)
