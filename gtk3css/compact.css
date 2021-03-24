@@ -51,6 +51,8 @@ headerbar stackswitcher button
     { padding: 2px 4px; margin: 0px 2px; }
 headerbar button
     { min-width: 20px; min-height: 20px; }
+headerbar entry
+    { margin: 0px; margin-top: 1px; }
 
 /* Murder the goddamn headerbar sizing box. 
  * Thanks to borschty from freenode for the idea.
