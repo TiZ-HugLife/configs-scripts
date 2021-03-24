@@ -13,6 +13,13 @@ export BORG_REPO BORG_PASSPHRASE
 cmd=${1}; shift
 case "$cmd" in
 create)
+	# It sets paths in the archive relatively which is stupid.
+	# Changing to the directory to be backed up fixes that.
+	for arg; do
+		shift
+		if [ -d "$arg" ]; then cd "$arg"; set -- "$@" ./
+		else set -- "$@" "$arg"; fi
+	done
 	# Add default options.
 	set -- --list --stats --filter AME \
 	 --compression zstd,16 --exclude-caches "$@"
