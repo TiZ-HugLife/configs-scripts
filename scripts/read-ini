@@ -1,0 +1,45 @@
+#!/bin/sh
+set -eu
+
+help () {
+	cat <<EOF
+Read lines of an ini file filtered by section(s).
+When sections aren't given, only read unsectioned lines.
+To read the variable and the value of the ini file:
+    read-ini <file> [section(s)] | while IFS='=' read -r var value
+To just process the line manually:
+    read-ini <file> [section(s)] | while IFS= read -r line
+EOF
+}
+
+sanitize () { printf %s "${1:-}" | tr '[:upper:]_' '[:lower:]-'; }
+
+val_in_list () {
+	target="${1:-}"; shift
+	for search in "$@"; do
+		if [ "$target" = "$search" ]; then return 0; fi
+	done
+	return 1
+}
+
+case "${1:-}" in
+--help|-h|"") help; exit ;;
+esac
+
+ini_file="$1"; shift
+for arg; do set -- "$@" "$(sanitize "$arg")"; shift; done
+section=""
+while IFS= read -r ini_line; do
+	if [ "${ini_line#[}" != "$ini_line" ]; then
+		ini_line=${ini_line#[}; section=$(sanitize "${ini_line%]}")
+		continue
+	# Skip comments and blank lines.
+	elif [ "${ini_line###}" != "$ini_line" ] || \
+	   [ "${ini_line#;}" != "$ini_line" ] || \
+	   [ "${ini_line# }" != "$ini_line" ] || \
+	   [ "${ini_line# }" = "" ]; then
+		continue
+	elif val_in_list "$section" "$@"; then
+		printf %s\\n "$ini_line"
+	fi
+done < "$ini_file"
