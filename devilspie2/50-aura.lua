@@ -11,30 +11,36 @@ else
     mode = "laptop"
 end
 
-if app_name:is("Geany") then size(790, 1054); pos(1130, 26) end
-
--- Workspace placements.
-if app_name:is("Evolution.bin") or win_class:is("Ferdi") or
- win_class:is("Caprine") or win_class:is("Discord") or
- win_class:is("Microsoft Teams - Preview") then
-    workspace(1)
-elseif app_name:is("Spotify") then
-    workspace(2)
-    maximize()
-elseif app_name:is("Firefox") then
-    workspace(2)
+if win_class:is("Pegasus-Frontend") then
+    os.execute("wmctrl -i -r "..win_xid.." -b remove,fullscreen")
+    os.execute("wmctrl -i -r "..win_xid.." -e 0,0,0,-1,-1")
+    os.execute("wmctrl -i -r "..win_xid.." -b add,fullscreen")
 end
 
--- Mode-specific rules.
-if mode:is("homedesk") then
-    if app_name:is("obs") or app_name:is("Spotify") or
-     win_class:is("Discord") or win_class:is("Caprine") or
-     win_class:is("Ferdi")
-     then
-        unmaximize()
-        set_window_position(0, 1106)
+if normal then
+    if app_name:is("Geany") then size(790, 1054); pos(1130, 26) end
+
+    -- Workspace placements.
+    if app_name:is("Evolution.bin") or win_class:is("Ferdi") or
+     win_class:is("Caprine") or win_class:is("Discord") or
+     win_class:is("MSTeams") or app_name:is("Firefox") then
+        workspace(1)
+    elseif app_name:is("Spotify") then
+        workspace(1)
         maximize()
-        stick_window()
-        pin_window()
+    end
+
+    -- Mode-specific rules.
+    if mode:is("homedesk") then
+        if app_name:is("obs") or app_name:is("Spotify") or
+         win_class:is("Discord") or win_class:is("Caprine") or
+         win_class:is("Ferdi")
+         then
+            unmaximize()
+            set_window_position(0, 1106)
+            maximize()
+            stick_window()
+            pin_window()
+        end
     end
 end
