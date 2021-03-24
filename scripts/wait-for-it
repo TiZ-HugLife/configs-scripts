@@ -16,6 +16,7 @@ Usage:
     $self [global opts] <proc|process|file> <target> [command to exec]
     $self [global opts] <net|network|internet> [command to exec]
     $self [global opts] <win|window> [win opts] <target> [command to exec]
+    $self [global opts] <dbus|dbus-service> <target> [command to exec]
     $self [global opts] -- [command to exec]
 Global options:
     -i|--interval: Time in seconds to sleep before checking again, default 1.
@@ -159,6 +160,20 @@ net|network|internet)
 	condition () {
 		[ "$(wget -q -O- http://network-test.debian.org/nm)" \
 		   = "NetworkManager is online" ]
+	} ;;
+dbus|dbus-service)
+	if ! [ -x "$(command -v dbus-send)" ]; then
+		printf "Wait for DBus service requires dbus-send.\n"; exit 1
+	fi
+	bus="--session"
+	if [ "$1" = "--system" ]; then bus="--system"; shift; fi
+	if [ "$1" = "--session" ]; then bus="--session"; shift; fi
+	target="$1"; shift
+	condition () {
+		dbus-send "$bus" --dest=org.freedesktop.DBus \
+		 --type=method_call --print-reply \
+		 /org/freedesktop/DBus org.freedesktop.DBus.ListNames \
+		 | grep -qE 'string "'"$target"'"'
 	} ;;
 win|window)
 	if [ "$#" -eq 0 ]; then usage 1; fi
