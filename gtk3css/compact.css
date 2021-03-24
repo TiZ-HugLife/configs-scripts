@@ -54,16 +54,20 @@ headerbar button
 
 /* Murder the goddamn headerbar sizing box. 
  * Thanks to borschty from freenode for the idea.
- * The reason this is necessary is because the sizing box
- * isn't actually attached to a headerbar. */
+ * The reason this is necessary is because the sizing box isn't actually
+ * attached to a headerbar. Make sure it's still visible though in case
+ * this fix breaks something else, so it can be patched over. */
 box .title, box .subtitle {
-    font-size: 0;
+    font-size: 3pt;
+    color: red;
 }
 
 /* And then use a more specific rule to un-murder the real title/subtitle. */
 headerbar box .title {
     font-size: 1.0em;
+    color: unset;
 }
 headerbar box .subtitle {
     font-size: 0.8em;
+    color: unset;
 }
