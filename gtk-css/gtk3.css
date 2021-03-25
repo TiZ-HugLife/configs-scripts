@@ -1,5 +1,4 @@
-@import url("css/compact/unset-min-sizes-safe.css");
-@import url("css/compact/adapta.css");
+@import url("css/compact/adwaita-gtk3.css");
 @import url("css/compact/headerbar-sizing-box.css");
 @import url("css/tweaks/external-compositor.css");
 @import url("css/tweaks/no-undershoot.css");

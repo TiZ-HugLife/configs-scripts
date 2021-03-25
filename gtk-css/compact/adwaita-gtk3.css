@@ -1,0 +1,141 @@
+/* Compacting based on Adwaita.
+ * The general goal of this stylesheet is to shrink Adwaita and define
+ * its widget sizes; ideally, any other theme loaded up should look the
+ * same in term of widget sizes, margins, and padding. */
+
+/* Start by changing minimum sizes.
+ * These are laid out this way because you're intended to add selectors to
+ * these styles, and the styles themselves are not meant to be changed. */
+row
+{ min-height: 26px; min-width: 26px; }
+
+button, spinbutton, entry,
+headerbar button, headerbar entry, headerbar combobox
+{ min-height: 24px; min-width: 24px; }
+
+notebook tabs tab
+{ min-height: 22px; min-width: 22px; }
+
+toolbutton, toolitem
+{ min-height: 20px; min-width: 20px; }
+
+toolbar button, toolitem button, notebook header button,
+spinbutton.vertical > *, combobox button
+{ min-height: 16px; min-width: 16px; }
+
+treeview header button, tab button, tab label, toolbar entry,
+button.titlebutton
+{ min-height: unset; min-width: unset; }
+
+/* Now, move on to margins and paddings for various widgets. */
+/* Buttons first. */
+button {
+	padding: 3px 6px;
+}
+toolbar button, toolitem button {
+	padding: 2px;
+}
+treeview header button {
+	padding: 3px 6px;
+}
+tab button {
+	padding: 0px;
+}
+combobox button {
+	padding: 2px 5px;
+}
+button:not(.titlebutton) image {
+	padding: 1px;
+}
+
+/* Other widgets. */
+entry {
+	padding: 3px 6px;
+	margin: 0px;
+}
+statusbar {
+	padding: 0px;
+}
+row {
+	padding: 0px 2px;
+}
+row revealer {
+	padding: 0px 4px;
+}
+stacksidebar list row {
+	padding: 3px;
+}
+actionbar box {
+	padding: 4px;
+}
+actionbar button {
+	padding: 2px;
+}
+
+/* Notebook tweaks. */
+notebook tabs {
+	padding: 0px;
+}
+notebook header.top tabs tab,
+notebook header.bottom tabs tab {
+	padding: 4px 8px;
+	margin: 0px 4px;
+}
+notebook header.left tabs tab,
+notebook header.right tabs tab {
+	padding: 2px 8px;
+	margin: 4px 0px 2px 0px;
+}
+notebook header.top tab button,
+notebook header.bottom tab button {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+
+/* Menu and menubar tweaks. */
+menu, .menu, .context-menu {
+	/* Adwaita doesn't have this; I just think it's a cool look. */
+	padding-top: 4px; padding-bottom: 4px;
+}
+menuitem {
+	padding: 3px 4px;
+}
+menubar > menuitem {
+	padding: 3px 8px;
+}
+menuitem check, menuitem radio {
+	margin: 0px 8px 0px 0px;
+}
+/* Why can't I make this thing not be so thicc */
+popover {
+	border-radius: 4px;
+	padding: 0px;
+	margin: 0px;
+}
+
+/* File-roller's dumb toolbar. */
+.primary-toolbar, .primary-toolbar > box {
+	padding: 0px;
+}
+
+/* Headerbar tweaks. */
+headerbar {
+	min-height: 38px;
+}
+headerbar button, headerbar entry, headerbar combobox  {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+headerbar button.image-button,
+headerbar button.titlebutton {
+	padding: 3px;
+}
+headerbar stackswitcher button {
+	padding: 3px 8px;
+	margin: 3px 0px;
+}
+button.titlebutton {
+	margin-left: -4px;
+	margin-right: 0px;
+}
