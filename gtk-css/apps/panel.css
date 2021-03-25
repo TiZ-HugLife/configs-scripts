@@ -14,9 +14,9 @@
 	text-shadow: 0px 0px 2px rgba(0, 0, 0, 200);
 	-gtk-icon-shadow: 0px 0px 2px rgba(0, 0, 0, 200);
 }
-.xfce4-panel menu {
-	text-shadow: unset;
-	-gtk-icon-shadow: unset;
+.xfce4-panel menu, .xfce4-panel menu * {
+	text-shadow: none;
+	-gtk-icon-shadow: none;
 }
 
 /* Gross that this can't be more generic. */
