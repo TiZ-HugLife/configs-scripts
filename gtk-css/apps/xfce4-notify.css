@@ -1,0 +1,5 @@
+/* Contrary to my generally compact-favoring trend, I actually like to
+ * make the text on notifications bigger so it's easier to notice them. */
+#XfceNotifyWindow * {
+	font-size: 1.05em;
+}

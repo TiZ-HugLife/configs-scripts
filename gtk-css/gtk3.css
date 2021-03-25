@@ -6,6 +6,7 @@
 @import url("css/apps/panel.css");
 @import url("css/apps/panel-top.css");
 @import url("css/apps/thunar.css");
+@import url("css/apps/xfce4-notify.css");
 
 /* Use this stupid rule if you need to make sure this CSS is being loaded. */
 /*menuitem label {
