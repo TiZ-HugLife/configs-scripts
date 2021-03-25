@@ -10,7 +10,7 @@
 
 /* The tasklist's active button should look like a tab for the window. */
 .xfce4-panel .tasklist button:checked {
-	background-color: @wm_bg_a;
+	background-color: @wm_bg_b;
 	font-weight: bold;
 }
 .xfce4-panel .tasklist button:checked:not(:hover) {

@@ -3,7 +3,7 @@
 	-gtk-icon-style: regular;
 }
 .thunar #location-toolbar {
-	background-color: @wm_bg_a;
+	background-color: @wm_bg_b;
 	box-shadow: none;
 	padding: 2px;
 	border-bottom: 1px solid @borders;
