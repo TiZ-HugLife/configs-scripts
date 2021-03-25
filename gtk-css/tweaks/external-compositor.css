@@ -1,6 +1,6 @@
 /* Simplified from source: https://askubuntu.com/a/1151079
  * This gets rid of GTK3 custom shadows on windows, menus and tooltips,
- * so that your compositor can theme them as it wishes. */
+ * so that your external compositor can theme them as it wishes. */
 decoration, decoration:backdrop,
 tooltip, tooltip:backdrop,
 tooltip *, tooltip:backdrop *,
@@ -11,4 +11,12 @@ tooltip *, tooltip:backdrop *,
     box-shadow: none;
     margin: 0px;
     padding: 0px;
+}
+
+/* Toolkit-rendered rounded corners don't work great with Picom. */
+.csd menu, .csd .menu, .csd .context-menu {
+    border-radius: 0px;
+}
+headerbar {
+	border-radius: 0px;
 }
