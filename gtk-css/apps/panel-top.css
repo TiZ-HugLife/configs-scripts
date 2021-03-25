@@ -12,9 +12,6 @@
 .xfce4-panel .tasklist button:checked {
 	background-color: @wm_bg_a;
 	font-weight: bold;
-	/* We need neither corners nor borders for this effect. */
-	border: none;
-	border-radius: 0px;
 }
 .xfce4-panel .tasklist button:checked:not(:hover) {
 	color: @theme_fg_color;

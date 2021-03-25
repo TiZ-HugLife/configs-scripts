@@ -7,6 +7,8 @@
 	min-width: unset;
 	margin: 0px;
 	padding: 0px;
+	border: none;
+	border-radius: 0px;
 }
 
 /* Add shadows for increased readability on light wallpapers. */
@@ -53,4 +55,15 @@
 .xfce4-panel #clock-button {
 	margin-left: 4px;
 	min-width: 52px;
+}
+.xfce4-panel progressbar.vertical {
+	border-radius: 2px;
+}
+.xfce4-panel progressbar.vertical * {
+	min-width: 4px;
+	border-radius: 2px;
+	margin: 0px;
+}
+.xfce4-panel progressbar progress {
+	border: none;
 }
