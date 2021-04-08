@@ -72,6 +72,17 @@ actionbar button {
 	padding: 2px;
 }
 
+/* We actually want the progress bars to be bigger. */
+progressbar.vertical * {
+	min-width: 4px;
+}
+progressbar.horizontal * {
+	min-height: 4px;
+}
+progressbar * {
+	border-radius: 3px;
+}
+
 /* Notebook tweaks. */
 notebook tabs {
 	padding: 0px;
