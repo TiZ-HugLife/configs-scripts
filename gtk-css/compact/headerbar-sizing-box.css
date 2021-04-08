@@ -9,11 +9,11 @@ box .title, box .subtitle {
 }
 
 /* And then use a more specific rule to un-murder the real title/subtitle. */
-headerbar box .title {
+headerbar box .title, window box .title {
     font-size: 1.0em;
     color: unset;
 }
-headerbar box .subtitle {
+headerbar box .subtitle, window box .subtitle {
     font-size: 0.8em;
     color: unset;
 }
