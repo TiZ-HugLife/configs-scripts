@@ -11,7 +11,7 @@ if app_name:is("Thunar") then
     if win_name:is("File Operation Progress") then
         size(320, 120)
     elseif normal then
-        size(404, 523)
+        size(408, 522)
     end
 end
 
