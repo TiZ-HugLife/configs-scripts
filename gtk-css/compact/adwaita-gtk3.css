@@ -133,6 +133,11 @@ popover {
 	padding: 0px;
 }
 
+/* Makes simple-scan's bottom toolbar not look dumb. */
+actionbar box box {
+	padding: 0px
+}
+
 /* Headerbar tweaks. */
 headerbar {
 	min-height: 38px;
