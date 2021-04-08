@@ -20,6 +20,13 @@
 	text-shadow: none;
 	-gtk-icon-shadow: none;
 }
+.xfce4-panel {
+	font-weight: bold;
+}
+.xfce4-panel menu, .xfce4-panel menu *,
+.xfce4-panel .tasklist button {
+	font-weight: normal;
+}
 
 /* Gross that this can't be more generic. */
 .xfce4-panel #pager-3 button,
