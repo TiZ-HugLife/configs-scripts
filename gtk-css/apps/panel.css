@@ -61,7 +61,7 @@
 }
 .xfce4-panel progressbar.vertical * {
 	min-width: 4px;
-	border-radius: 2px;
+	border-radius: 3px;
 	margin: 0px;
 }
 .xfce4-panel progressbar progress {
