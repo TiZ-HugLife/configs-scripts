@@ -6,25 +6,20 @@ if xrandr --listproviders | grep -qi nvidia; then
     export __NV_PRIME_RENDER_OFFLOAD=1
     export __GLX_VENDOR_LIBRARY_NAME=nvidia
     export __VK_LAYER_NV_optimus=NVIDIA_only
-    # This is the wrong way to do it. But the flatpak devs don't have the
-    # right way upstream yet, either. I have the optimus layer copied to
-    # a location in XDG_DATA_DIRS that is visible to all flatpak apps.
-    # I'm leaving this present but commented out mainly to document it.
-    #if [ "$FLATPAK_ID" ] || [ "$1" = "flatpak" ]; then
-    #    fp_64="/usr/lib/x86_64-linux-gnu/GL/vulkan/icd.d/nvidia_icd.json"
-    #    fp_32="/app/lib/i386-linux-gnu/GL/vulkan/icd.d/nvidia_icd.json"
-    #    fp_32_2="/usr/lib/i386-linux-gnu/GL/vulkan/icd.d/nvidia_icd.json"
-    #    export VK_ICD_FILENAMES="$fp_64:$fp_32:$fp_32_2"
-    fi
     exec "$@"
 # This doesn't account for the possiblity that an AMD GPU is integrated.
 elif xrandr --listproviders | grep -qi radeon; then
     export DRI_PRIME=1
     exec "$@"
-# I figure it's safer to fail if a command needs the dGPU and it's not there
+# I figure it's safer to fail if a command needs a dGPU and it's not there
 # for some reason, than for it to start on the iGPU and run like molasses.
+# But if you do want to run the command anyways, set DGPU_NOFAIL.
 else
-    system-notify "Discrete GPU Unavailable" "Can't run $*"
-    printf "Discrete GPU unavailable; can't run %s" "$*"
-    exit 1
+    if [ "${DGPU_NOFAIL:-}" ]; then
+        exec "$@"
+    else
+        system-notify "Discrete GPU Unavailable" "Can't run $*"
+        printf "Discrete GPU unavailable; can't run %s\n" "$*" >&2
+        exit 1
+    fi
 fi
