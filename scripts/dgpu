@@ -18,7 +18,7 @@ else
     if [ "${DGPU_NOFAIL:-}" ]; then
         exec "$@"
     else
-        system-notify "Discrete GPU Unavailable" "Can't run $*"
+        notify-send "Discrete GPU Unavailable" "Can't run $*"
         printf "Discrete GPU unavailable; can't run %s\n" "$*" >&2
         exit 1
     fi
