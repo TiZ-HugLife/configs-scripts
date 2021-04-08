@@ -1,137 +1,203 @@
-#!/usr/bin/env python3
-# Command line remote for a running OBS instance using obs-websockets.
+#!/bin/sh
+set -eu
 
-import asyncio, argparse, configparser, os, sys
-from obswebsocket import obsws
-from obswebsocket.requests import *
+usage () {
+	this=$(basename "$0")
+	cat << EOF
+$this -- A wrapper around obs-cli with extra actions.
 
-def call(request):
-    response = ws.call(request)
-    if not response.status:
-        print(response.dataout["error"], file=sys.stderr)
-        sys.exit(1)
-    else: return response
+Outputs only the fields requested for gets and lists, takes a single argument
+for sets, and uses return code for boolean requests. Anything not specially
+handled passes through directly to obs-cli with the websocket password.
+Specially handled requests are case-insensitive.
 
+Store the password for the websocket in pass as obs-websocket.
 
-# Load settings file.
-cfg = configparser.ConfigParser()
-cfg["OBSCtl"] = {
-    "HostName": "localhost",
-    "Port": "4444",
-    "Password": ""
+Usage: $this <action> [argument]
+
+Special actions:
+    Start: Starts OBS if it's not running and stores its PID.
+    Stop, Exit: Exits OBS if it was started by a Start action.
+    Wait: Waits for the websocket to be ready.
+    Bookmark: Save the current timestamp to a text file named like the
+      recording but with its extension replaced with .bm.txt.
+    StartRec*: Start recording but run a script before and after recording
+      is actually started to perform custom actions. The event taking place
+      will be passed as the first argument to XDG_CONFIG_HOME/obsctlrc.
+      The events are PreStartRecording, PostStopStreaming, etc.
+      There are also error events: StartRecordingError, StartStreamingError
+      so that you can handle if something went wrong. The recording filename
+      is passed as the second argument once available, so basically every
+      event except PreStartRecording.
+    StopRec*: Same as above, but on stopping recording.
+    StartStream*, StopStream*: Same as above, with no filename argument.
+
+Return code requests:
+    IsRecording, IsRecordingPaused, IsStreaming
+
+Single output get requests:
+    GetCurrentScene, GetScene, GetCurrentSceneCol*, GetSceneCol*, Get*Profile,
+    GetRec*Folder, GetRec*Filename, GetRec*Time*, GetStream*Time*,
+
+List requests:
+    Get*SceneList, ListScenes, GetProfileList, ListProfiles
+
+Single argument set requests:
+    SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
+    SetRec*Folder, SetFilenameFormat*
+    
+EOF
+	exit 0
 }
-cfg.read(os.path.join(os.getenv("XDG_CONFIG_HOME", os.path.join(
- os.getenv("HOME", "~") + ".config")), "obsctl.cfg"))
-cfg = cfg["OBSCtl"]  # There's only the one section, so.
 
-# Command line args.
-parser = argparse.ArgumentParser(
- description="Control a running OBS Studio instance.")
-for i in [
-    ("--startrec", "Request Studio to start recording."),
-    ("--stoprec", "Request Studio to stop recording."),
-    ("--startstream", "Request Studio to start streaming."),
-    ("--stopstream", "Request Studio to stop streaming."),
-    ("--getrecstatus", "Output recording status."),
-    ("--getrectime", "Output recording time."),
-    ("--getstreamstatus", "Output streaming status."),
-    ("--getstreamtime", "Output streaming time."),
-    ("--getnameformat", "Output current filename format."),
-    ("--getfolder", "Output recording folder."),
-    ("--getprofile", "Output current profile."),
-    ("--getscenecol", "Output current scene collection."),
-    ("--getscene", "Output current scene."),
-    ("--listscenes", "Output list of scenes."),
-]: parser.add_argument(i[0], action="store_true", help=i[1])
-for i in [
-    ("--setnameformat", "Set filename format."),
-    ("--setfolder", "Set recording folder."),
-    ("--setprofile", "Set current profile."),
-    ("--setscenecol", "Set current scene collection."),
-    ("--setscene", "Set current scene."),
-]: parser.add_argument(i[0], metavar="X", help=i[1])
-args = parser.parse_args()
+if ! [ -x "$(command -v obs-cli)" ]; then
+	printf "Please install obs-cli.\n" >&2
+	exit 1
+fi
 
-ws = obsws(cfg["HostName"], cfg["Port"], cfg["Password"])
-try:
-    ws.connect()
-except:
-    print("OBS isn't running, or authentication failed.", file=sys.stderr)
-    sys.exit(1)
+if ! [ -x "$(command -v pass)" ]; then
+	printf "Please install pass and save the obs-websocket password.\n" >&2
+	exit 1
+fi
 
-# Recording / Streaming.
-if (args.getrecstatus or args.getstreamstatus or 
-   args.getrectime or args.getstreamtime):
-    response = call(GetStreamingStatus())
-    if args.getrecstatus:
-        if response.datain["recording-paused"]:
-            print("Recording: Paused")
-        else:
-            print("Recording: {}".format(response.getRecording()))
-    if args.getstreamstatus:
-        print("Streaming: {}".format(response.getStreaming()))
-    if args.getrectime:
-        if "rec-timecode" in response.datain:
-            print("Recording Time: {}".format(response.getRecTimecode()))
-        else:
-            print("Recording Time: N/A")
-    if args.getstreamtime:
-        if "stream-timecode" in response.datain:
-            print("Streaming Time: {}".format(response.getStreamTimecode()))
-        else:
-            print("Streaming Time: N/A")
-else:
-    if args.startrec:
-        call(StartRecording())
-        print("Recording started.")
-    elif args.stoprec:
-        call(StopRecording())
-        print("Recording stopped.")
-    if args.startstream:
-        call(StartStreaming())
-        print("Streaming started.")
-    elif args.stopstream:
-        call(StopStreaming())
-        print("Streaming stopped.")
+if ! [ "${obs_ws_pw:-}" ]; then
+	obs_ws_pw=$(pass obs-websocket)
+	if ! [ "$obs_ws_pw" ]; then
+		printf "Please save websocket password in pass as obs-websocket.\n" >&2
+		exit 1
+	fi
+	export obs_ws_pw
+fi
 
-# Settings queries and changes.
-if args.getfolder:
-    response = call(GetRecordingFolder())
-    print("Recording Folder: {}".format(response.getRecFolder()))
-elif args.setfolder:
-    response = call(SetRecordingFolder(args.setfolder))
-    result = call(GetRecordingFolder()).getRecFolder()
-    print("Recording Folder: {}".format(result))
-if args.getnameformat:
-    response = call(GetFilenameFormatting())
-    print("Filename Format: {}".format(response.getFilenameFormatting()))
-elif args.setnameformat:
-    response = call(SetFilenameFormatting(args.setnameformat))
-    result = call(GetFilenameFormatting()).getFilenameFormatting()
-    print("Filename Format: {}".format(result))
-if args.getprofile:
-    response = call(GetCurrentProfile())
-    print("Profile: {}".format(response.getProfileName()))
-elif args.setprofile:
-    response = call(SetCurrentProfile(args.setprofile))
-    result = call(GetCurrentProfile()).getProfileName()
-    print("Profile: {}".format(result))
-if args.getscenecol:
-    response = call(GetCurrentSceneCollection())
-    print("Scene Collection: {}".format(response.getScName()))
-elif args.setscenecol:
-    response = call(SetCurrentSceneCollection(args.setscenecol))
-    result = call(GetCurrentSceneCollection()).getScName()
-    print("Scene Collection: {}".format(result))
-if args.getscene:
-    response = call(GetCurrentScene())
-    print("Scene: {}".format(response.getName()))
-elif args.listscenes:
-    response = call(GetSceneList())
-    print("Scene List:")
-    for scene in response.getScenes():
-        print("- {}".format(scene["name"]))
-elif args.setscene:
-    response = call(SetCurrentScene(args.setscene))
-    result = call(GetCurrentScene()).getName()
-    print("Scene: {}".format(result))
+obs_pw () { obs-cli -p "$obs_ws_pw" "$@"; }
+obsctlrc () { if [ -x "$obsctlrc" ]; then "$obsctlrc" "$@" || :; fi; }
+
+req=$(printf %s "${1:?}" | tr '[:upper:]' '[:lower:]'); shift
+rundir="/run/user/$(id -u)"; mkdir -p "$rundir"
+obsctlrc="${XDG_CONFIG_HOME:-$HOME/.config}/obsctlrc"
+
+# These functions handle the stop/start recording/streaming actions.
+get_filename () {
+	case "$1" in
+	*Recording)
+		filename=${filename:-$("$0" GetRecordingFilename)} ;;
+	esac
+}
+request_with_rc () {
+	request="$1"; shift
+	"$0" wait || exit 1
+	get_filename "$request" 
+	obsctlrc "Pre${request}" "${filename:-}"
+	output=$(obs_pw -f 0.status "$request")
+	if [ "$output" != "ok" ]; then obsctlrc "${request}Error" "${filename:-}"
+	else
+		get_filename "$request"
+		obsctlrc "Post${request}" "${filename:-}"
+	fi
+}
+
+case "$req" in
+help|--help|-h) usage ;;
+start)
+	if ! [ "$(pgrep '^obs$' || :)" ]; then
+		# OBS runs better on the discrete GPU if it's available.
+		export __NV_PRIME_RENDER_OFFLOAD=1
+		export __GLX_VENDOR_LIBRARY_NAME=nvidia
+		export __VK_LAYER_NV_optimus=NVIDIA_only
+		export DRI_PRIME=1
+		if ! [ "$(command -v obs)" ]; then
+			if [ -x "$(command -v flatpak)" ] && \
+			 flatpak --command=true run com.obsproject.Studio; then
+				syslog-run flatpak run com.obsproject.Studio --minimize-to-tray
+			else
+				printf "Can't find OBS Studio.\n"
+				exit 1
+			fi
+		else syslog-run obs --minimize-to-tray; fi
+		touch "$rundir/obsctl_started_obs"
+	fi
+	;;
+"exit"|stop)
+	if [ "$(pgrep '^obs$' || :)" ] && [ -e "$rundir/obsctl_started_obs" ]; then
+		pkill '^obs$'
+		rm "$rundir/obsctl_started_obs"
+	fi ;;
+wait|waitready)
+	if ! [ "$(pgrep '^obs$' || :)" ]; then exit 1; fi
+	timer=0
+	while [ "$timer" -lt 10 ]; do
+		scene=$(obs_pw -f 0.name GetCurrentScene 2> /dev/null)
+		if [ "$scene" ]; then break; fi
+		sleep 0.5
+		timer=$((timer + 1))
+	done
+	if ! [ "${scene:-}" ]; then exit 1; fi
+	;;
+bookmark|savebookmark)
+	"$0" wait || exit 1
+	if [ "$(obs_pw -f 0.isRecording GetRecordingStatus)" = "false" ]; then
+		exit 1
+	fi
+	time=$(obs_pw -f 0.recordTimecode GetRecordingStatus)
+	filename=$(obs_pw -f 0.recordingFilename GetRecordingStatus)
+	printf %s\\n "$time" >> "${filename%.*}.bm.txt"
+	notify-send "Recording Bookmark Saved" "Timestamp: $time"
+	;;
+startrec*)     request_with_rc StartRecording ;;
+stoprec*)      request_with_rc StopRecording ;;
+startstream*)  request_with_rc StartStreaming ;;
+stopstream*)   request_with_rc StopStreaming ;;
+isrecording)
+	[ "$(obs_pw -f 0.isRecording GetRecordingStatus)" = "true" ] ;;
+isrecordingpaused)
+	[ "$(obs_pw -f 0.isRecordingPaused GetRecordingStatus)" = "true" ] ;;
+isstreaming)
+	[ "$(obs_pw -f 0.streaming GetStreamingStatus)" = "true" ] ;;
+getcurrentscene|getscene)
+	obs_pw -f 0.name GetCurrentScene ;;
+getcurrentscenecol*|getscenecol*)
+	obs_pw -f 0.sc-name GetCurrentSceneCollection ;;
+getfilenameformat*)
+	obs_pw -f 0.filename-formatting GetFilenameFormatting ;;
+getrec*folder)
+	obs_pw -f 0.rec-folder GetRecordingFolder ;;
+getstream*time*)
+	if obsctl isstreaming; then
+		obs_pw -f 0.stream-timecode GetStreamingStatus
+	fi ;;
+getrec*time*)
+	if obsctl isrecording; then
+		obs_pw -f 0.recordTimecode GetRecordingStatus
+	fi ;;
+getrec*filename)
+	if obsctl isrecording; then
+		obs_pw -f 0.recordingFilename GetRecordingStatus
+	fi ;;
+get*profile)
+	obs_pw -f 0.profile-name GetCurrentProfile ;;
+get*scenelist|listscenes)
+	if ! [ "$(command -v jq)" ]; then
+		printf "JQ is required to filter lists.\n" >&2
+		exit 1
+	fi
+	obs_pw GetSceneList | jq -r '.[0].scenes[].name' ;;
+getprofilelist|listprofiles)
+	if ! [ "$(command -v jq)" ]; then
+		printf "JQ is required to filter lists.\n" >&2
+		exit 1
+	fi
+	obs_pw ListProfiles | jq -r '.[0].profiles[].profile-name' ;;
+setcurrentscene|setscene)
+	obs_pw -f 0.status SetCurrentScene='{"scene-name":"'"$1"'"}' ;;
+setcurrentscenecol*|setscenecol*)
+	obs_pw -f 0.status SetCurrentScene='{"sc-name":"'"$1"'"}' ;;
+set*profile)
+	obs_pw -f 0.status SetCurrentProfile='{"profile-name":"'"$1"'"}' ;;
+setrec*folder)
+	obs_pw -f 0.status SetRecordingFolder='{"rec-folder":"'"$1"'"}' ;;
+setfilenameformat*)
+	obs_pw -f 0.status \
+	 SetFilenameFormatting='{"filename-formatting":"'"$1"'"}' ;;
+*)
+	obs_pw "$req" "$@" ;;
+esac
