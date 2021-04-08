@@ -6,7 +6,7 @@
 	background-color: @wm_bg_b;
 	box-shadow: none;
 	padding: 2px;
-	border-bottom: 1px solid @borders;
+	/*border-bottom: 1px solid @borders;*/
 }
 .thunar #location-toolbar toolbutton {
 	min-height: unset;
@@ -14,9 +14,15 @@
 .thunar #location-toolbar entry {
 	padding: 0px 4px;
 }
-.thunar .frame.standard-view {
+.thunar statusbar {
+	margin: 0px; padding: 0px;
+}
+/*.thunar .frame.standard-view {
 	border: none;
 }
 .thunar grid {
 	background-color: @theme_base_color;
 }
+:not(:focus) .thunar grid {
+	background-color: @theme_unfocused_base_color;
+}*/
