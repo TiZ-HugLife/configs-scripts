@@ -3,3 +3,9 @@
 #XfceNotifyWindow * {
 	font-size: 1.05em;
 }
+
+/* Fix displaced icon on Evolution attachment buttons. */
+EAttachmentBar button image,
+EAttachmentPaned button image {
+	margin-top: -2px;
+}
