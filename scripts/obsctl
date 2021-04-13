@@ -190,7 +190,7 @@ getprofilelist|listprofiles)
 setcurrentscene|setscene)
 	obs_pw -f 0.status SetCurrentScene='{"scene-name":"'"$1"'"}' ;;
 setcurrentscenecol*|setscenecol*)
-	obs_pw -f 0.status SetCurrentScene='{"sc-name":"'"$1"'"}' ;;
+	obs_pw -f 0.status SetCurrentSceneCollection='{"sc-name":"'"$1"'"}' ;;
 set*profile)
 	obs_pw -f 0.status SetCurrentProfile='{"profile-name":"'"$1"'"}' ;;
 setrec*folder)
