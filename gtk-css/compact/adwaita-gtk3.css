@@ -157,3 +157,19 @@ button.titlebutton {
 	margin-left: -4px;
 	margin-right: 0px;
 }
+
+/* LibHandy fixes. */
+headerbar viewswitcher button {
+	margin: 0px;
+	padding: 1px 2px 0px 2px;
+	border: none;
+	border-radius: 0px;
+}
+headerbar viewswitcher button:not(:hover):not(:active):not(:checked) {
+	background-image: none;
+}
+headerbar viewswitcher button box.vertical label {
+	font-size: 0.8em;
+	margin-top: -3px;
+	margin-bottom: -1px;
+}
