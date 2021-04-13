@@ -146,8 +146,7 @@ headerbar button, headerbar entry, headerbar combobox  {
 	margin-top: 3px;
 	margin-bottom: 3px;
 }
-headerbar button.image-button,
-headerbar button.titlebutton {
+headerbar button {
 	padding: 3px;
 }
 headerbar stackswitcher button {
