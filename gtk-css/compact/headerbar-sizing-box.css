@@ -8,12 +8,22 @@ box .title, box .subtitle {
     color: red;
 }
 
+/* Fix what was broken by the sizing box rule. The reason the first rule works
+ * for most applications is because the sizing box is never actually added to
+ * a window, but 99% of labels are.
+ * For some reason, Bottles needs a shitload of specificity. */ 
+window box .title, window box .subtitle,
+list row box .title, list row box .subtitle {
+    font-size: unset;
+    color: unset;
+}
+
 /* And then use a more specific rule to un-murder the real title/subtitle. */
-headerbar box .title, window box .title {
+headerbar box .title {
     font-size: 1.0em;
     color: unset;
 }
-headerbar box .subtitle, window box .subtitle {
+headerbar box .subtitle {
     font-size: 0.8em;
     color: unset;
 }
