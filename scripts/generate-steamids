@@ -19,11 +19,12 @@ tmp=$(mktemp -d)
 cat > "$tmp/excludes" <<'EOF'
 ^Steamworks .+$
 ^Proton [0-9\.]+$
+^Proton Experimental$
 Runtime
 EOF
 
 # Get a list of library folders. The first is always $HOME/.steam/steamapps.
-main_steamapps=$(find "$HOME/.steam" -name steamapps)
+main_steamapps=$(find "$HOME/.steam/" -name steamapps)
 puts "$main_steamapps" > "$tmp/libraries"
 puts "$(sed -nE 's:^\s+"'[0-9]+'"\s+"(.+)"$:\1/steamapps:p' \
  "$main_steamapps/libraryfolders.vdf")" \
