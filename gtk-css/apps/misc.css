@@ -8,3 +8,11 @@
 EAttachmentBar button image {
 	margin-top: -2px;
 }
+
+/* Fix no margin on Xfce Screensaver's action buttons and infobar. */
+#login_window #buttonbox_frame > box {
+	margin-top: 16px;
+}
+#login_window #greeter_infobar {
+	margin-top: 16px;
+}
