@@ -160,7 +160,7 @@ button.titlebutton {
 
 /* LibHandy fixes. */
 headerbar viewswitcher button {
-	margin: 0px;
+	margin: 1px 0px 0px 0px;
 	padding: 1px 2px 0px 2px;
 	border: none;
 	border-radius: 0px;
