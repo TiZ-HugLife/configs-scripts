@@ -5,7 +5,6 @@
 }
 
 /* Fix displaced icon on Evolution attachment buttons. */
-EAttachmentBar button image,
-EAttachmentPaned button image {
+EAttachmentBar button image {
 	margin-top: -2px;
 }
