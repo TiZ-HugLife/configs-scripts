@@ -26,10 +26,10 @@ Shell scripts (for the most part) are restricted to POSIX sh and checked with Sh
 
 IMO, the most interesting scripts:
 
-* auto-restarter: Keep important background processes running, and notify you whenever they die.
 * auto-steam: A Steam wrapper that blocks until the game it's running is done. Also exits Steam automatically.
 * ds4-lightbar: Command line utility for easily controlling the DualShock 4 light bar, and install udev rules to be able to do so as a regular user.
+* focus-launch: Are you on a desktop environment without a dock? You can replicate that functionality with keyboard shortcuts and regular panel launchers with this script.
 * music-watch: Output currently playing music info from MPRIS-enabled players using [playerctl](https://github.com/altdesktop/playerctl), so that it can be picked up by Conky, OBS Studio, and others.
-* obsctl: A command-line utility for controlling OBS Studio. Requires [obs-websocket](https://github.com/Palakis/obs-websocket) and [obs-websocket-py](https://github.com/Elektordi/obs-websocket-py).
+* obsctl: A more convenient interface for using [obs-cli](https://github.com/leafac/obs-cli).
 * termmie: maek yur trminals... temmie!!! yayA!!!!
-* wait-for-it: Block until (dis)appearance of process, network, window, or an arbitrary amount of time, and optionally execute a command.
+* wait-for-it: Block until (dis)appearance of process, network, window, dbus interface, or an arbitrary amount of time, and optionally execute a command.
