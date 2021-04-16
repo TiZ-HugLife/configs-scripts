@@ -53,7 +53,7 @@ end
 -- middle: 0 for regular, 1 to cut off the backround in the middle of the cover
 function conky_draw_ql (color, tl, tr, br, bl, top, bottom, x, y, right, middle)
 	if conky_window == nil then return end
-	if conky_window.width < 24 then return end
+	if conky_window.width < 64 then return end
 	--if not check_ql() then return end
 	if top == nil then top = 0 end
 	if bottom == nil then bottom = 0 end
@@ -96,6 +96,83 @@ function conky_draw_ql (color, tl, tr, br, bl, top, bottom, x, y, right, middle)
 			else x = x + w - img_w end
 		end
 		cairo_set_source_surface(cr, image, x, y)
+		cairo_paint(cr)
+	end
+
+	cairo_surface_destroy(cs)
+	cairo_surface_destroy(image)
+	cairo_destroy(cr)
+end
+
+-- Draw a translucent background, the cover at rundir../cover.png,
+-- and the label at rundir../label.png.
+-- color: RGBA hex string
+-- tl, tr, br, bl: corner radii
+-- top, bottom: displacement of background from top/bottom edges
+-- x, y: displacement of cover
+-- right: 0 for left align, 1 for right align
+-- middle: 0 for regular, 1 to cut off the backround in the middle of the cover
+function conky_music (color, tl, tr, br, bl, top, bottom, x, y, right, middle)
+	if conky_window == nil then return end
+	if conky_window.width < 64 then return end
+	--if not check_ql() then return end
+	if top == nil then top = 0 end
+	if bottom == nil then bottom = 0 end
+	if x == nil then x = 0 end
+	if y == nil then y = 0 end
+	right = tonumber(right) ~= 0
+	middle = tonumber(middle) ~= 0
+	local w = conky_window.width
+	local h = conky_window.height - bottom
+	local left = 0
+	local img_w = 0
+	
+	local cs = cairo_xlib_surface_create(
+	  conky_window.display,
+	  conky_window.drawable,
+	  conky_window.visual, conky_window.width, conky_window.height)
+	local cr = cairo_create(cs)
+	
+	local cover = cairo_image_surface_create_from_png(rundir.."/cover.png")
+	local label = cairo_image_surface_create_from_png(rundir.."/label.png")
+	if cover then
+		cover_w = cairo_image_surface_get_width(cover)
+		cover_h = cairo_image_surface_get_height(cover)
+	end
+	if label then
+		label_w = cairo_image_surface_get_width(label)
+		label_h = cairo_image_surface_get_height(label)
+	end
+	if middle and right then w = w - cover_w / 2 else left = cover_w / 2 end
+	
+	cairo_move_to(cr, left+tl, top)
+	cairo_line_to(cr, w-tr, top)
+	cairo_curve_to(cr, w-tr, top, w, top, w, top+tr)
+	cairo_line_to(cr, w, h-br)
+	cairo_curve_to(cr, w, h-br, w, h, w-br, h)
+	cairo_line_to(cr, left+bl, h)
+	cairo_curve_to(cr, left+bl, h, left, h, left, h-bl)
+	cairo_line_to(cr, left, top+tl)
+	cairo_curve_to(cr, left, top+tl, left, top, left+tl, top)
+	cairo_close_path(cr)
+	
+	cairo_set_source_rgba(cr, rgba_tuple(color))
+	cairo_fill(cr)
+	
+	if cover then
+		if right then
+			if middle then x = x + w - cover_w / 2
+			else x = x + w - cover_w end
+		end
+		cairo_set_source_surface(cr, cover, x, y)
+		cairo_paint(cr)
+	end
+	
+	if label then
+		if right then x = 0 + max(tl, bl)
+		else x = cover_w + max(tl, bl) + 4 end
+		y = top + max(tl, tr)
+		cairo_set_source_surface(cr, cover, x, y)
 		cairo_paint(cr)
 	end
 

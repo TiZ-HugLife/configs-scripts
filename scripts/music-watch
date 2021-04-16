@@ -11,6 +11,12 @@ nocover="$HOME/xdg/sync/conky/QLInfo/nocover.png"
 artdir="$HOME/mus/art"
 qlpath="$HOME/.quodlibet"
 size="128"
+density=$(xrdb -query | grep Xft.dpi | cut -f2)
+if ! [ "$density" ]; then density=96; fi
+pointsize=11
+font=Apres
+fgcolor="#cfd8dc"
+
 opts="${XDG_CONFIG_HOME:-$HOME/.config}/script-options"
 # shellcheck disable=SC1090
 if [ -r "$opts" ]; then . "$opts"; fi
@@ -51,6 +57,10 @@ clear_info () {
 	printf \\n > "artistalbum.txt"
 	convert -size "16x16" xc:transparent png32:cover.png
 	cp cover.png label.png
+	printf 16\\n > cover-width.txt
+	printf 16\\n > cover-height.txt
+	printf 16\\n > label-width.txt
+	printf 16\\n > label-height.txt
 }
 
 make_cover () {    
@@ -94,6 +104,28 @@ make_cover () {
 	 cover-done.png
 	
 	mv cover-done.png cover.png
+	identify -format "%w\n" cover.png > cover-width.txt
+	identify -format "%h\n" cover.png > cover-height.txt
+}
+
+# It will be a cold day in hell when Conky has fallback fonts.
+# Let's fucking cheat and render text to an image with Pango.
+make_label () {
+	convert -density "$density" -pointsize "$pointsize" -font "$font" \
+	 -background none -fill white \
+	 "pango:<span size='large'><b>$title</b></span>" \
+	 "pango:<b>$artist</b>" "pango:$album" \
+	 -gravity east -append label-base.png
+	
+	convert label-base.png -negate -background none -splice 1x1 label-shadow.png
+	convert label-base.png +level-colors "none,$fgcolor" label-fg.png
+	composite label-fg.png label-shadow.png label.png
+	identify -format "%w\n" label.png > label-width.txt
+	identify -format "%h\n" label.png > label-height.txt
+}
+
+make_display () {
+	true
 }
 
 mkdir -p "$rundir"; cd "$rundir"

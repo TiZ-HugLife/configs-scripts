@@ -1,6 +1,8 @@
 #!/bin/sh
 # Whew, way simpler! :D
 pkill conky
+hostname=$(hostname)
+case "$hostname" in NKU*) hostname=Workbox ;; esac
 rm -r "/run/user/$(id -u)/conky"
 for dir1 in "$HOME/.conky" "${XDG_CONFIG_HOME:-$HOME/.config}/conky"; do
 	if [ -d "$dir1" ]; then
