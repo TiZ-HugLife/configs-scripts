@@ -3,9 +3,7 @@
 # Requires imagemagick. Configure Quod Libet's Picture Saver plugin to save
 # the cover to $HOME/.cache/ql.current.cover
 set -eu
-
-[ -x "$(command -v convert)" ]
-[ -x "$(command -v playerctl)" ]
+depends playerctl convert
 
 players_base="spotify,quodlibet"
 rundir="/run/user/$(id -u)/song-info"

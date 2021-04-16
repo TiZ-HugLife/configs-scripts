@@ -2,12 +2,12 @@
 # Given a directory containing .steamid files, scrapes information
 # from Steam's JSON API into Skyscraper's manual import store.
 set -eu
+depends jq curl
 
 json_value () { jq -cr ".[].data.$1" < "$2"; };
 
 import="$HOME/.skyscraper/import/pc"
 for d in screenshots marquees textual; do mkdir -p "$import/$d"; done
-[ -x "$(command -v jq)" ]; [ -x "$(command -v curl)" ]
 
 api_url="https://store.steampowered.com/api/appdetails/?appids="
 
