@@ -27,6 +27,7 @@ use_apt () {
     clean () {
         s_apt autoremove && s_apt autoclean
         residual=$(get_residual)
+        # shellcheck disable=SC2086
         if [ "$residual" ]; then s_apt purge $residual; fi
     }
 }

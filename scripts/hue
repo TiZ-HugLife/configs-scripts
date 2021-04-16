@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2029
 # Make Marina do all the heavy lifting for hue-cli work.
 set -eu
 
