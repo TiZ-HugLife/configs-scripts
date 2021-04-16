@@ -25,7 +25,7 @@ if normal then
      win_class:is("Caprine") or win_class:is("Discord") or
      win_class:is("MSTeams") or app_name:is("Firefox") then
         workspace(1)
-    elseif app_name:is("Spotify") then
+    elseif win_class:is("Spotify") then
         workspace(1)
         maximize()
     end

@@ -9,7 +9,7 @@ if normal then
      win_class:is("MSTeams") then
         pos(0, 0)
         stick()
-    elseif app_name:is("Spotify") then
+    elseif win_class:is("Spotify") then
         pos(0, 0)
         stick()
         maximize()
