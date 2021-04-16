@@ -24,8 +24,8 @@ find_desktop () { (
 	dirs="${XDG_DATA_HOME:-$HOME/.local/share}"
 	dirs="$dirs:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 	for dir in $dirs; do
-		if [ "$dir" ] && [ -r "$dir/applications/$target.desktop" ]; then
-			printf %s\\n "$dir/applications/$target.desktop"
+		if [ "$dir" ] && [ -r "$dir/applications/$target" ]; then
+			printf %s\\n "$dir/applications/$target"
 			return
 		fi
 	done
@@ -40,6 +40,9 @@ while [ "$#" -gt 0 ]; do case "$1" in
 -c|--class) class="$2"; shift ;;
 *) target="$1" ;;
 esac; shift; done
+
+if ! [ "${target:-}" ]; then usage 1; fi
+if [ "${target%.desktop}" = "$target" ]; then target="$target.desktop"; fi
 
 desktop=$(find_desktop "$target")
 if ! [ "$desktop" ]; then
