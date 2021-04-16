@@ -1,6 +1,0 @@
-#!/bin/sh
-# Start a program and wait for its window to exist.
-
-class="$1"; shift
-"$@" & disown
-while [ -z "$(wmctrl -lx | grep "$class")" ] ; do sleep 0.5s; done
