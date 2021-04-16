@@ -1,10 +1,8 @@
 #!/bin/sh
-set -eu
+usage () { script=$(basename "$0"); cat <<EOF
+wait-for-it / wfi / check
+    This invocation: $script
 
-self=$(basename "$0")
-usage () {
-	cat <<EOF
-wfi / wait-for-it / check
 Wait for the appearance or disappearance of a process, file, window, or
 an internet connection. Then, optionally, execute a command afterward.
 Prepend no to any action word to invert matching condition, like nowindow.
@@ -13,11 +11,11 @@ You can use -- if you just want to sleep before executing commands.
 Wait for network requires wget. Wait for window requires wmctrl or xdotool.
 Exits status 1 if timeout is hit without a match.
 Usage:
-    $self [global opts] <proc|process|file> <target> [command to exec]
-    $self [global opts] <net|network|internet> [command to exec]
-    $self [global opts] <win|window> [win opts] <target> [command to exec]
-    $self [global opts] <dbus|dbus-service> <target> [command to exec]
-    $self [global opts] -- [command to exec]
+    $script [global opts] <proc|process|file> <target> [command, args]
+    $script [global opts] <net|network|internet> [command to exec]
+    $script [global opts] <win|window> [win opts] <target> [command, args]
+    $script [global opts] <dbus|dbus-service> <target> [command, args]
+    $script [global opts] -- [command to exec]
 Global options:
     -i|--interval: Time in seconds to sleep before checking again, default 1.
     -d|--pre-delay: Time in seconds to sleep before starting, default 0.
@@ -43,9 +41,9 @@ Window options (xdotool):
     -n|--name|--title: Search by window name.
 Special command - output: Print process IDs or window XIDs to standard output.
 EOF
-exit "${1:-1}"
-}
-if [ "$#" -eq 0 ]; then usage 1; fi
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+set -eu
 
 interval=1
 pre_delay=0
@@ -54,7 +52,7 @@ timeout=60
 number=1
 
 # Support a symlink where timeout defaults to 0.
-if [ "$self" = "check" ]; then timeout=0; fi
+if [ "$(basename "$0")" = "check" ]; then timeout=0; fi
 
 while [ "${1#-}" != "$1" ]; do
 	case "$1" in

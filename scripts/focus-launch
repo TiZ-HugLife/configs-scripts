@@ -1,16 +1,18 @@
 #!/bin/sh
-# Activate a window for an already running application, or otherwise start it
-# and then activate it. Allows dock-like funcionality for keyboard shortcuts
-# or plain panel launchers.
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Activate a window for an already running application, or
+otherwise start it and then activate it. Allows dock-like funcionality for
+keyboard shortcuts or plain panel launchers. The script will fail if it can't
+figure out from the desktop file what the window class is, because the most
+important raison-d'être for this script is focusing an application.
+
+Usage:
+    focus-launch [-c|--class WM_CLASS] application[.desktop]
+EOF
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
 set -eu
-
-
-################
-# DEPENDENCIES #
-################
-
-[ -x "$(command -v wmctrl)" ]
-[ -x "$(command -v xdg-open)" ]
+depends wmctrl xdg-open
 
 
 #############

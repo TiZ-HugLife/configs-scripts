@@ -1,10 +1,6 @@
 #!/bin/sh
-set -eu
-
-usage () {
-	this=$(basename "$0")
-	cat << EOF
-$this -- A wrapper around obs-cli with extra actions.
+usage () { script=$(basename "$0"); cat << EOF
+$script -- A wrapper around obs-cli with extra actions.
 
 Outputs only the fields requested for gets and lists, takes a single argument
 for sets, and uses return code for boolean requests. Anything not specially
@@ -13,7 +9,7 @@ Specially handled requests are case-insensitive.
 
 Store the password for the websocket in pass as obs-websocket.
 
-Usage: $this <action> [argument]
+Usage: $script <action> [argument]
 
 Special actions:
     Start: Starts OBS if it's not running and stores its PID.
@@ -47,18 +43,10 @@ Single argument set requests:
     SetRec*Folder, SetFilenameFormat*
     
 EOF
-	exit 0
-}
-
-if ! [ -x "$(command -v obs-cli)" ]; then
-	printf "Please install obs-cli.\n" >&2
-	exit 1
-fi
-
-if ! [ -x "$(command -v pass)" ]; then
-	printf "Please install pass and save the obs-websocket password.\n" >&2
-	exit 1
-fi
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+set -eu
+depends obs-cli pass
 
 if ! [ "${obs_ws_pw:-}" ]; then
 	obs_ws_pw=$(pass obs-websocket)
@@ -97,7 +85,6 @@ request_with_rc () {
 }
 
 case "$req" in
-help|--help|-h) usage ;;
 start)
 	if ! [ "$(pgrep '^obs$' || :)" ]; then
 		# OBS runs better on the discrete GPU if it's available.
