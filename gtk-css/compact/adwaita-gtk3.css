@@ -47,6 +47,10 @@ combobox button {
 button:not(.titlebutton) image {
 	padding: 1px;
 }
+/* Button icons get displaced downward for some reason. */
+button widget box.horizontal image {
+    margin-top: -2px;
+}
 
 /* Other widgets. */
 entry {
@@ -121,7 +125,7 @@ menubar > menuitem {
 menuitem check, menuitem radio {
 	margin: 0px 8px 0px 0px;
 }
-/* Why can't I make this thing not be so thicc */
+/* Why can't I make this thing not be so thicc??? */
 popover {
 	border-radius: 4px;
 	padding: 0px;

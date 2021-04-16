@@ -4,11 +4,6 @@
 	font-size: 1.05em;
 }
 
-/* Fix displaced icon on Evolution attachment buttons. */
-EAttachmentBar button image {
-	margin-top: -2px;
-}
-
 /* Fix no margin on Xfce Screensaver's action buttons and infobar. */
 #login_window #buttonbox_frame > box {
 	margin-top: 16px;
