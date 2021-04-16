@@ -8,7 +8,8 @@ case "$1" in
 esac
 
 # Find the Flatpak app name and use it as the tag.
-if [ "$(basename "$1")" = "flatpak" ] && ! [ "${tag:-}" ]; then
+if ! [ "${tag:-}" ]; then case "$(basename "$1")" in
+flatpak)
 	for arg; do
 		if [ "$(basename "$arg")" = "flatpak" ] || [ "$arg" = "run" ]
 			then continue
@@ -17,6 +18,10 @@ if [ "$(basename "$1")" = "flatpak" ] && ! [ "${tag:-}" ]; then
 			break
 		fi
 	done
-fi
+	;;
+*launch)
+	if [ "${2:-}" ]; then tag="${2%.desktop}"; else exit 1; fi
+	;;
+esac; fi
 
 "$@" 2>&1 | logger -t "${tag:-$(basename "$1")}" &
