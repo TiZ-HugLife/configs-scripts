@@ -1,16 +1,15 @@
 #!/bin/sh
-set -eu
-
-help () {
-	cat <<EOF
-Read lines of an ini file filtered by section(s).
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Read lines of an ini file filtered by section(s).
 When sections aren't given, only read unsectioned lines.
 To read the variable and the value of the ini file:
-    read-ini <file> [section(s)] | while IFS='=' read -r var value
+    read-ini <file> [section(s)] | while IFS== read -r var value
 To just process the line manually:
     read-ini <file> [section(s)] | while IFS= read -r line
 EOF
-}
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+set -eu
 
 sanitize () { printf %s "${1:-}" | tr '[:upper:]_' '[:lower:]-'; }
 
@@ -21,10 +20,6 @@ val_in_list () {
 	done
 	return 1
 }
-
-case "${1:-}" in
---help|-h|"") help; exit ;;
-esac
 
 ini_file="$1"; shift
 for arg; do set -- "$@" "$(sanitize "$arg")"; shift; done
