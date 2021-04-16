@@ -1,0 +1,112 @@
+#!/bin/sh
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Manage running MoltenGamepad instance
+
+Any unknown command is passed through directly to the socket/fifo.
+
+Swap slots 1 and 2 (Requires mgmonit utility):
+  $script swap12
+
+Set game profiles:
+  $script profiles game <list of profiles> ...
+
+Switch to temporary profile set:
+  $script profiles temp <list of profiles> ...
+
+Unload temp profiles and go back to game profiles if set:
+  $script profiles game
+
+Unload all game and temp profiles:
+  $script profiles reset
+EOF
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+set -eu
+
+# Convenience functions for notifying about operation status.
+if [ -x "$(command -v system-notify)" ]; then
+	notify () { system-notify "$@" ; }
+else notify () { notify-send "$@" ; }
+fi
+message () {
+	printf "%s; %s\n" "$1" "$2"
+	notify "$1" "$2"
+}
+
+MOLTENGAMEPAD_SOCKET=${MOLTENGAMEPAD_SOCKET:-/var/run/moltengamepad/socket}
+MOLTENGAMEPAD_FIFO=${MOLTENGAMEPAD_FIFO:-/var/run/moltengamepad/fifo}
+
+# Define the main function that controls MG.
+if [ -w "$MOLTENGAMEPAD_SOCKET" ] && \
+ [ -x "$(command -v moltengamepadctl)" ]; then
+	mgexec () {
+		moltengamepadctl -S "$MOLTENGAMEPAD_SOCKET" -e "$*" | logger -t mgctl;
+	}
+elif [ -w "$MOLTENGAMEPAD_FIFO" ]; then
+	mgexec () { printf "%s\\n" "$*" > "$MOLTENGAMEPAD_FIFO"; }
+else
+	printf "No way to control MG...\n"
+	exit 1
+fi
+
+# Find a working directory.
+if [ -w "/run/gamepad" ]; then cd "/run/gamepad"
+elif [ -w "/run/moltengamepad" ]; then cd "/run/moltengamepad"
+else
+	mkdir -p "/run/user/$(id -u)/mgctl"
+	cd "/run/user/$(id -u)/mgctl"
+fi
+
+case "$1" in
+swap12)
+	# Swap slots 1 and 2, only works if mgmonit is running.
+	slotdir="/run/moltengamepad/slots"
+	if ! [ -e "$slotdir" ]; then
+		message "Can't swap" "MG monitor isn't running."
+		exit 1
+	elif ! [ -e "$slotdir/1" ]; then
+		message "Can't swap" "No controllers connected."
+		exit 1
+	elif ! [ -e "$slotdir/2" ]; then
+		message "Can't swap" "There is no second player."
+		exit 1
+	fi
+	first=$(cat "$slotdir/1/mgdev")
+	second=$(cat "$slotdir/2/mgdev")
+	mgexec move "$first" to virtpad2
+	mgexec move "$second" to virtpad1
+	;;
+profile|profiles)
+	if ! [ "${2:-}" ]; then help; exit 1; fi
+	opt="$2"; shift 2
+	case "$opt" in
+	game)
+		mgexec load profiles from "${MOLTENGAMEPAD_RESET_PROFILE:-vpad_reset}"
+		if [ "$#" -gt 0 ]; then
+			rm -f game_profiles
+			for profile in "$@"; do
+				printf %s\\n "$profile" >> game_profiles
+			done
+		fi
+		
+		if [ -e game_profiles ]; then
+			while read -r profile; do
+				mgexec load profiles from "vpad_$profile"
+			done < game_profiles
+		fi
+		;;
+	temp)
+		mgexec load profiles from "${MOLTENGAMEPAD_RESET_PROFILE:-vpad_reset}"
+		for profile in "$@"; do
+			mgexec load profiles from "vpad_$profile"
+		done
+		;;
+	reset)
+		mgexec load profiles from "${MOLTENGAMEPAD_RESET_PROFILE:-vpad_reset}"
+		rm -f game_profiles ;;
+	*)
+		message "Unknown command" "$1 not a known profile command"
+		exit 1 ;;
+	esac ;;
+*) mgexec "$@" ;;
+esac
