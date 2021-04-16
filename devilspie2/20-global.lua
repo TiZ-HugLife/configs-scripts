@@ -15,6 +15,11 @@ if app_name:is("Thunar") then
     end
 end
 
+if app_name:is("Gitg") then
+    if win_name:is("Commit") then size(840, 500)
+    elseif normal then size(1130, 1054) end
+end
+
 -- Stop Discord and Firefox from demanding attention on open.
 if win_class:is("Discord") or win_class:is("Firefox") then
     os.execute("/home/tiz/xdg/sync/devilspie2/stfu.sh " .. win_xid)
