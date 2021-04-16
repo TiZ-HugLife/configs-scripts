@@ -27,6 +27,10 @@ pctl () { playerctl -p "$players" "$@"; }
 
 puts () { printf %s\\n "$*"; }
 
+# Used to determine if a notification should be sent.
+# Do nothing and say nothing if OBS isn't running.
+obsctl () { if [ "$(pgrep obs || :)" ]; then command obsctl "$@" || :; fi; }
+
 spotpris_update () {
 	players=${players_base}
 	spotpris=$(playerctl -l | grep spotpris | head -n1)
@@ -142,7 +146,7 @@ pctl -f "$format" -F metadata 2> /dev/null | while read -r status; do
 		make_label || :
 		# If status went from playing to playing, a track change happened.
 		if [ "$prev_status" = "Playing" ] && [ "$status" = "Playing" ]; then
-			case "$(obsctl GetCurrentScene || :)" in
+			case "$(obsctl GetCurrentScene)" in
 			"SoulCalibur VI") : ;;
 			"Song Info"*) : ;;
 			*)
