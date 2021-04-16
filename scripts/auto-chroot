@@ -8,7 +8,7 @@ btrfs_partition="/dev/disk/by-partlabel/BTRFS1"
 chroot_dir="/mnt/chroot"
 
 # Self-sudo.
-if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
+if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
 
 # Check if a BTRFS subvolume or partition was specified and mount it somewhere.
 if printf %s "$1" | grep -Eq '^@|^/dev/sd|^/dev/disk/by-'; then

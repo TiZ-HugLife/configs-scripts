@@ -39,7 +39,7 @@ set_led () {
 
 if [ "$1" = "install" ]; then
     # Install udev rule.
-    if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" "$@"; fi
+    if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
     cat > /etc/udev/rules.d/50-ds4-lightbar.rules <<EOF
 # Only DS4 lightbars have the "global" led.
 ACTION=="add", SUBSYSTEM=="leds", DRIVERS=="sony", DEVPATH=="*:global", \

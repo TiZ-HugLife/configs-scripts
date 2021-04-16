@@ -6,7 +6,7 @@ set -eu
 sys="/sys/devices/platform/tuxedo_keyboard"
 
 install () {
-    if [ "$(id -u)" -gt 0 ]; then exec sudo "$0" install; fi
+    if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" install; fi
     
     cat > /etc/systemd/system/tuxkb-init.service <<EOF
 [Unit]

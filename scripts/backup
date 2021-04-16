@@ -3,7 +3,7 @@
 set -eu
 
 # Self-sudo.
-if [ "$(id -u)" -gt 0 ]; then exec sudo "$0"; fi
+if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0"; fi
 
 here=$(dirname "$(realpath "$0")")
 borg () { "$here/borg-wrap" "$@"; }
