@@ -1,5 +1,18 @@
 #!/bin/sh
-[ "$(id -un)" != "root" ] && exec sudo "$0" "$@"
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Run a ping test to various servers to test connection quality.
+Does not take any arguments.
+
+<<! Please note that this script will invoke sudo on itself. !>>
+This is necessary to ping at 60Hz.
+EOF
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage) usage 0 ;; esac
+set -eu
+
+# Self-sudo.
+if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
+
 for addr in 192.168.102.4 1.1.1.1 8.8.8.8 8.8.4.4; do
     ping -q -i 0.0167 -c 300 "$addr"
 done
