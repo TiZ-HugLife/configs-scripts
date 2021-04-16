@@ -28,3 +28,18 @@ end
 if app_name:is("Syncthing-GTK") and normal then size(660, 500) end
 if win_class:is("Microsoft Teams - Preview") then set_class("MSTeams") end
 if win_class:is("MSTeams") then set_icon("msteams") end
+
+-- Fix fucking Spotify.
+if win_name == "Untitled window" and app_name == "Untitled window" then
+    -- Let's find out if Spotify just started.
+    handle = io.popen("pgrep -o spotify")
+    proc = "/proc/"..handle:read()
+    handle:close()
+    handle = io.popen("stat -c%X "..proc)
+    stat = handle:read()
+    handle:close()
+    if (os.time() - stat) < 3 then
+        debug_print("Spotify just started; this window likely belongs to it.")
+        set_class("Spotify")
+    end
+end
