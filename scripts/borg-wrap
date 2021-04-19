@@ -1,9 +1,9 @@
 #!/bin/sh
 # Set default options for borg.
 set -eu
-depends borg pass
 
 if [ "$(id -u)" -gt 0 ]; then
+	depends borg pass
 	exec sudo --preserve-env=BORG_PASSPHRASE "$0" "$@"
 fi
 
