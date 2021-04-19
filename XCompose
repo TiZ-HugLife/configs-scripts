@@ -3,11 +3,12 @@
 include "%L"
 
 # Emoji from https://gist.github.com/natema/136d4c7a4f3c0ea448b3b2f768831a43
-# With various additions 😊
+# With many, many additions! 😊💖
 <Multi_key> <colon> <colon> <D>                              : "😀"  # ::D
 <Multi_key> <colon> <x> <D>                                  : "😁"  # :xD
 <Multi_key> <colon> <g> <r> <i>                              : "😁"  # :gri(n)
 <Multi_key> <colon> <l> <o> <l>                              : "😂"  # :lol
+<Multi_key> <colon> <j> <o> <y>                              : "😂"  # :joy
 <Multi_key> <colon> <r> <o> <f>                              : "🤣"  # :rof(l)
 <Multi_key> <colon> <equal> <D>                              : "😃"  # :=D
 <Multi_key> <colon> <x> <parenright>                         : "😄"  # :x)
@@ -19,6 +20,7 @@ include "%L"
 <Multi_key> <colon> <asciicircum> <underscore> <asciicircum> : "😊"  # :^_^
 <Multi_key> <colon> <colon> <p>                              : "😋"  # ::p
 <Multi_key> <colon> <B> <parenright>                         : "😎"  # :B)
+<Multi_key> <colon> <c> <o> <o>                              : "😎"  # :coo(l)
 <Multi_key> <colon> <colon> <less> <3>                       : "😍"  # ::<3
 <Multi_key> <colon> <semicolon> <asterisk>                   : "😘"  # :;*
 <Multi_key> <colon> <colon> <asterisk>                       : "😗"  # ::*
@@ -26,25 +28,27 @@ include "%L"
 <Multi_key> <colon> <x> <asterisk> <asterisk>                : "😚"  # :x**
 <Multi_key> <colon> <colon> <parenright>                     : "🙂"  # ::)
 <Multi_key> <colon> <h> <u> <g>                              : "🤗"  # :hug
+<Multi_key> <colon> <h> <m> <m>                              : "🤔"  # :hmm
 <Multi_key> <colon> <u> <h> <m>                              : "🤔"  # :uhm
 <Multi_key> <colon> <u> <m> <m>                              : "🤔"  # :umm
 <Multi_key> <colon> <colon> <bar>                            : "😐"  # ::|
 <Multi_key> <colon> <x> <bar>                                : "😑"  # :x|
 <Multi_key> <colon> <colon> <space>                          : "😶"  # ::(space)
 <Multi_key> <colon> <colon> <Up>                             : "🙄"  # ::↑
-<Multi_key> <colon> <s> <m> <i>                              : "😏"  # :smi
+<Multi_key> <colon> <r> <o> <l>                              : "🙄"  # :rol(l)
+<Multi_key> <colon> <s> <m> <i>                              : "😏"  # :smi(rk)
 <Multi_key> <colon> <x> <parenleft>                          : "😣"  # :x(
 <Multi_key> <colon> <apostrophe> <colon> <parenleft>         : "😥"  # :':(
 <Multi_key> <colon> <colon> <O>                              : "😮"  # ::O
 <Multi_key> <colon> <colon> <numbersign>                     : "🤐"  # ::#
 <Multi_key> <colon> <colon> <o>                              : "😯"  # ::o
 <Multi_key> <colon> <z> <z> <z>                              : "😴"  # :zzz
-<Multi_key> <colon> <n> <e> <r>                              : "🤓"  # :ner
+<Multi_key> <colon> <n> <e> <r>                              : "🤓"  # :ner(d)
 <Multi_key> <colon> <colon> <P>                              : "😛"  # ::P
 <Multi_key> <colon> <semicolon> <P>                          : "😜"  # :;P
 <Multi_key> <colon> <x> <P>                                  : "😝"  # :xP
 <Multi_key> <colon> <X> <P>                                  : "😝"  # :XP
-<Multi_key> <colon> <d> <r> <o>                              : "🤤"  # :dro
+<Multi_key> <colon> <y> <u> <m>                              : "🤤"  # :yum
 <Multi_key> <colon> <colon> <Right> <parenleft>              : "😒"  # ::→(
 <Multi_key> <colon> <apostrophe> <x> <parenleft>             : "😓"  # :'x(
 <Multi_key> <colon> <colon> <Down>                           : "😔"  # ::↓
@@ -58,8 +62,13 @@ include "%L"
 <Multi_key> <colon> <semicolon> <underscore> <semicolon>     : "😢"  # :;_;
 <Multi_key> <colon> <semicolon> <semicolon>                  : "😢"  # :;;
 <Multi_key> <colon> <c> <r> <y>                              : "😭"  # :cry
+<Multi_key> <colon> <s> <o> <b>                              : "😭"  # :sob
 <Multi_key> <colon> <T> <underscore> <T>                     : "😭"  # :T_T
 <Multi_key> <colon> <T> <T>                                  : "😭"  # :TT
+<Multi_key> <colon> <u> <w> <u>                              : "🥺"  # :uwu
+<Multi_key> <colon> <b> <a> <b>                              : "🥺"  # :bab(y)
+<Multi_key> <colon> <d> <o> <e>                              : "🥺"  # :doe
+<Multi_key> <colon> <s> <u> <b>                              : "🥺"  # :sub
 <Multi_key> <colon> <D> <colon>                              : "😦"  # :D:
 <Multi_key> <colon> <at> <at>                                : "😵"  # :@@
 <Multi_key> <colon> <at> <underscore> <at>                   : "😵"  # :@_@
@@ -67,13 +76,23 @@ include "%L"
 <Multi_key> <colon> <greater> <colon> <parenleft>            : "😡"  # :>:(
 <Multi_key> <colon> <r> <a> <g>                              : "😠"  # :rag(e)
 <Multi_key> <colon> <greater> <colon> <c>                    : "😠"  # :>:c
+<Multi_key> <colon> <greater> <colon> <o>                    : "🤬"  # :>:o
+<Multi_key> <colon> <c> <u> <s>                              : "🤬"  # :cus(s)
 <Multi_key> <colon> <b> <o> <o>                              : "👻"  # :boo
-<Multi_key> <colon> <d> <e> <v>                              : "😈"  # :dev
-<Multi_key> <colon> <a> <l> <i>                              : "👽"  # :ali
-<Multi_key> <colon> <i> <n> <v>                              : "👾"  # :inv
-<Multi_key> <colon> <r> <o> <b>                              : "🤖"  # :rob
+<Multi_key> <colon> <d> <e> <v>                              : "😈"  # :dev(il)
+<Multi_key> <colon> <a> <l> <i>                              : "👽"  # :ali(en)
+<Multi_key> <colon> <r> <o> <b>                              : "🤖"  # :rob(ot)
 <Multi_key> <colon> <b> <o> <t>                              : "🤖"  # :bot
 <Multi_key> <colon> <p> <o> <o>                              : "💩"  # :poo
+<Multi_key> <colon> <s> <k> <u>                              : "💀"  # :sku(ll)
+<Multi_key> <colon> <d> <e> <a>                              : "💀"  # :dea(d)
+<Multi_key> <colon> <e> <y> <e>                              : "👀"  # :eye(s)
+<Multi_key> <colon> <s> <w> <e>                              : "💦"  # :swe(at)
+<Multi_key> <colon> <d> <r> <o>                              : "💧"  # :dro(p)
+<Multi_key> <colon> <f> <i> <r>                              : "🔥"  # :fir(e)
+<Multi_key> <colon> <h> <o> <t>                              : "🔥"  # :hot
+<Multi_key> <colon> <i> <c> <e>                              : "🧊"  # :ice
+<Multi_key> <colon> <c> <o> <l>                              : "🧊"  # :col(d)
 <Multi_key> <colon> <f> <u> <c>                              : "🖕"  # :fuc(k)
 <Multi_key> <colon> <F> <U>                                  : "🖕"  # :FU
 <Multi_key> <colon> <p> <e> <a>                              : "✌"  # :pea(ce)
@@ -82,6 +101,8 @@ include "%L"
 <Multi_key> <colon> <backslash> <m> <slash>                  : "🤘"  # :\m/
 <Multi_key> <colon> <c> <a> <l>                              : "🤙"  # :cal(l)
 <Multi_key> <colon> <o> <k>                                  : "👌"  # :ok
+<Multi_key> <colon> <y> <e> <s>                              : "👍"  # :yes
+<Multi_key> <colon> <n> <o>                                  : "👎"  # :no
 <Multi_key> <colon> <parenleft> <y> <parenright>             : "👍"  # :(y)
 <Multi_key> <colon> <parenleft> <n> <parenright>             : "👎"  # :(n)
 <Multi_key> <colon> <less> <less> <3>                        : "💗"  # :<<3
