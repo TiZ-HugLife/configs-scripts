@@ -40,4 +40,5 @@ IMO, the most interesting scripts:
 * music-watch: Output currently playing music info from MPRIS-enabled players using [playerctl](https://github.com/altdesktop/playerctl), so that it can be picked up by Conky, OBS Studio, and others.
 * obsctl: A more convenient interface for using [obs-cli](https://github.com/leafac/obs-cli).
 * termmie: maek yur trminals... temmie!!! yayA!!!!
+* vino: A command-line manager for Wine prefixes and Wine versions, an alternative to various GUI tools. It explicitly goes out of its way to avoid reinventing wheels, and offers integration for Winetricks and DXVK's installer. It has features for isolating prefixes from the host system and integration for scripting and manual file management.
 * wait-for-it: Block until (dis)appearance of process, network, window, dbus interface, or an arbitrary amount of time, and optionally execute a command.
