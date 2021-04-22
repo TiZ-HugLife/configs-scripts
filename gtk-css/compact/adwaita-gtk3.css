@@ -30,25 +30,25 @@ button.titlebutton
 /* Now, move on to margins and paddings for various widgets. */
 /* Buttons first. */
 button {
-	padding: 3px 6px;
+	padding: 3px;
+}
+button label, button cellview, button arrow {
+	margin: 0px 3px;
 }
 toolbar button, toolitem button {
 	padding: 2px;
-}
-treeview header button {
-	padding: 3px 6px;
 }
 tab button {
 	padding: 0px;
 }
 combobox button {
-	padding: 2px 5px;
+	padding: 2px;
 }
 button:not(.titlebutton) image {
 	padding: 1px;
 }
 /* Button icons get displaced downward for some reason. */
-button widget box.horizontal image {
+button box.horizontal image {
     margin-top: -2px;
 }
 
@@ -150,11 +150,7 @@ headerbar button, headerbar entry, headerbar combobox  {
 	margin-top: 3px;
 	margin-bottom: 3px;
 }
-headerbar button {
-	padding: 3px;
-}
 headerbar stackswitcher button {
-	padding: 3px 8px;
 	margin: 3px 0px;
 }
 button.titlebutton {
