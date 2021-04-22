@@ -1,0 +1,291 @@
+#!/bin/sh
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Manage Wine prefixes and versions, and run commands wtih them.
+Uses distro-agnostic Wine builds from https://github.com/Kron4ek/Wine-Builds.
+Prefixes are automatically created with a D: drive.
+The Wine updater maintains a collection of handy aliases for branches:
+    vanilla -- The latest version of vanilla Wine.
+    staging -- The latest version of Wine-staging.
+    tkg -- The latest version of Wine-tkg.
+    proton -- The latest version of Proton.
+    current -- The latest version of your preferred branch (tkg by default).
+The DXVK updater also maintains a latest ailias.
+
+Usage: $script <action> [args]
+Actions:
+    update-wine -- Download the latest builds of Wine.
+    update-tricks -- Download the latest version of Winetricks.
+    update-dxvk -- Download the latest version of DXVK.
+    update, update-all -- Do both things above.
+    branch -- Set your preferred Wine branch.
+    get-tricks -- Download the latest Winetricks.
+    create <prefix> [winearch] -- Create a Wine prefix with the given name.
+    run, cmd <prefix> <cmd, args> -- Run a command in the given prefix.
+    wine <prefix> <cmd, args> -- Run Wine in the given prefix with given args.
+    shell <prefix> -- Start the default shell with WINEPREFIX and PATH set.
+    config <prefix> -- Run Wiinecfg in the given prefix.
+    control <prefix> -- Run Control Panel in the given prefix.
+    tricks <prefix> -- Run Winetricks in the given prefix.
+    dxvk <prefix> <version> <args> -- Run the given version of setup_dxvk.sh.
+      This passes all arguments through to the script.
+    rename <prefix> <dest> -- Rename a prefix.
+    clone <prefix> <dest> -- Copy a prefix to a new one. Reflinks if possible.
+    delete <prefix> -- Delete the given prefix.
+    version <prefix> <version> -- Set a prefix to use a branch or version.
+    lock-branch <prefix> -- Lock a prefix to its current branch.
+    lock-version <prefix> -- Lock a prefix to its current version.
+    isolate-user <prefix> -- Remove user dir links from the prefix.
+    isolate-fs <prefix> -- Remove the Z: drive link to / from the prefix.
+    isolate-full <prefix> -- Execute both isolate actions.
+    link-user <prefix> -- Add xdg_desktop_dir links to the prefix.
+    link-fs <prefix> -- Add the Z: drive link to / to the prefix.
+    link-full <prefix> -- Execute both link actions.
+    dir versions|drive_d|<prefix> -- Print a directory path to standard out.
+    fileman versions|drive_d|<prefix> -- Open a directory in the file manager.
+EOF
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+set -eu
+depends wget bsdtar git xdg-user-dir
+
+wine_builds="https://github.com/Kron4ek/Wine-Builds"
+wine_downloads="$wine_builds/releases/download"
+dxvk="https://github.com/doitsujin/dxvk"
+winetricks_url="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
+datadir="${XDG_DATA_HOME:-$HOME/.local/share}/wine"
+prefixes="${WINEPREFIXES:-$datadir/prefixes}"
+versions="${WINEVERSIONS:-$datadir/versions}"
+mkdir -p "$prefixes" "$versions" "$datadir/drive_d/Downloads"
+
+puts () { printf %s\\n "$*"; }
+error () { puts "$*" >&2; exit 1; }
+getx () { wget -q --show-progress -O- "$1" | bsdtar -x "-${2:-J}" -f-; }
+verify_prefix () {
+	if ! [ -d "$prefixes/$1" ]; then error "Prefix $1 doesn't exist."; fi
+}
+
+action=$(printf %s "${1:-}" | tr '[:upper:]' '[:lower:]'); shift
+
+case "$action" in
+	init*|update*|get*|branch|create|new|dir|fileman|open) : ;;
+	*)
+		verify_prefix "$1"
+		pfx_name="$1"; shift
+		pfx_dir="$prefixes/$pfx_name"
+		;;
+esac
+
+case "$action" in
+init*)
+	puts "Downloading latest wine, proton, and winetricks."
+	"$0" update-all
+	puts "Creating default prefixes: clean, default, and secure."
+	if ! [ -d "$prefixes/clean" ]; then "$0" create clean; fi
+	if ! [ -d "$prefixes/clean32" ]; then "$0" create clean32; fi
+	if ! [ -d "$prefixes/default" ]; then "$0" clone clean default; fi
+	if ! [ -d "$prefixes/secure" ]; then
+		"$0" clone default secure
+		"$0" isolate-full secure
+	fi
+	puts "Initialization done; have fun!"
+	;;
+update|update-all|get-all)
+	"$0" update-wine
+	"$0" update-tricks
+	;;
+update-wine|get-wine)
+	mkdir -p "$versions"
+	tags=$(git ls-remote --tags "$wine_builds.git" | sed 's:.*refs/tags/::')
+	latest=$(puts "$tags" | grep -v 'wayland|proton|rc' | tail -n1)
+	latest_proton=$(puts "$tags" | grep 'proton' | tail -n1)
+	
+	if [ -d "$versions/$latest" ] && [ -d "$versions/$latest_proton" ]; then
+		puts "Already have the latest Wine builds."
+	fi
+	
+	if ! [ -d "$versions/$latest" ]; then
+		cd "$(mktemp -d)"
+		getx "$wine_downloads/$latest/wine-$latest-amd64.tar.xz"
+		mv "wine-$latest-amd64" "$versions/$latest"
+		getx "$wine_downloads/$latest/wine-$latest-staging-amd64.tar.xz"
+		mv "wine-$latest-staging-amd64" "$versions/$latest-staging"
+		getx "$wine_downloads/$latest/wine-$latest-staging-tkg-amd64.tar.xz"
+		mv "wine-$latest-staging-tkg-amd64" "$versions/$latest-tkg"
+		rmdir "$(pwd)"
+		cd "$versions"
+		ln -sfn "$latest" vanilla
+		ln -sfn "$latest-staging" staging
+		ln -sfn "$latest-tkg" tkg
+		if ! [ -e current ]; then ln -s tkg current; fi
+		puts "Successfully fetched latest Wine builds."
+	fi
+	
+	if ! [ -d "$versions/$latest_proton" ]; then
+		cd "$(mktemp -d)"
+		getx "$wine_downloads/$latest_proton/wine-$latest_proton-amd64.tar.xz"
+		mv "wine-$latest_proton-amd64" "$versions/$latest_proton"
+		rmdir "$(pwd)"
+		cd "$versions"
+		ln -sfn "$latest_proton" proton
+		puts "Successfully fetched latest Proton build."
+	fi
+	;;
+update-tricks|get-tricks)
+	if ! [ -x "$datadir/winetricks" ]; then
+		wget -O "$datadir/winetricks" "$winetricks_url"
+		chmod a+x "$datadir/winetricks"
+	else
+		"$datadir/winetricks" --self-update
+	fi
+	;;
+update-dxvk|get-dxvk)
+	mkdir -p "$datadir/dxvk"
+	tags=$(git ls-remote --tags "$dxvk.git" | sed 's:.*refs/tags/v::')
+	latest=$(puts "$tags" | grep -v '\^{}' | tail -n1)
+	if ! [ -d "$datadir/dxvk/$latest" ]; then
+		cd "$(mktemp -d)"
+		getx "$dxvk/releases/download/v$latest/dxvk-1.8.1.tar.gz" z
+		mv "dxvk-$latest" "$datadir/dxvk/$latest"
+		rmdir "$(pwd)"
+		cd "$datadir/dxvk"
+		ln -sfn "$latest" latest
+	else
+		puts "DXVK already up-to-date."
+	fi
+	;;
+branch)
+	if ! [ -d "$versions/$1" ]; then error "Branch $1 doesn't exist."; fi
+	cd "$versions"
+	ln -sfn "$1" current
+	;;
+create|new)
+	if [ -d "$prefixes/$1" ]; then error "Prefix $1 already exists."; fi
+	export WINEPREFIX="$prefixes/$1"
+	mkdir -p "$prefixes/$1"
+	if ! [ -d "$versions/current" ]; then "$0" update; fi
+	ln -sfn "$versions/current" "$prefixes/$1/wine"
+	export PATH="$prefixes/$1/wine/bin:$PATH"
+	if [ "${2:-}" ]; then export WINEARCH="$2"; fi
+	wineboot -i
+	ln -s "../../../drive_d" "$prefixes/$1/dosdevices/d:"
+	puts "Successfully created prefix $1."
+	;;
+run|cmd)
+	export WINEPREFIX="$pfx_dir"
+	export PATH="$pfx_dir/wine/bin:$PATH"
+	exec "$@"
+	;;
+wine)    exec "$0" run "$pfx_name" wine "$@" ;;
+shell)   exec "$0" run "$pfx_name" "${SHELL:-/bin/sh}" "$@" ;;
+config)  exec "$0" run "$pfx_name" winecfg ;;
+tricks)  exec "$0" run "$pfx_name" "$datadir/winetricks" "$@" ;;
+dxvk|setup-dxvk)
+	if [ "$#" -lt 2 ]; then
+		error "usage: vino setup-dxvk <prefix> <version> <args>"
+	fi
+	version="$1"; shift
+	if [ "$version" = "latest" ]; then "$0" update-dxvk; fi
+	exec "$0" run "$pfx_name" "$datadir/dxvk/$version/setup_dxvk.sh" "$@"
+	;;
+dir)
+	case "${1:-}" in
+	"") error "Please provide an argument." ;;
+	versions) puts "$versions" ;;
+	d|d*drive|drive*d) puts "$datadir/drive_d" ;;
+	*)
+		verify_prefix "${1:-}"
+		puts "$prefixes/$1"
+		;;
+	esac
+	;;
+fileman|open)
+	dir=$("$0" dir "${1:-}")
+	exec xdg-open "$dir"
+	;;
+rename|move)
+	if ! [ "${1:-}" ]; then error "Rename needs a destination argument."; fi
+	mv "$pfx_dir" "$prefixes/$1"
+	puts "Successfully renamed $pfx_name to $1."
+	;;
+clone|copy)
+	if ! [ "${1:-}" ]; then error "Clone needs a destination argument."; fi
+	cp -r --reflink=auto "$pfx_dir" "$prefixes/$1"
+	puts "Successfully cloned $pfx_name to $1."
+	;;
+delete)
+	rm -r "$pfx_dir"
+	puts "Successfully deleted $pfx_name."
+	;;
+isolate-user|isolate-links)
+	mkdir -p "$datadir/user"
+	cd "$datadir/user"
+	mkdir -p Desktop Documents Music Pictures Videos
+	cd "$pfx_dir/drive_c/users"
+	for dir in *; do
+		if [ "$dir" = "Public" ]; then continue; fi
+		cd "$dir"
+		ln -sfn "$datadir/user/Desktop" "Desktop"
+		ln -sfn "$datadir/user/My Documents" "Documents"
+		ln -sfn "$datadir/user/My Pictures" "Pictures"
+		ln -sfn "$datadir/user/My Music" "Music"
+		ln -sfn "$datadir/user/My Videos" "Videos"
+		cd ..
+	done
+	puts "Successfully isolated user directories in $pfx_name."
+	;;
+isolate-fs|isolate-root)
+	rm -f "$pfx_dir/dosdevices/z:"
+	puts "Removed Z: drive from $pfx_name."
+	;;
+isolate-full|isolate-all)
+	"$0" isolate-user "$pfx_name"
+	"$0" isolate-fs "$pfx_name"
+	;;
+link-user)
+	mkdir -p "$datadir/user"
+	cd "$datadir/user"
+	mkdir -p Desktop Documents Music Pictures Videos
+	cd "$pfx_dir/drive_c/users"
+	for dir in *; do
+		if [ "$dir" = "Public" ]; then continue; fi
+		cd "$dir"
+		ln -sfn "$(xdg-user-dir DESKTOP)" "Desktop"
+		ln -sfn "$(xdg-user-dir DOCUMENTS)" "Documents"
+		ln -sfn "$(xdg-user-dir PICTURES)" "Pictures"
+		ln -sfn "$(xdg-user-dir MUSIC)" "Music"
+		ln -sfn "$(xdg-user-dir VIDEOS)" "Videos"
+		cd ..
+	done
+	puts "Successfully linked user directories in $pfx_name."
+	;;
+link-fs|link-root|link-z)
+	ln -sfn / "$pfx_dir/dosdevices/z:"
+	puts "Linked / as Z: in $pfx_name."
+	;;
+link-full|link-all)
+	"$0" link-user "$pfx_name"
+	"$0" link-fs "$pfx_name"
+	;;
+version|set-version)
+	if ! [ -d "$versions/$1" ]; then
+		error "Version or branch %s doesn't exist."
+	fi
+	ln -sfn "$versions/$1" "$pfx_dir/wine"
+	puts "Successfully updated $pfx_name's version to $1."
+	;;
+lock-branch)
+	branch=$(basename "$(readlink "$pfx_dir/wine")")
+	case "$branch" in
+		current)
+			"$0" version "$pfx_name" \
+			 "$(basename "$(readlink "$versions/current")")"
+			;;
+		vanilla|staging|tkg|proton)
+			error "Version for $pfx_name is already set to a branch." ;;
+		*)
+			error "Version for $pfx_name is set to a specific version." ;;
+	esac
+	;;
+lock-version)
+	"$0" version "$pfx_name" "$(basename "$(readlink -f "$pfx_dir/wine")")" ;;
+esac
