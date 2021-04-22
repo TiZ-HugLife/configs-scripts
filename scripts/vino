@@ -83,13 +83,18 @@ case "$action" in
 init*)
 	puts "Downloading latest wine, proton, and winetricks."
 	"$0" update-all
-	puts "Creating default prefixes: clean, default, and secure."
+	puts "Creating standard prefixes and WINEARCH=win32 versions."
 	if ! [ -d "$prefixes/clean" ]; then "$0" create clean; fi
-	if ! [ -d "$prefixes/clean32" ]; then "$0" create clean32; fi
+	if ! [ -d "$prefixes/clean32" ]; then "$0" create clean32 win32; fi
 	if ! [ -d "$prefixes/default" ]; then "$0" clone clean default; fi
+	if ! [ -d "$prefixes/default32" ]; then "$0" clone clean32 default32; fi
 	if ! [ -d "$prefixes/secure" ]; then
 		"$0" clone default secure
 		"$0" isolate-full secure
+	fi
+	if ! [ -d "$prefixes/secure32" ]; then
+		"$0" clone default32 secure32
+		"$0" isolate-full secure32
 	fi
 	puts "Initialization done; have fun!"
 	;;
