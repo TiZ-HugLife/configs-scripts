@@ -2,7 +2,7 @@
 usage () { script=$(basename "$0"); cat <<EOF
 $script -- Manage Wine prefixes and versions, and run commands wtih them.
 
-"I saw this vino, he was eating grapes. I was like, 'Dude, you have to wait!'"
+"I saw this wino, he was eating grapes. I was like, 'Dude, you have to wait!'"
     -- Mitch Hedberg
 
 Uses distro-agnostic Wine builds from https://github.com/Kron4ek/Wine-Builds.
