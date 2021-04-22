@@ -105,6 +105,7 @@ include "%L"
 <Multi_key> <colon> <n> <o>                                  : "👎"  # :no
 <Multi_key> <colon> <parenleft> <y> <parenright>             : "👍"  # :(y)
 <Multi_key> <colon> <parenleft> <n> <parenright>             : "👎"  # :(n)
+<Multi_key> <colon> <i> <d> <k>                              : "🤷"  # :idk
 <Multi_key> <colon> <less> <less> <3>                        : "💗"  # :<<3
 <Multi_key> <colon> <less> <3>                               : "❤"   # :<3
 <Multi_key> <colon> <less> <asterisk> <3>                    : "💖"  # :<*3
