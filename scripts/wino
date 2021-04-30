@@ -23,6 +23,7 @@ Actions:
     update, update-all -- Do both things above.
     branch -- Set your preferred Wine branch.
     get-tricks -- Download the latest Winetricks.
+    vacuum, dedupe -- Run duperemove on all prefixes and versions.
     create <prefix> [winearch] -- Create a Wine prefix with the given name.
     run, cmd <prefix> <cmd, args> -- Run a command in the given prefix.
     wine <prefix> <cmd, args> -- Run Wine in the given prefix with given args.
@@ -71,7 +72,7 @@ verify_prefix () {
 action=$(printf %s "${1:-}" | tr '[:upper:]' '[:lower:]'); shift
 
 case "$action" in
-	init*|update*|get*|branch|create|new|dir|fileman|open) : ;;
+	init*|update*|get*|branch|create|new|dir|fileman|open|vacuum|dedupe) : ;;
 	*)
 		verify_prefix "$1"
 		pfx_name="$1"; shift
@@ -166,6 +167,11 @@ branch)
 	if ! [ -d "$versions/$1" ]; then error "Branch $1 doesn't exist."; fi
 	cd "$versions"
 	ln -sfn "$1" current
+	;;
+vacuum|dedupe)
+	duperemove -rd "$prefixes"
+	duperemove -rd "$versions"
+	puts "Deduplicated prefixes and versions."
 	;;
 create|new)
 	if [ -d "$prefixes/$1" ]; then error "Prefix $1 already exists."; fi
