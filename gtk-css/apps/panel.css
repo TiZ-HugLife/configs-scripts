@@ -10,6 +10,9 @@
 	border: none;
 	border-radius: 0px;
 }
+.xfce4-panel button label {
+	margin: 0px;
+}
 
 /* Add shadows for increased readability on light wallpapers. */
 .xfce4-panel * {
