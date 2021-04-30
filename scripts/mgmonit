@@ -86,7 +86,7 @@ while read -r line; do
             if [ -d "$sysfs/leds/$uuid:global" ]; then
                 touch "$devdir/ds4"
             fi
-            btaddr=$(udevadm info -a /dev/input/event23 | \
+            btaddr=$(udevadm info -a "$evdev" | \
              sed -nr 's/^.*ATTRS\{phys\}=="(.+)".*$/\1/p')
             if [ "$btaddr" ]; then puts "$btaddr" > "$devdir/btaddr"; fi
         fi
