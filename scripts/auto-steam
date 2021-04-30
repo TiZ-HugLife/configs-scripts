@@ -24,22 +24,22 @@ fi
 for opt in "$@"; do case "$opt" in
 	-applaunch) wait_app=1 ;;
 	steam://run*) wait_app=1 ;;
+	-no*flatpak) AUTO_STEAM_NO_FLATPAK=1; shift ;;
 	*) : ;;
 esac; done
 
 # Make sure no other auto-steams are running.
 while [ "$(pgrep -c auto-steam)" -gt 1 ]; do sleep 0.5; done
 
-if [ "$(pgrep_xself '^steam$')" ]; then steam_running=1; fi
+if [ "$(pgrep '^steam$' || :)" ]; then steam_running=1; fi
 
-if ! [ -x "$(command -v steam)" ]; then
-	if [ -x "$(command -v flatpak)" ] && \
-	 flatpak --command=true run com.valvesoftware.Steam; then
-		steam () { flatpak run com.valvesoftware.Steam "$@"; }
-	else
-		printf "Can't find Steam.\n"
-		exit 1
-	fi
+# Prefer Flatpak Steam if present and not disabled.
+if ! [ "${AUTO_STEAM_NO_FLATPAK:-}" ] && [ -x "$(command -v flatpak)" ] &&  \
+ flatpak --command=true run com.valvesoftware.Steam; then
+	steam () { flatpak run com.valvesoftware.Steam "$@"; }
+elif ! [ -x "$(command -v steam)" ]; then
+	printf "Can't find distro Steam.\n" >&2
+	exit 1
 fi
 
 if [ "$wait_app" -eq 1 ]; then
@@ -48,7 +48,7 @@ if [ "$wait_app" -eq 1 ]; then
 			mon_pids=$(pgrep SteamChildMonit || :)
 			sleep 1
 		done
-		steam_pids=$(pgrep_xself '^steam$')
+		steam_pids=$(pgrep '^steam$' || :)
 		while check_pids "$mon_pids"; do sleep 0.5; done
 		if ! [ "$steam_running" -eq 1 ]; then
 			sleep 2
