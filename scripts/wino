@@ -106,7 +106,7 @@ update-wine|get-wine)
 	mkdir -p "$versions"
 	tags=$(git ls-remote --tags "$wine_builds.git" | sed 's:.*refs/tags/::')
 	latest=$(puts "$tags" | grep -v 'wayland|proton|rc' | tail -n1)
-	latest_proton=$(puts "$tags" | grep 'proton' | tail -n1)
+	latest_proton=$(puts "$tags" | grep 'proton' | grep -v 'exp' | tail -n1)
 	
 	if [ -d "$versions/$latest" ] && [ -d "$versions/$latest_proton" ]; then
 		puts "Already have the latest Wine builds."
