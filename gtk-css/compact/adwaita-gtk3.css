@@ -48,8 +48,11 @@ button:not(.titlebutton) image {
 	padding: 1px;
 }
 /* Button icons get displaced downward for some reason. */
-button box.horizontal image {
-    margin-top: -2px;
+button box.horizontal image:first-child:not(:last-child) {
+	margin-top: -2px;
+}
+toolbutton label {
+    padding: 0px;
 }
 
 /* Other widgets. */
