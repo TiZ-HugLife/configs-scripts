@@ -1,0 +1,18 @@
+#!/bin/sh
+usage () { script=$(basename "$0"); cat <<EOF
+$script -- Set wallpaper for all monitors and workspaces.
+When invoked without args, return path to current wallpaper.
+EOF
+exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage) usage 0 ;; esac
+set -eu
+
+if ! [ -r "${1:-}" ]; then
+	xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path
+	exit
+fi
+
+xfconf-query -c xfce4-desktop --list | grep 'image-path\|last-image' | \
+ while read -r prop; do
+	xfconf-query -c xfce4-desktop -p "$prop" -s "$1"
+done
