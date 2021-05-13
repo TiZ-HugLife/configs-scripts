@@ -101,6 +101,7 @@ You don't have long on this earth
 OMENS APPEAR TO US
 Diplomacy has failed!
 Aren't you tired of being nice?
+SIN. DEATH. JUDGMENT. ETERNITY.
 EOF
 
 shuf -n1 <<EOF
@@ -132,6 +133,7 @@ CASTLE DOCTRINE
 Make this a good one
 God forgive us all...
 Don't you wanna just go ape shitt???
+Are You Ready To Meet God?
 EOF
 
 tput setaf 3
