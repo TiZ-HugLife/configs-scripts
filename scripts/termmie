@@ -2,8 +2,17 @@
 # hOI!!! im termmie put dis in yur bashrc!
 # get many... DETERMINALATION!!! yayA!!!
 
+for arg; do case "$arg" in
+--title)     termmie_title=1 ;;
+--no-title)  termmie_title=0 ;;
+--header)    termmie_header=1 ;;
+--no-header) termmie_header=0 ;;
+esac; done
+
+# Unlike arcsys-intro, this doesn't need to know WM_CLASS becasue it
+# just searches for existing titles of all windows.
 if [ "${TERM##xterm}" != "$TERM" ] && [ "$DISPLAY" ] && \
- ! [ "$SSH_CLIENT$SSH_TTY" ]; then
+ ! [ "$SSH_CLIENT$SSH_TTY" ] && [ "${termmie_title:-1}" -eq 1 ]; then
     termmies="
 hOI!!! im termmie!!!
 an dis is my friend... termmie!!!
@@ -27,4 +36,8 @@ You have way too many temmienals.
     done
 fi
 
-printf "* You are filled with determinalation.\n"
+if [ "${termmie_header:-1}" -eq 1 ]; then
+    tput bold; tput setaf 7
+    printf "* You are filled with determinalation.\n"
+    tput sgr0
+fi
