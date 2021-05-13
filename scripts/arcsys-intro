@@ -14,8 +14,11 @@ tput bold; tput setaf 7
 today=$(date +%A)
 
 # All of this is to translate One, First, etc to tne number of terminals open.
-TERMINAL_WM_CLASS=${TERMINAL_WM_CLASS:-terminal}
-num=$(wmctrl -lx | awk '{print $3}' | grep -i "$TERMINAL_WM_CLASS" | wc -l)
+# But if we're SSHing in somewhere, just default to 1.
+if [ "${DISPLAY:-}" ] && ! [ "${SSH_CLIENT:-}${SSH_TTY:-}" ]; then
+    TERMINAL_WM_CLASS=${TERMINAL_WM_CLASS:-terminal}
+    num=$(wmctrl -lx | awk '{print $3}' | grep -i "$TERMINAL_WM_CLASS" | wc -l)
+else num=1; fi
 case "$num" in
 0)
     printf "Export TERMINAL_WM_CLASS to the WM_CLASS of your terminal\n"
