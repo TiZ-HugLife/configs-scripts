@@ -1,17 +1,19 @@
-# Aliases.
-alias sudo='sudo '  # This nifty trick allows alias expansion for sudo.
-alias fucking='sudo '
+# Aliases included in various distros.
 alias ls='ls --color=auto '
+alias grep='grep --color=auto '
+alias fgrep='fgrep --color=auto '
+alias egrep='egrep --color=auto '
+
+# Custom aliases.
+alias sudo='sudo '
+alias fucking='sudo '
 alias rs='rsync -avzsHXA -e ssh --progress '
 alias rsbak='rs --remote-option --fake-super '
 alias icoextract='wrestool -x --output=. -t14'
 alias r='rolldice --separate --random'
-alias kpie-dump='kpie --single /usr/share/doc/kpie/examples/dump.lua > /tmp/kpie-dump; geany /tmp/kpie-dump &'
 alias usbconsole='script -f -c "picocom /dev/ttyUSB0" console.log'
-alias cerebro-pingtest='ssh cerebro /home/common/bin/pingtest'
-alias sshproxy='ssh -D 28080 maxwell'
-alias flatpak-xusr='flatpak --installation=xusr '
-alias borg-create='borg-wrap create --list --stats --filter AME --compression=zstd,18 --exclude-caches -e "*/.cache/*" -e "*/cache/*" -e "*/tmp/*"'
+alias marina-pingtest='ssh marina pingtest'
+alias sshproxy='ssh -D 28080 marina'
 alias protontricks='flatpak run --command=protontricks com.valvesoftware.Steam --no-runtime'
 alias ginstall='/xusr/bin/ginstall.sh -d /xusr/bin '
 alias test-lan='iperf3 -c 192.168.102.4 -f M --get-server-output'
