@@ -1,0 +1,209 @@
+#!/bin/sh
+# arcsys-intro -- start your terminals with arcsys intro shitposts
+# Most lines are from https://orteil.dashnet.org/randomgen/?gen=wMu6qiG3
+# If your terminal doesn't have the word terminal in its WM_CLASS, then
+# export TERMINAL_WM_CLASS=alacritty or similar before running this.
+set -eu
+depends shuf wmctrl
+
+lower () { printf %s "$*" | tr '[:upper:]' '[:lower:]'; }
+upper () { printf %s "$*" | tr '[:lower:]' '[:upper:]'; }
+
+tput bold; tput setaf 7
+
+today=$(date +%A)
+
+# All of this is to translate One, First, etc to tne number of terminals open.
+TERMINAL_WM_CLASS=${TERMINAL_WM_CLASS:-terminal}
+num=$(wmctrl -lx | awk '{print $3}' | grep -i "$TERMINAL_WM_CLASS" | wc -l)
+case "$num" in
+0)
+    printf "Export TERMINAL_WM_CLASS to the WM_CLASS of your terminal\n"
+    printf "before running this script.\n"
+    tput sgr0
+    exit ;;
+1)  One=One; First=First; Uno=Uno ;;
+2)  One=Two; First=Second; Uno=Dos ;;
+3)  One=Three; First=Third; Uno=Tres ;;
+4)  One=Four; First=Fourth; Uno=Cuatro ;;
+5)  One=Five; First=Fifth; Uno=Cinco ;;
+6)  One=Six; First=Sixth; Uno=Seis ;;
+7)  One=Seven; First=Seventh; Uno=Siete ;;
+8)  One=Eight; First=Eighth; Uno=Ocho ;;
+9)  One=Nine; First=Ninth; Uno=Nueve ;;
+10) One=Ten; First=Tenth; Uno=Diez ;;
+11) One=Eleven; First=Eleventh; Uno=Once ;;
+12) One=Twelve; First=Twelfth; Uno=Doce ;;
+13) One=Thirteen; First=Thirteenth; Uno=Trece ;;
+14) One=Fourteen; First=Fourteenth; Uno=Catorce ;;
+15) One=Fifteen; First=Fifteenth; Uno=Quince ;;
+16) One=Sixteen; First=Sixteenth; Uno=Dieciséis ;;
+17) One=Seventeen; First=Seventeenth; Uno=Diecisiete ;;
+18) One=Eighteen; First=Eighteenth; Uno=Dieciocho ;;
+19) One=Nineteen; First=Nineteenth; Uno=Diecinueve ;;
+20) One=Twenty; First=Twentieth; Uno=Veinte ;;
+*)
+    printf "Jesus fuck, close some fucking terminals.\n"
+    tput sgr0
+    exit ;;
+esac
+one=$(lower "$One"); ONE=$(upper "$One")
+first=$(lower "$First"); FIRST=$(upper "$First")
+
+
+# Finally, on to The Good Shit™!!
+
+shuf -n1 << EOF
+YOU AINT FROM MICHIGAN IF YOU AIN'T DONE THIS BEFORE
+It's $today.
+Ah yes, ${today}s are built for dads.
+THE SPOKES OF THE WHEEL OF FATE HAVE BEEN REPLACED
+EARTH IS BROKEN
+IT'S YOUR MOTHER'S BIRTHDAY
+THE DOCTOR SAID SIX MONTHS
+The Box is locked,
+BORN TO DIE
+THE LAZY SUSAN OF FATE IS TURNING
+Cant escape from pots and pans,
+FLEE FROM THE ORDERS WRITTEN IN HEAVEN
+If this bout doesn't triple my heart rate I will be very cross
+Reality is transforming!
+CAN'T ESCAPE FROM CROSSING MICHIGAN
+Money's on the table.
+Crank it to 11!
+THIS PARTY'S GETTIN' CRAZY!
+BIENVENUE POWER BOTTOMS!
+My dick is hard.
+Every cell is burning!
+Don't disappoint your father, put your hands up.
+It's $today, my dudes!
+Don't fly too close to the sun!
+YOU KNOW I HAD TO DO IT TO 'EM!
+The Book of Souls is missing your names.
+NO SUCH THING AS TOO MUCH SAUCE
+Revolvers drawn at high noon!
+A MIDNIGHT MEAL WITH THE DEVIL
+TOILET ROLL FORWARD OR BACKWARDS,
+From up above and from beneath!
+GODS PLAY DICE WITH THE UNIVERSE
+YOU'RE CANCELED
+WITHOUT THE SHEDDING OF BLOOD
+The earth of destiny is cycling
+There's nothing to eat in the fridge!
+THE CARDS HAVE BEEN DEALT
+Put on a show!
+Blame Yourself or God.
+DONT MESS WITH TEXAS
+You don't have long on this earth
+OMENS APPEAR TO US
+Diplomacy has failed!
+Aren't you tired of being nice?
+EOF
+
+shuf -n1 <<EOF
+NOW PAY THE MECHANIC,
+SEND THE INVOICE TO GOD
+WHY DON'T YOU GIVE HER A CALL
+THE CLOCK SAYS 90 SECONDS
+The lights are on,
+WORLD IS A FUCK
+THE FASTEST SINNER WILL EDIT THE TEXT
+Take a breath...!
+Don't disappoint us.
+THE CARBUNCLE ATE ITSELF!
+Your fists are harder.
+Blood pumping, heart racing!
+Let's get this bread,
+VARIOUS GOAT NOISES!
+One of you holds the pen.
+This town ain't big enough!
+DINE AND DASH
+RANCH AND PIZZA MAKE SENSE TO HEATHENS,
+THESE APPLE BOTTOM JEANS WON'T FIT THEMSELVES
+Eyes and jaws, claws and teeth!
+IT'S YOUR TURN.
+THERE IS NO REMISSION OF SIN
+You know what that means!
+The cellphone of destiny is close!
+CASTLE DOCTRINE
+Make this a good one
+God forgive us all...
+Don't you wanna just go ape shitt???
+EOF
+
+tput setaf 3
+
+shuf -n1 <<EOF
+$First Regret
+Beginning of the End
+Carnage $One
+$First Clash!
+MISSION $ONE
+$First Engagement
+Wing $num!
+Chapter $One
+INVOICE $ONE
+Ball $num: 
+Round the $first: 
+$FIRST TRY
+$FIRST HOWDY!
+$FIRST RECEIPT
+$FIRST CONFLICT,
+Round $Uno
+TELLING $num
+Concert $num
+$FIRST SHOWDOWN
+EOF
+
+tput setaf 6
+
+shuf -n1 <<EOF
+LET'S GET THE MONEY
+Let's get on it, cunts.
+and car.
+Let's get it, crackers.
+Get motivated, white boy!
+GO
+BEGIN
+FIGHT
+ATTACK
+ITS ROBOT FIGHTIN' TIME!
+Kill Em All 1989
+Let's Cook!
+MAKE IT SLOPPY
+Go Ape Shitt!!
+BLOW IT UP!
+Crush
+GET FUCKED!
+LET'S ROCK!
+FREEZE BALLS, ENGAGE!
+SMASH.
+EVISCERATE
+Dick'em Down
+Grind!
+TAKE OFF!
+MAKE IT HAPPEN!
+TELL US A STORY!
+DATE'S OVER!
+IT'S YO BOY! ALTERCATION ENGAGE SEVENTH SUNDAY!
+It comes.
+RUN!
+ROLL INITIATIVE
+SPILL THE TEA, SIS!
+STRUGGLE
+FIND THE JUSTICE
+GO FOR IT!
+Order Delivery!
+FIGHT AGAINST FATE!
+LET THE MUSIC PLAY!
+Throw Hands!
+WHATABURGER!
+Eat shit!
+Reach Heaven Through Violence
+THROW US TO THE BEASTS
+End it all!
+Unite up!
+Whip em out!
+EOF
+
+tput sgr0
