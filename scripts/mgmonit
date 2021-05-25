@@ -87,7 +87,7 @@ while read -r line; do
                 touch "$devdir/ds4"
             fi
             btaddr=$(udevadm info -a "$evdev" | \
-             sed -nr 's/^.*ATTRS\{phys\}=="(.+)".*$/\1/p')
+             sed -nr 's/^.*ATTRS\{uniq\}=="(.+)".*$/\1/p')
             if [ "$btaddr" ]; then puts "$btaddr" > "$devdir/btaddr"; fi
         fi
     elif match '^/devslot:'; then
