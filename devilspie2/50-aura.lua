@@ -2,18 +2,10 @@
 -- To make sizing accurate, add window frames to w/h listed by wmctrl -G.
 -- For Adapta, that's +4w, +27h.
 
--- Get current mode.
-modefile = io.open("/run/user/1000/mode")
-if modefile ~= nil then
-    mode = modefile:read()
-    modefile:close()
-else
-    mode = "laptop"
-end
-
 if win_class:is("Pegasus-Frontend") then
+    if screen_w > 1920 then loc = 1920 else loc = 0 end
     os.execute("wmctrl -i -r "..win_xid.." -b remove,fullscreen")
-    os.execute("wmctrl -i -r "..win_xid.." -e 0,0,0,-1,-1")
+    os.execute("wmctrl -i -r "..win_xid.." -e 0,"..loc..",0,-1,-1")
     os.execute("wmctrl -i -r "..win_xid.." -b add,fullscreen")
 end
 
@@ -30,17 +22,37 @@ if normal then
         maximize()
     end
 
+    if app_name:is("obs") then
+        if screen_h > 1080 then win_y = 1106 else win_y = 26 end
+        unmaximize()
+        os.execute("sleep 0.25")
+        set_window_position(0, win_y)
+        os.execute("sleep 0.25")
+        maximize()
+    end
+    
     -- Mode-specific rules.
-    if mode:is("homedesk") then
-        if app_name:is("obs") or app_name:is("Spotify") or
+    if screen_h > 1080 then
+        if app_name:is("Spotify") or win_class:is("Ferdi") or
          win_class:is("Discord") or win_class:is("Caprine") or
-         win_class:is("Ferdi")
+         win_class:is("cookieclicker-nativefier-3a34cc")
          then
             unmaximize()
             set_window_position(0, 1106)
+            win_y = 1106
             maximize()
-            stick_window()
-            pin_window()
+        -- For some reason Firefox starts on second monitor. Move it back.
+        elseif app_name:is("Firefox") and is_nth(1) then
+            unmaximize()
+            set_window_position(0, 26)
+            win_y = 26
+            maximize()
         end
     end
+end
+
+-- Any window that ends up on a non-laptop monitor should be sticky.
+if win_x >= 1920 or win_y >= 1080 then
+    stick_window()
+    pin_window()
 end
