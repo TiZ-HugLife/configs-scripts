@@ -43,3 +43,6 @@ if win_name == "Untitled window" and app_name == "Untitled window" then
         set_class("Spotify")
     end
 end
+
+-- Fix Spotify's icon too.
+if win_class:is("Spotify") then set_icon("spotify") end

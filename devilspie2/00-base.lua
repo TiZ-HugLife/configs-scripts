@@ -20,20 +20,17 @@ function type_is (target)
     return "WINDOW_TYPE_"..string.upper(target) == get_window_type()
 end
 
--- Check if window is nth of its group.
-function is_nth (v)
+-- Check if window is nth of its type.
+function is_nth (n)
     local count = 0
-    local class = v.class or ".+"
-    local app = v.app or ".+"
-    local name = v.name or ".+"
-    local find = class .. "%." .. app .. "\t" .. name
-    local handle = io.popen("wmctrl -lx | awk '{print $3 \"\t\" $4}'")
+    local find = class_instance .. "." .. win_class
+    local handle = io.popen("wmctrl -lx | awk '{print $3}'")
     local result = handle:read("*a")
     handle:close()
     for line in result:gmatch('[^\r\n]+') do
-        if line:find(find) then count = count + 1 end
+        if line:is(find) then count = count + 1 end
     end
-    return count == v.nth
+    return count == n
 end
 
 -- Modify window class.
@@ -98,6 +95,7 @@ win_class = (get_window_class() or "")
 class_instance = (get_class_instance_name() or "")
 win_role = (get_window_role() or "")
 win_x, win_y, win_w, win_h = get_window_client_geometry()
+screen_w, screen_h = get_screen_geometry()
 normal = type_is("normal")
 dialog = type_is("dialog")
 
