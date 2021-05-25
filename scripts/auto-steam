@@ -1,9 +1,11 @@
 #!/bin/sh
-# A Steam wrapper that waits for the launched game to finish before returning.
-# Useful if you want to exceute actions before and after running games.
-# If Steam is not already running, then it will close Steam afterwards.
-# Do not name this as "steam". It will chase itself around in circles.
-set -eu
+# auto-steam -- A Steam wrapper that blocks until the launched game exits.
+#
+# Useful if you want to exceute actions before and/or after running games. If
+# Steam is not already running, then it will close Steam afterwards. Do not name
+# this script as "steam"; It will chase itself around in circles. Don't use this
+# to launch Steam for general purpose; it's only useful for launching apps.
+. lib.sh; usage "$@"
 
 wait_app=0; steam_running=0
 
@@ -14,16 +16,19 @@ check_pids () {
 	done
 	return 1
 }
-pgrep_xself () { pgrep "${1:?}" | grep -v "$$" || : ; }
 
-if [ "$#" -eq 0 ]; then
-	printf "It doesn't make sense to run this without arguments.\n"
-	exit 1
-fi
+steam_didnt_die () {
+	steam_count=$(pgrep -c '^steam$')
+	if [ "${last_steam_count:-0}" -gt 0 ] && [ "$steam_count" -eq 0 ]; then
+		# If the count wasn't zero before, but is now, we know that Steam
+		# has left the building.
+		return 1
+	fi
+	last_steam_count=${steam_count}
+}
 
 for opt in "$@"; do case "$opt" in
-	-applaunch) wait_app=1 ;;
-	steam://run*) wait_app=1 ;;
+	-applaunch|steam://run*) wait_app=1 ;;
 	-no*flatpak) AUTO_STEAM_NO_FLATPAK=1; shift ;;
 	*) : ;;
 esac; done
@@ -31,33 +36,40 @@ esac; done
 # Make sure no other auto-steams are running.
 while [ "$(pgrep -c auto-steam)" -gt 1 ]; do sleep 0.5; done
 
-if [ "$(pgrep '^steam$' || :)" ]; then steam_running=1; fi
+if qpgrep '^steam$'; then steam_running=1; fi
 
 # Prefer Flatpak Steam if present and not disabled.
-if ! [ "${AUTO_STEAM_NO_FLATPAK:-}" ] && [ -x "$(command -v flatpak)" ] &&  \
- flatpak --command=true run com.valvesoftware.Steam; then
+if ! [ "${AUTO_STEAM_NO_FLATPAK:-}" ] && \
+ has_flatpak com.valvesoftware.Steam; then
 	steam () { flatpak run com.valvesoftware.Steam "$@"; }
 elif ! [ -x "$(command -v steam)" ]; then
-	printf "Can't find distro Steam.\n" >&2
-	exit 1
+	die "Can't find distro Steam."
 fi
+
+exec > "${XDG_DATA_HOME:-$HOME/.local/share}/auto-steam.log" 2>&1
 
 if [ "$wait_app" -eq 1 ]; then
 	{
-		until [ "${mon_pids:-}" ]; do
-			mon_pids=$(pgrep SteamChildMonit || :)
+		count=0
+		while ! [ "${mon_pids:-}" ] && steam_didnt_die; do
+			mon_pids=$(pids SteamChildMonit)
 			sleep 1
 		done
-		steam_pids=$(pgrep '^steam$' || :)
-		while check_pids "$mon_pids"; do sleep 0.5; done
-		if ! [ "$steam_running" -eq 1 ]; then
-			sleep 2
-			if check_pids "$steam_pids"; then steam -shutdown; fi
-			count=0
-			# Wait for Steam to actually quit.
-			while check_pids "$steam_pids" && [ "$count" -lt 10 ]; do
-				sleep 1; count=$((count + 1))
-			done
+		steam_pids=$(pids '^steam$')
+		# If Steam died before the game actually started, do nothing. If a game
+		# fails to start, at least this way you can just close Steam from the
+		# tray and you don't have to also do `pkill auto-steam`.
+		if [ "$steam_pids" ]; then
+			while check_pids "$mon_pids"; do sleep 0.5; done
+			if [ "$steam_running" -ne 1 ]; then
+				sleep 2
+				if check_pids "$steam_pids"; then steam -shutdown; fi
+				count=0
+				# Wait for Steam to actually quit.
+				while check_pids "$steam_pids" && [ "$count" -lt 10 ]; do
+					sleep 1; count=$((count + 1))
+				done
+			fi
 		fi
 	} &
 	waiter_pid="$!"
