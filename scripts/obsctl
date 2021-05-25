@@ -1,52 +1,51 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat << EOF
-$script -- A wrapper around obs-cli with extra actions.
-
-Outputs only the fields requested for gets and lists, takes a single argument
-for sets, and uses return code for boolean requests. Anything not specially
-handled passes through directly to obs-cli with the websocket password.
-Specially handled requests are case-insensitive.
-
-Store the password for the websocket in pass as obs-websocket.
-
-Usage: $script <action> [argument]
-
-Special actions:
-    Start: Starts OBS if it's not running and stores its PID.
-    Stop, Exit: Exits OBS if it was started by a Start action.
-    Wait: Waits for the websocket to be ready.
-    Bookmark: Save the current timestamp to a text file named like the
-      recording but with its extension replaced with .bm.txt.
-    StartRec*: Start recording but run a script before and after recording
-      is actually started to perform custom actions. The event taking place
-      will be passed as the first argument to XDG_CONFIG_HOME/obsctlrc.
-      The events are PreStartRecording, PostStopStreaming, etc.
-      There are also error events: StartRecordingError, StartStreamingError
-      so that you can handle if something went wrong. The recording filename
-      is passed as the second argument once available, so basically every
-      event except PreStartRecording.
-    StopRec*: Same as above, but on stopping recording.
-    StartStream*, StopStream*: Same as above, with no filename argument.
-
-Return code requests:
-    IsRecording, IsRecordingPaused, IsStreaming
-
-Single output get requests:
-    GetCurrentScene, GetScene, GetCurrentSceneCol*, GetSceneCol*, Get*Profile,
-    GetRec*Folder, GetRec*Filename, GetRec*Time*, GetStream*Time*,
-
-List requests:
-    Get*SceneList, ListScenes, GetProfileList, ListProfiles
-
-Single argument set requests:
-    SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
-    SetRec*Folder, SetFilenameFormat*
-    
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+# obsctl -- A wrapper around obs-cli with extra actions.
+# 
+# Outputs only the fields requested for gets and lists, takes a single argument
+# for sets, and uses return code for boolean requests. Anything not specially
+# handled passes through directly to obs-cli with the websocket password.
+# Specially handled requests are case-insensitive.
+# 
+# Store the password for the websocket in pass as obs-websocket.
+# 
+# Usage: obsctl <action> [argument]
+# 
+# Special actions:
+#     Start: Starts OBS if it's not running and stores its PID.
+#     Stop, Exit: Exits OBS if it was started by a Start action.
+#     Wait: Waits for the websocket to be ready.
+#     Bookmark: Save the current timestamp to a text file named like the
+#       recording but with its extension replaced with .bm.txt.
+#     StartRec*: Start recording but run a script before and after recording
+#       is actually started to perform custom actions. The event taking place
+#       will be passed as the first argument to XDG_CONFIG_HOME/obsctlrc.
+#       The events are PreStartRecording, PostStopStreaming, etc.
+#       There are also error events: StartRecordingError, StartStreamingError
+#       so that you can handle if something went wrong. The recording filename
+#       is passed as the second argument once available, so basically every
+#       event except PreStartRecording.
+#     StopRec*: Same as above, but on stopping recording.
+#     StartStream*, StopStream*: Same as above, with no filename argument.
+# 
+# Return code requests:
+#     IsRecording, IsRecordingPaused, IsStreaming
+# 
+# Single output get requests:
+#     GetCurrentScene, GetScene, GetCurrentSceneCol*, GetSceneCol*, Get*Profile,
+#     GetRec*Folder, GetRec*Filename, GetRec*Time*, GetStream*Time*,
+# 
+# List requests:
+#     Get*SceneList, ListScenes, GetProfileList, ListProfiles
+# 
+# Single argument set requests:
+#     SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
+#     SetRec*Folder, SetFilenameFormat*
 set -eu
 depends obs-cli pass
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
 
 if ! [ "${obs_ws_pw:-}" ]; then
 	obs_ws_pw=$(pass obs-websocket)

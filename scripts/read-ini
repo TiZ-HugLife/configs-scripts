@@ -1,15 +1,15 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- Read lines of an ini file filtered by section(s).
-When sections aren't given, only read unsectioned lines.
-To read the variable and the value of the ini file:
-    read-ini <file> [section(s)] | while IFS== read -r var value
-To just process the line manually:
-    read-ini <file> [section(s)] | while IFS= read -r line
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+# read-ini -- Read lines of an ini file filtered by section(s).
+# When sections aren't given, only read unsectioned lines.
+# To read the variable and the value of the ini file:
+#     read-ini <file> [section(s)] | while IFS='=' read -r var value
+# To just process the line manually:
+#     read-ini <file> [section(s)] | while IFS= read -r line
 set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
 
 sanitize () { printf %s "${1:-}" | tr '[:upper:]_' '[:lower:]-'; }
 

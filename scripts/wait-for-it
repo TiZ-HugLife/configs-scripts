@@ -1,49 +1,48 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-wait-for-it / wfi / check
-    This invocation: $script
-
-Wait for the appearance or disappearance of a process, file, window, or
-an internet connection. Then, optionally, execute a command afterward.
-Prepend no to any action word to invert matching condition, like nowindow.
-This is useful if you want to wait for a window or process to exit.
-You can use -- if you just want to sleep before executing commands.
-Wait for network requires wget. Wait for window requires wmctrl or xdotool.
-Exits status 1 if timeout is hit without a match.
-Usage:
-    $script [global opts] <proc|process|file> <target> [command, args]
-    $script [global opts] <net|network|internet> [command to exec]
-    $script [global opts] <win|window> [win opts] <target> [command, args]
-    $script [global opts] <dbus|dbus-service> <target> [command, args]
-    $script [global opts] -- [command to exec]
-Global options:
-    -i|--interval: Time in seconds to sleep before checking again, default 1.
-    -d|--pre-delay: Time in seconds to sleep before starting, default 0.
-    -D|--post-delay: Time in seconds to wait after matching, default 0.
-    -t|--timeout: Time in seconds to spend trying, or none for no timeout.
-        If invoked as check, default is 0.
-        If invoked as wait-for-it or wfi, default is 60.
-    -n|--number: Succeed on this many of the target, default 1.
-        This option is only meaningful for process and window targets.
-Window wait provider request (must precede other window options):
-    --wmctrl: Use wmctrl.
-    --xdotool: Use xdotool.
-Window options (wmctrl):
-    -v|--visible: Only search for windows on the current workspace.
-    -c|--class: Search combined class+classname with regex; default behavior.
-    -a|--classname: Same as above.
-    -n|--name|--title: Search by window name.
-    -F|--full: Force full string match.
-Window options (xdotool):
-    -v|--visible: Only search for visible windows.
-    -a|--classname: Search by classname; the default behavior.
-    -c|--class: Search by class.
-    -n|--name|--title: Search by window name.
-Special command - output: Print process IDs or window XIDs to standard output.
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+# wait-for-it / wfi / check
+#
+# Wait for the appearance or disappearance of a process, file, window, or
+# an internet connection. Then, optionally, execute a command afterward.
+# Prepend no to any action word to invert matching condition, like nowindow.
+# This is useful if you want to wait for a window or process to exit.
+# You can use -- if you just want to sleep before executing commands.
+# Wait for network requires wget. Wait for window requires wmctrl or xdotool.
+# Exits status 1 if timeout is hit without a match.
+# Usage:
+#     wait-for-it [global opts] <proc|process|file> <target> [command, args]
+#     wait-for-it [global opts] <net|network|internet> [command to exec]
+#     wait-for-it [global opts] <win|window> [win opts] <target> [command, args]
+#     wait-for-it [global opts] <dbus|dbus-service> <target> [command, args]
+#     wait-for-it [global opts] -- [command to exec]
+# Global options:
+#     -i|--interval: Time in seconds to sleep before checking again, default 1.
+#     -d|--pre-delay: Time in seconds to sleep before starting, default 0.
+#     -D|--post-delay: Time in seconds to wait after matching, default 0.
+#     -t|--timeout: Time in seconds to spend trying, or none for no timeout.
+#         If invoked as check, default is 0.
+#         If invoked as wait-for-it or wfi, default is 60.
+#     -n|--number: Succeed on this many of the target, default 1.
+#         This option is only meaningful for process and window targets.
+# Window wait provider request (must precede other window options):
+#     --wmctrl: Use wmctrl.
+#     --xdotool: Use xdotool.
+# Window options (wmctrl):
+#     -v|--visible: Only search for windows on the current workspace.
+#     -c|--class: Search combined class+classname with regex; default behavior.
+#     -a|--classname: Same as above.
+#     -n|--name|--title: Search by window name.
+#     -F|--full: Force full string match.
+# Window options (xdotool):
+#     -v|--visible: Only search for visible windows.
+#     -a|--classname: Search by classname; the default behavior.
+#     -c|--class: Search by class.
+#     -n|--name|--title: Search by window name.
+# Special command - output: Print process IDs or window XIDs to standard output.
 set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
 
 interval=1
 pre_delay=0
@@ -56,18 +55,16 @@ if [ "$(basename "$0")" = "check" ]; then timeout=0; fi
 
 while [ "${1#-}" != "$1" ]; do
 	case "$1" in
-	-i|--interval) interval="${2:?}"; shift;;
-	-d|--pre-delay) pre_delay="${2:?}"; shift;;
-	-D|--post-delay) post_delay="${2:?}"; shift;;
-	-t|--timeout) timeout="${2:?}"; shift;;
-	-n|--number) number="${2:?}"; shift;;
-	-h|--help) usage 0;;
-	--) break;;  # This is the do-nothing option.
-	*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
+	-i|--interval) interval="${2:?}"; shift ;;
+	-d|--pre-delay) pre_delay="${2:?}"; shift ;;
+	-D|--post-delay) post_delay="${2:?}"; shift ;;
+	-t|--timeout) timeout="${2:?}"; shift ;;
+	-n|--number) number="${2:?}"; shift ;;
+	--) break ;;  # This is the do-nothing option.
+	*) printf "Invalid option: %s\n" "$1" >&2; usage 1 ;;
 	esac; shift
 done
 
-if [ "$#" -eq 0 ]; then usage 1; fi
 action="$1"; shift
 
 # Check for inversion.
@@ -102,7 +99,7 @@ window_wmctrl () {
 				if [ "$(printf %s "$output" | grep -c .)" -ge "$number" ]
 					then return 0; else return 1; fi
 			} ;;
-		*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
+		*) printf "Invalid option: %s\n" "$1" >&2; usage 1 ;;
 		esac; shift; shifts=$((shifts + 1))
 	done
 	target="$1"; shift
@@ -126,10 +123,10 @@ window_xdotool () {
 					then return 0; else return 1; fi
 				}
 			;;
-		-c|--class) search="--class";;
-		-a|--classname) search="--classname";;
-		-t|--title|--name) search="--name";;
-		*) printf "Invalid option: %s\n" "$1" >&2; usage 1;;
+		-c|--class) search="--class" ;;
+		-a|--classname) search="--classname" ;;
+		-t|--title|--name) search="--name" ;;
+		*) printf "Invalid option: %s\n" "$1" >&2; usage 1 ;;
 		esac; shift; shifts=$((shifts + 1))
 	done
 	target="$1"; shift
@@ -206,7 +203,7 @@ win|window)
 	fi
 	shift "$shifts"
 	;;
-*) printf "Invalid action: %s\n" "$action" >&2; usage 1;;
+*) printf "Invalid action: %s\n" "$action" >&2; usage 1 ;;
 esac
 
 sleep "$pre_delay"

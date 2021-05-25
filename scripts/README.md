@@ -13,29 +13,23 @@ Here are some great resources for writing scripts in POSIX sh:
 
 Here are some extra tricks that I use:
 
-## Self-Documentation
+## Documentation as Usage Text
 
-Comments at the top of your file are all fine and good, but often times if a script hasn't been used for a hot minute, you might not remember what it does or how to use it. Wouldn't it be good if you could run your script and get that comment block? Well, you can, but the catch is you have to turn your comment block into actual code.
+Comments at the top of your file are absolutely good practice, but often times if a script hasn't been used for a hot minute, you might not remember what it does or how to use it, and it's kind of unwieldy to open the file to remember how to use it. Wouldn't it be great if you could run your script with a `-h` switch and get that comment block? Well, you can!
 
 ```sh
-#!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- INSERT DESCRIPTION AND DOCUMENTATION HERE
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
-set -eu
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
 ```
 
-This is MAD ugly, but it handles both documenting the script for anyone looking at the source, and also documenting its usage for anyone trying to run it. It responds to the standard flags for help and usage, and also to an invocation without arguments. You can use the usage function elsewhere in your code if someone does something wrong and you want to spit out the usage text in response, and as such it takes an argument for the exit code.
-
-The script variable is defined only inside the usage function, because if you need to recursively invoke the script, you should do that with `"$0"`.
+This sed block does three things: quits on any non-comment line, deletes shellcheck directives, and prints comments without the comment character in front. Using case, we can respond to the standard flags for help and usage, and also to an invocation without arguments with a `""` case.
 
 If the script is intended to be run without arguments, remove the `""` case. That said, this idiom is not very useful for scripts that run in the background and do things autonomously, which also typically do so without arguments.
 
 ## Self-Sudo
 
-Speaking of recursively invoking a script, sometimes the script is intended to be invoked with sudo. Whenever that is the case, why not just go ahead and handle that ourselves?
+Sometimes a script is intended to be invoked with sudo. Whenever that is the case, why not just go ahead and handle that ourselves?
 
 ```sh
 if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi

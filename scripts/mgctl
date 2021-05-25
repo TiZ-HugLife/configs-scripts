@@ -1,27 +1,29 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- Manage running MoltenGamepad instance
-
-Any unknown command is passed through directly to the socket/fifo.
-
-Swap slots 1 and 2 (Requires mgmonit utility):
-  $script swap12
-
-Set game profiles:
-  $script profiles game <list of profiles> ...
-
-Switch to temporary profile set:
-  $script profiles temp <list of profiles> ...
-
-Unload temp profiles and go back to game profiles if set:
-  $script profiles game
-
-Unload all game and temp profiles:
-  $script profiles reset
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+# mgctl -- Manage running MoltenGamepad instance
+#
+# Any unknown command is passed through directly to the socket/fifo.
+#
+# Swap slots 1 and 2 (Requires mgmonit utility):
+#   mgctl swap12
+# 
+# Set game profiles:
+#   mgctl profiles game <list of profiles> ...
+# 
+# Switch to temporary profile set:
+#   mgctl profiles temp <list of profiles> ...
+# 
+# Unload temp profiles and go back to game profiles if set:
+#   mgctl profiles game
+# 
+# Unload all game and temp profiles:
+#   mgctl profiles reset
 set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+if ! [ "$(pgrep moltengamepad || :)" ]; then exit 0; fi
 
 # Convenience functions for notifying about operation status.
 if [ -x "$(command -v system-notify)" ]; then
@@ -77,7 +79,7 @@ swap12)
 	mgexec move "$second" to virtpad1
 	;;
 profile|profiles)
-	if ! [ "${2:-}" ]; then help; exit 1; fi
+	if ! [ "${2:-}" ]; then usage 1; fi
 	opt="$2"; shift 2
 	case "$opt" in
 	game)

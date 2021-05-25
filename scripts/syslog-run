@@ -1,18 +1,16 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- Send a command's output to syslog and run it in the background.
-If the tag is not specified, the command's basename is used. If the basename
-is flatpak or a desktop launcher, it will set the tag from their args.
-
-Usage:
-    syslog-run [-t|--tag tag] command [args]
-EOF
-exit "${1:-0}"; }
+# syslog-run -- Send a command's output to syslog and run it in the background.
+#     Usage: syslog-run [-t|--tag tag] command [args]
+# If the tag is not specified, the command's basename is used. If the basename
+# is flatpak or a desktop launcher, it will set the tag from their args.
 set -eu
 
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-}"; }
+
 case "${1:-}" in
+	-h|--help|--usage|help|usage|"") usage 0 ;;
 	-t|--tag) tag="$2"; shift 2 ;;
-	-h|--help|--usage|"") usage 0 ;;
 esac
 
 # Find the Flatpak app name and use it as the tag.

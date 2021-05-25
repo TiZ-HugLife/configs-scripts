@@ -1,17 +1,17 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- Checks for script dependencies. If any are not present, prints
-out their names with an error message and then exits 1, which will cause
-scripts using set -e to exit, or can be paired with \`|| exit 1\`.
-Sends a notification too, which is handy if you have it set up, switch
-distros, and forget to install a dependency.
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage|"") usage 0 ;; esac
+# depends -- Checks for script dependencies. If any are not present, prints
+# out their names with an error message and then exits 1, which will cause
+# scripts using set -e to exit, or can be paired with `|| exit 1`. Also
+# sends a notification, which is handy if you have it set up, switch
+# distros, and forget to install a dependency.
 set -eu
 
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
 for arg; do
-	if ! [ -x "$(command -v "${1:?}")" ]; then
+	if ! [ -x "$(command -v "$arg")" ]; then
 		missing="${missing:+$missing }$arg"
 	fi
 done
