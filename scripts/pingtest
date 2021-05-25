@@ -1,18 +1,27 @@
 #!/bin/sh
-usage () { script=$(basename "$0"); cat <<EOF
-$script -- Run a ping test to various servers to test connection quality.
-Does not take any arguments.
-
-<<! Please note that this script will invoke sudo on itself. !>>
-This is necessary to ping at 60Hz.
-EOF
-exit "${1:-0}"; }
-case "${1:-}" in -h|--help|--usage) usage 0 ;; esac
+# pingtest -- Run a ping test to various servers to test connection quality.
+# 
+# Usage: pingtest [addresses...|defaults]
+# Passing no arguments or passing default as an argument adds the following
+# addresses to the list:
+#     1.1.1.1, 8.8.8.8, 8.8.4.4
+#
+# <<! Please note that this script will invoke sudo on itself. !>>
+# This is necessary to ping at 60Hz.
 set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
 
 # Self-sudo.
 if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
 
-for addr in 192.168.102.4 1.1.1.1 8.8.8.8 8.8.4.4; do
-    ping -q -i 0.0167 -c 300 "$addr"
+for arg in "${@:-}"; do case "$arg" in
+defaults|"") set -- "${@:-}" 1.1.1.1 8.8.8.8 8.8.4.4 ;;
+*) set -- "$@" "$arg" ;;
+esac; shift; done
+
+for addr in "$@"; do
+    if [ "$addr" ]; then ping -q -i 0.0167 -c 300 "$addr"; fi
 done
