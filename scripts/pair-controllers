@@ -1,0 +1,45 @@
+#!/bin/sh
+# shellcheck disable=SC2165 disable=SC2167
+# pair-controllers -- Scan for and pair with game controllers for 48 seconds.
+#
+# This script scans 12 times for 4 seconds each. When it sees a controller in
+# pairing mode that the system does not currently have a pairing for, it makes
+# a new pairing. To handle controllers it has seen before, it first removes its
+# information so that on the next cycle, it's a "new" controller.
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
+
+get_addrs () { grep -oP '([0-F]{2}:?){6}' | sort | uniq; }
+is_controller () { bluetoothctl info "$1" | grep -q "Icon: input-gaming"; }
+is_paired () { bluetoothctl info "$1" | grep -q "Paired: yes"; }
+did_pairing () { grep -q "$1" "$tmpfile"; }
+
+tmpfile=$(mktemp)
+
+printf "Searching for controllers to pair.\n"
+notify-send -i "input-gaming-symbolic" "Pairing mode started"
+for _ in $(seq 1 12); do
+    bluetoothctl --timeout 4 scan on | get_addrs | while read -r addr; do
+        if is_controller "$addr" && ! did_pairing "$addr"; then
+            if is_paired "$addr"; then
+                printf "Removing old pairing for %s\n" "$addr"
+                bluetoothctl remove "$addr"
+            else
+                printf "Starting new pairing for %s\n" "$addr"
+                printf %s\\n "$addr" >> "$tmpfile"
+                bluetoothctl trust "$addr"
+                for _ in $(seq 1 4); do
+                    if bluetoothctl --timeout 5 pair "$addr"; then
+                        break
+                    fi
+                done &
+            fi
+        fi
+    done
+done
+
+wait
+rm "$tmpfile"
