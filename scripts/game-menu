@@ -1,0 +1,50 @@
+#!/bin/sh
+# A menu to do various actions from the gamepad.
+
+now_playing="/run/user/$(id -u)/gaming/now_playing"
+if [ -r "$now_playing" ]; then
+	header="Now playing: $(cat "$now_playing")"
+else
+	header="Not currently in-game"
+fi
+
+result=$(
+	slick-menu "$header" \
+	 "ctrl" "Manage controllers" \
+	 "shot" "Take a screenshot" \
+	 "kill" "Force quit application" \
+	 "home" "Open app's guide menu"
+)
+
+case "$result" in
+ctrl)
+	dcbt () {
+		if [ -e "/run/moltengamepad/slots/$1/btaddr" ]; then
+			addr=$(cat "/run/moltengamepad/slots/$1/btaddr")
+			bluetoothctl disconnect "$addr"
+		else
+			notify-send -i input-gaming-symbolic "Can't disconnect" \
+			 "Controller is not bluetooth or not connected."
+		fi
+	}
+	result=$(
+		slick-menu "Manage controllers" \
+		 "pair" "Start pairing mode (40 sec)" \
+		 "swap" "Swap P1 and P2" \
+		 "disc" "Disconnect all BT controllers" \
+		 "s1" "Disconnect P1 (Cyan)" \
+		 "s2" "Disconnect P2 (Magenta)" \
+		 "s3" "Disconnect P3 (Yellow)" \
+		 "s4" "Disconnect P4 (White)"
+	)
+	case "$result" in
+	pair) pair-controllers ;;
+	disc) dc-bt-controllers ;;
+	swap) mgctl swap12 ;;
+	s1)   dcbt 1 ;;
+	s2)   dcbt 2 ;;
+	s3)   dcbt 3 ;;
+	s4)   dcbt 4 ;;
+	esac ;;
+shot) sleep 1; screenshot ;;
+esac
