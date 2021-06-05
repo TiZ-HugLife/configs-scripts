@@ -1,3 +1,5 @@
+@import url("moz-css/lepton.css");
+
 /* Sidebar customizations, mainly for Tree Style Tab. */
 #sidebar-box[checked] {
     background-color: window !important;
@@ -79,10 +81,11 @@
 }
 /* Override pesky inline styles by specifying the style attribute. */
 #urlbar-container[style] {
-    --urlbar-container-height: 25px !important;
+    --urlbar-container-height: 24px !important;
+    margin: 1px !important;
 }
 #urlbar[style] {
-    --urlbar-toolbar-height: 21px !important;
+    --urlbar-toolbar-height: 20px !important;
 }
 
 
@@ -98,8 +101,8 @@
 }
 #urlbar[breakout][breakout-extend] > #urlbar-input-container {
     height: var(--urlbar-height) !important;
-    padding-block: 0 !important;
-    padding-inline: 0 !important;
+    padding-block: 1px !important;
+    padding-inline: 1px !important;
 }
 #urlbar[breakout][breakout-extend] > #urlbar-background {
     animation-name: none !important;
