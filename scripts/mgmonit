@@ -17,7 +17,7 @@ mg_notify () {
     system-notify -t 8000 -i "input-gaming-symbolic" "$1" "$2${3:-}"
 }
 
-controller_type () {
+controller_name () {
     case "$1" in
     xpad_*)           puts "XBox controller" ;;
     ps4_*)            puts "PlayStation 4 controller" ;;
@@ -95,7 +95,7 @@ while read -r line; do
         slot=$(second)
         devnum=$(devnum "$device")
         slotnum=$(slotnum "$slot")
-        name=$(controller_type "$device")
+        name=$(controller_name "$device")
         body="Assigned to slot ${slotnum}P."
         notes=$(controller_notes "$device")
         if [ "$slotnum" -eq 2 ] && [ "$connection" -eq 1 ]; then
@@ -105,6 +105,7 @@ while read -r line; do
         if [ "$connection" -eq 0 ]; then action="reassigned"; fi
         mg_notify "$name $devnum $action" "$body" "$notes" || :
         puts "$slotnum" > "$rundir/devices/$device/slot"
+        puts "$name" > "$rundir/devices/$device/name"
         ln -sfn "$rundir/devices/$device" "$rundir/slots/$slotnum"
         if [ -e "$rundir/devices/$device/ds4" ] && \
          [ -x "$(command -v ds4-lightbar)" ]; then
@@ -116,7 +117,7 @@ while read -r line; do
         device=$(first)
         devnum=$(devnum "$device")
         slotnum=$(cat "$rundir/devices/$device/slot")
-        name=$(controller_type "$device")
+        name=$(controller_name "$device")
         mg_notify "$name $devnum disconnected." \
          "Removed from slot ${slotnum}P."
         rm -r "$rundir/devices/$device" "$rundir/slots/$slotnum"
