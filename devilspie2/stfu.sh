@@ -1,5 +1,5 @@
 #!/bin/sh
-# Continuously remove a window's attention hint for 5 seconds.
+# Continuously remove a window's attention hint for 10 seconds.
 # Really useful for Discord windows on startup.
 set -eu
 
@@ -11,7 +11,7 @@ wfi -i 0.25 dbus org.xfce.Xfconf
 xfconf-query -c xfwm4 -p /general/activate_action -s none
 touch "$rundir/$$"
 count=0
-while [ "$((count = count + 1))" -le "$((${2:-5} * 4))" ]; do
+while [ "$((count = count + 1))" -le "$((${2:-10} * 4))" ]; do
 	sleep 0.25
 	wmctrl -i -r "$1" -b remove,demands_attention
 done
