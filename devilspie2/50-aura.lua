@@ -33,9 +33,10 @@ if normal then
     
     -- Mode-specific rules.
     if screen_h > 1080 then
-        if app_name:is("Spotify") or win_class:is("Ferdi") or
+        if win_class:is("Spotify") or win_class:is("Ferdi") or
          win_class:is("Discord") or win_class:is("Caprine") or
-         win_class:is("cookieclicker-nativefier-3a34cc")
+         win_class:is("cookieclicker-nativefier-3a34cc") or
+         win_class:is("MSTeams")
          then
             unmaximize()
             set_window_position(0, 1106)
