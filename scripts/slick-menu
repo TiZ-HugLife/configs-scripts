@@ -1,0 +1,50 @@
+#!/bin/sh
+# slick-menu -- Use rofi to create a menu for scripting.
+#     Usage: slick-menu <prompt> <id> <option text> [id] [option text] ...
+# If mgctl is present, will load the kbctl profile for gamepad menu control.
+# Alternate option IDs and option texts. Prints the ID of the selected text to
+# stdout. If canceled, prints nothing to stdout.
+set -eu
+
+if ! [ -x "$(command -v rofi)" ]; then
+	printf "This script requires rofi. Please install it.\n" >&2
+	exit 1
+fi
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+switch=0; count=0
+prompt="$1"; shift
+
+for arg; do
+	if [ "$switch" -eq 0 ]; then
+		ids="${ids:+$ids\n}$arg"
+		switch=1
+		count=$((count + 1))
+	else
+		texts="${texts:+$texts\n}$arg"
+		switch=0
+	fi
+done
+
+if [ "$switch" -eq 1 ]; then
+	printf "Mismatched number of IDs and texts.\n" >&2
+	exit 1
+fi
+
+if [ "$count" -eq 0 ]; then usage 1; fi
+
+if [ -x "$(command -v mgctl)" ]; then
+	mgctl profiles temp kbctl
+fi
+
+result=$(printf %b\\n "$texts" | rofi -dmenu -p "$prompt" -no-custom -format d \
+ -theme slick-menu.rasi -lines "$count" || :)
+
+printf %b\\n "$ids" | sed -n "$result p"
+
+if [ -x "$(command -v mgctl)" ]; then
+	sleep 0.5; mgctl profiles game
+fi

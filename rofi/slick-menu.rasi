@@ -1,0 +1,85 @@
+configuration {
+	fullscreen: false;
+	dpi: 1;
+}
+
+* {
+	none: rgba(0, 0, 0, 0%);
+	main-background: rgba(0, 0, 0, 50%);
+	win-background: rgba(0, 0, 0, 80%);
+	foreground: rgba(255, 255, 255, 100%);
+	selection: rgba(0, 255, 255, 100%);
+	accent-fg: black;
+	accent-bg: cyan;
+}
+
+window {
+	background-color: @main-background;
+	border: 0;
+	padding: 0;
+	position: center;
+	anchor: center;
+	font: "Apres 16";
+	border-radius: 8px;
+	width: 25%;
+}
+
+mainbox {
+	expand: false;
+	background-color: @none;
+	text-color: @foreground;
+	//margin: ${MARGIN};
+	//margin: 0% 40%;
+	position: center;
+	anchor: center;
+	children: [inputbar, listview];
+	border-radius: 8px;
+	padding: 8px;
+}
+
+listview {
+	background-color: @win-background;
+	text-color: inherit;
+	fixed-height: 0;
+	dynamic: false;
+	expand: false;
+	width: 25%;
+	vertical-align: 50%;
+	border-radius: 8px;
+	padding: 8px;
+	position: center;
+	anchor: center;
+}
+
+scrollbar {
+	enabled: false;
+}
+
+element {
+	padding: 4px;
+	border-radius: 8px;
+	background-color: inherit;
+	text-color: inherit;
+}
+
+element.selected {
+	background-color: @accent-bg;
+	text-color: @accent-fg;
+}
+
+inputbar {
+	background-color: inherit;
+	text-color: @selection;
+	children: [ prompt ];
+}
+
+prompt {
+	background-color: inherit;
+	text-color: inherit;
+	font: "Apres Bold 16";
+	margin: 4px 4px 8px 4px;
+}
+
+entry {
+	enabled: false;
+}
