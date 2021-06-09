@@ -13,8 +13,8 @@ devnum ()  { puts "${1##*_}"; }
 slotnum () { puts "${1#virtpad}"; }
 
 mg_notify () {
-    stime=5000; if [ "${3:-}" ]; then time=8000; fi
-    system-notify -t 8000 -i "input-gaming-symbolic" "$1" "$2${3:-}"
+    time=5000; if [ "${3:-}" ]; then time=8000; fi
+    system-notify -t "$time" -i "input-gaming-symbolic" "$1" "$2${3:-}"
 }
 
 controller_name () {
@@ -97,9 +97,12 @@ while read -r line; do
         slotnum=$(slotnum "$slot")
         name=$(controller_name "$device")
         body="Assigned to slot ${slotnum}P."
+        notes=""
         notes=$(controller_notes "$device")
-        if [ "$slotnum" -eq 2 ] && [ "$connection" -eq 1 ]; then
-            notes="$notes\nPress Win+S to swap 1P and 2P."
+        if [ "$connection" -eq 1 ]; then
+            notes="\nPress Home/Guide or Win+G to manage controllers."
+            extra_notes=$(controller_notes "$device")
+            notes="$notes${extra_notes:+\n$extra_notes}"
         fi
         action="connected"
         if [ "$connection" -eq 0 ]; then action="reassigned"; fi
