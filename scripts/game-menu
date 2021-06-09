@@ -1,50 +1,96 @@
 #!/bin/sh
 # A menu to do various actions from the gamepad.
 
+cat_e () { if [ -r "$1" ]; then cat "$1"; else printf %b\\n "${2:-}"; fi; }
+
 now_playing="/run/user/$(id -u)/gaming/now_playing"
 if [ -r "$now_playing" ]; then
 	header="Now playing: $(cat "$now_playing")"
+	kill_id="kill"; kill_text="Force quit application"
+	home_id="home"; home_text="Open app's guide menu"
 else
 	header="Not currently in-game"
+	peg_id="peg"; peg_text="Play a game"
 fi
 
+# shellcheck disable=SC2034
+{
+color_1=Cyan
+color_2=Magenta
+color_3=Yellow
+color_4=White
+}
+for idx in 1 2 3 4; do
+	if [ -e "/run/moltengamepad/slots/$idx" ]; then
+		name=$(cat_e /run/moltengamepad/slots/$idx/name "Generic controller")
+		eval "ctrl_id_$idx=man_$idx"
+		eval "ctrl_text_$idx=\"    P$idx (\$color_$idx): $name\""
+		if [ "$idx" = 1 ]; then
+			disc_id=disc
+			disc_text="    Disconnect all bluetooth controllers"
+		elif [ "$idx" = 2 ]; then
+			swap_id=swap
+			swap_text="    Swap P1 and P2 controllers"
+		fi
+	fi
+done
+
 result=$(
-	slick-menu "$header" \
-	 "ctrl" "Manage controllers" \
-	 "shot" "Take a screenshot" \
-	 "kill" "Force quit application" \
-	 "home" "Open app's guide menu"
+	slick-menu -w 30% "$header" \
+	 "${peg_id:-}" "${peg_text:-}" \
+	 shot "Take a screenshot" \
+	 "${kill_id:-}" "${kill_text:-}" \
+	 "${home_id:-}" "${home_text:-}" \
+	 sep "Controllers:" \
+	 pair "    Pair controllers for 40 sec" \
+	 "${swap_id:-}" "${swap_text:-}" \
+	 "${disc_id:-}" "${disc_text:-}" \
+	 "${ctrl_id_1:-}" "${ctrl_text_1:-}" \
+	 "${ctrl_id_2:-}" "${ctrl_text_2:-}" \
+	 "${ctrl_id_3:-}" "${ctrl_text_3:-}" \
+	 "${ctrl_id_4:-}" "${ctrl_text_4:-}" \
 )
 
 case "$result" in
-ctrl)
-	dcbt () {
-		if [ -e "/run/moltengamepad/slots/$1/btaddr" ]; then
-			addr=$(cat "/run/moltengamepad/slots/$1/btaddr")
-			bluetoothctl disconnect "$addr"
-		else
-			notify-send -i input-gaming-symbolic "Can't disconnect" \
-			 "Controller is not bluetooth or not connected."
-		fi
-	}
+pair) pair-controllers ;;
+disc) dc-bt-controllers ;;
+swap) mgctl swap12 ;;
+man_*)
+	idx=${result##man_}
+	slot="/run/moltengamepad/slots/$idx"
+	if ! [ -e "$slot" ]; then exit; fi
+	name=$(cat_e "$slot/name" "Generic controller")
+	btaddr=$(cat_e "$slot/btaddr")
 	result=$(
-		slick-menu "Manage controllers" \
-		 "pair" "Start pairing mode (40 sec)" \
-		 "swap" "Swap P1 and P2" \
-		 "disc" "Disconnect all BT controllers" \
-		 "s1" "Disconnect P1 (Cyan)" \
-		 "s2" "Disconnect P2 (Magenta)" \
-		 "s3" "Disconnect P3 (Yellow)" \
-		 "s4" "Disconnect P4 (White)"
+		slick-menu -w 30% "P$idx: $name" \
+		 disc "Disconnect this controller" \
+		 unpair "Unpair this controller" \
+		 dcpair "Disconnect and pair new" \
+		 upnp "Unpair and pair new" \
+		 name "Change controller name"
 	)
 	case "$result" in
-	pair) pair-controllers ;;
-	disc) dc-bt-controllers ;;
-	swap) mgctl swap12 ;;
-	s1)   dcbt 1 ;;
-	s2)   dcbt 2 ;;
-	s3)   dcbt 3 ;;
-	s4)   dcbt 4 ;;
-	esac ;;
+	name)
+		notify-send -i input-gaming-symbolic "Not implemented" \
+		 "Sorry, this doesn't do anything yet." ;;
+	disc|dcpair)
+		if [ "$btaddr" ]; then bluetoothctl disconnect "$btaddr"
+		else notify-send -i input-gaming-symbolic "Can't disconnect" \
+		 "Controller is not bluetooth."
+		fi ;;
+	unpair|upnp)
+		if [ "$btaddr" ]; then bluetoothctl remove "$btaddr"
+		else notify-send -i input-gaming-symbolic "Can't unpair" \
+		 "Controller is not bluetooth."
+		fi ;;
+	esac
+	case "$result" in
+	dcpair|upnp) pair-controllers ;;
+	esac
+	;;
 shot) sleep 1; screenshot ;;
+peg) if ! pgrep pegasus >/dev/null 2>&1; then pegasus & fi ;;
+kill|home)
+	notify-send -i input-gaming-symbolic "Not implemented" \
+	 "Sorry, this doesn't do anything yet." ;;
 esac
