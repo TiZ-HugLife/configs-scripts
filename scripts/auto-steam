@@ -5,9 +5,20 @@
 # Steam is not already running, then it will close Steam afterwards. Do not name
 # this script as "steam"; It will chase itself around in circles. Don't use this
 # to launch Steam for general purpose; it's only useful for launching apps.
-. lib.sh; usage "$@"
+set -eu
 
 wait_app=0; steam_running=0
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+pids () { pgrep "$@" || :; }
+qpgrep () { pgrep "$@" >/dev/null 2>&1; }
+has_flatpak () {
+	[ -x "$(command -v flatpak)" ] && \
+	 flatpak run --command=true "$1" >/dev/null 2>&1
+}
 
 check_pids () {
 	# shellcheck disable=SC2048
@@ -43,7 +54,8 @@ if ! [ "${AUTO_STEAM_NO_FLATPAK:-}" ] && \
  has_flatpak com.valvesoftware.Steam; then
 	steam () { flatpak run com.valvesoftware.Steam "$@"; }
 elif ! [ -x "$(command -v steam)" ]; then
-	die "Can't find distro Steam."
+	printf "Can't find distro Steam.\n" >&2
+	exit 1
 fi
 
 exec > "${XDG_DATA_HOME:-$HOME/.local/share}/auto-steam.log" 2>&1
@@ -52,7 +64,7 @@ if [ "$wait_app" -eq 1 ]; then
 	{
 		count=0
 		while ! [ "${mon_pids:-}" ] && steam_didnt_die; do
-			mon_pids=$(pids SteamChildMonit)
+			mon_pids=$(pids -f "reaper SteamLaunch")
 			sleep 1
 		done
 		steam_pids=$(pids '^steam$')
@@ -60,7 +72,7 @@ if [ "$wait_app" -eq 1 ]; then
 		# fails to start, at least this way you can just close Steam from the
 		# tray and you don't have to also do `pkill auto-steam`.
 		if [ "$steam_pids" ]; then
-			while check_pids "$mon_pids"; do sleep 0.5; done
+			while check_pids "$mon_pids"; do sleep 1; done
 			if [ "$steam_running" -ne 1 ]; then
 				sleep 2
 				if check_pids "$steam_pids"; then steam -shutdown; fi
