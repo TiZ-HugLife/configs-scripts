@@ -5,8 +5,8 @@ configuration {
 
 * {
 	none: rgba(0, 0, 0, 0%);
-	main-background: rgba(0, 0, 0, 50%);
-	win-background: rgba(0, 0, 0, 80%);
+	main-background: rgba(16, 16, 16, 50%);
+	win-background: rgba(0, 0, 0, 100%);
 	foreground: rgba(255, 255, 255, 100%);
 	selection: rgba(0, 255, 255, 100%);
 	accent-fg: black;
@@ -21,7 +21,7 @@ window {
 	anchor: center;
 	font: "Apres 16";
 	border-radius: 8px;
-	width: 25%;
+	width: ${WIDTH};
 }
 
 mainbox {

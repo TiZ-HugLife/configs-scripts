@@ -15,10 +15,15 @@ fi
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
 case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
 
+width="25%"
+case "${1:-}" in -w|--width) width="$2"; shift 2 ;; esac
+
 switch=0; count=0
 prompt="$1"; shift
 
 for arg; do
+	# Allows providing blank args to skip an item.
+	if ! [ "$arg" ]; then continue; fi
 	if [ "$switch" -eq 0 ]; then
 		ids="${ids:+$ids\n}$arg"
 		switch=1
@@ -36,14 +41,18 @@ fi
 
 if [ "$count" -eq 0 ]; then usage 1; fi
 
+tmp=$(mktemp); trap 'rm -f $tmp' EXIT
+sed 's/${WIDTH}/'"$width"'/' \
+ "${XDG_CONFIG_HOME:-$HOME/.config}/rofi/slick-menu.rasi.in" > "$tmp"
+
 if [ -x "$(command -v mgctl)" ]; then
 	mgctl profiles temp kbctl
 fi
 
 result=$(printf %b\\n "$texts" | rofi -dmenu -p "$prompt" -no-custom -format d \
- -theme slick-menu.rasi -lines "$count" || :)
+ -theme "$tmp" -lines "$count" || :)
 
-printf %b\\n "$ids" | sed -n "$result p"
+printf %b\\n "$ids" | sed -n "$result p" || :
 
 if [ -x "$(command -v mgctl)" ]; then
 	sleep 0.5; mgctl profiles game
