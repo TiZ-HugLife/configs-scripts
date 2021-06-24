@@ -1,5 +1,7 @@
 #!/bin/sh
-# Work around sandbox's busted controller enumeration by enumerating controllers
+# If SDL2 uses the filesystem to enumerate controllers, it uses readdir, which 
+# returns the joysticks in an arbitrary order. On my system, it happens to be in
+# reverse of alphabetical order. So work around this by enumerating controllers
 # ourselves and setting SDL_JOYSTICK_DEVICE manually. Install this script in
 # /etc/profile.d/ if you're using MoltenGamepad, source it in ~/.profile, or
 # find a way to source it before running games.
