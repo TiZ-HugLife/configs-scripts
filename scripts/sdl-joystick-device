@@ -6,7 +6,9 @@
 # /etc/profile.d/ if you're using MoltenGamepad, source it in ~/.profile, or
 # find a way to source it before running games.
 
-for dev in /dev/input/event*; do
+# shellcheck disable=SC2012
+devs=$(ls /dev/input/event* | sort -tt -nsk3)
+for dev in $devs; do
 	if ! [ -r "$dev" ]; then continue; fi
 	if udevadm info -n "$dev" | grep -q ID_INPUT_JOYSTICK=1; then
 		joys="${joys:+$joys:}$dev"
@@ -14,3 +16,4 @@ for dev in /dev/input/event*; do
 done
 
 if [ "${joys:-}" ]; then export SDL_JOYSTICK_DEVICE="$joys"; fi
+unset joys devs
