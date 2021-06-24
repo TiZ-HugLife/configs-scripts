@@ -1,0 +1,14 @@
+#!/bin/sh
+# Work around sandbox's busted controller enumeration by enumerating controllers
+# ourselves and setting SDL_JOYSTICK_DEVICE manually. Install this script in
+# /etc/profile.d/ if you're using MoltenGamepad, source it in ~/.profile, or
+# find a way to source it before running games.
+
+for dev in /dev/input/event*; do
+	if ! [ -r "$dev" ]; then continue; fi
+	if udevadm info -n "$dev" | grep -q ID_INPUT_JOYSTICK=1; then
+		joys="${joys:+$joys:}$dev"
+	fi
+done
+
+if [ "${joys:-}" ]; then export SDL_JOYSTICK_DEVICE="$joys"; fi
