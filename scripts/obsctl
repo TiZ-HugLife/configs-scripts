@@ -109,11 +109,12 @@ start)
 		rm "$rundir/obsctl_started_obs"
 	fi ;;
 wait|waitready)
-	if ! [ "$(pgrep '^obs$' || :)" ]; then exit 1; fi
 	timer=0
-	while [ "$timer" -lt 10 ]; do
-		scene=$(obs_pw -f 0.name GetCurrentScene 2> /dev/null)
-		if [ "$scene" ]; then break; fi
+	while [ "$timer" -lt 20 ]; do
+		if [ "$(pgrep '^obs$' || :)" ]; then
+			scene=$(obs_pw -f 0.name GetCurrentScene 2> /dev/null || :)
+			if [ "$scene" ]; then break; fi
+		fi
 		sleep 0.5
 		timer=$((timer + 1))
 	done
