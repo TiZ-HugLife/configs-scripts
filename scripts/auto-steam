@@ -64,7 +64,7 @@ if [ "$wait_app" -eq 1 ]; then
 	{
 		count=0
 		while ! [ "${mon_pids:-}" ] && steam_didnt_die; do
-			mon_pids=$(pids -f "reaper SteamLaunch")
+			mon_pids=$(pids -f 'reaper SteamLaunch AppId=[0-9]+ --')
 			sleep 1
 		done
 		steam_pids=$(pids '^steam$')
