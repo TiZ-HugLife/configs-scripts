@@ -3,7 +3,7 @@
 # Requires imagemagick. Configure Quod Libet's Picture Saver plugin to save
 # the cover to $HOME/.cache/ql.current.cover
 set -eu
-for cmd in playerctl convert; if ! [ -x "$(command -v "$cmd")" ]; then
+for cmd in playerctl convert; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
 fi; done

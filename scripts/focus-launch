@@ -6,7 +6,7 @@
 # important raison-d'être for this script is focusing an application.
 #     Usage: focus-launch [-c|--class WM_CLASS] application[.desktop]
 set -eu
-for cmd in wmctrl xdg-open; if ! [ -x "$(command -v "$cmd")" ]; then
+for cmd in wmctrl xdg-open; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
 fi; done

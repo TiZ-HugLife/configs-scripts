@@ -4,8 +4,9 @@
 # If your terminal doesn't have the word terminal in its WM_CLASS, then
 # export TERMINAL_WM_CLASS=alacritty or similar before running this.
 set -eu
+depends shuf wmctrl
 
-for cmd in shuf wmctrl; if ! [ -x "$(command -v "$cmd")" ]; then
+for cmd in shuf wmctrl; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
 fi; done

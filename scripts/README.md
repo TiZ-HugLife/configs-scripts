@@ -35,7 +35,7 @@ If the script is intended to be run without arguments, remove the `""` case. Tha
 If you make a script that uses a program that cannot be reasonably guaranteed to be part of any given Linux system, then you should check for its presence at the start of the script.
 
 ```sh
-for cmd in jq curl; if ! [ -x "$(command -v "$cmd")" ]; then
+for cmd in jq curl; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
 fi; done

@@ -41,7 +41,7 @@
 #     SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
 #     SetRec*Folder, SetFilenameFormat*
 set -eu
-for cmd in obs-cli pass; if ! [ -x "$(command -v "$cmd")" ]; then
+for cmd in obs-cli pass; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
 fi; done

@@ -3,7 +3,7 @@
 set -eu
 
 if [ "$(id -u)" -gt 0 ]; then
-	for cmd in borg pass; if ! [ -x "$(command -v "$cmd")" ]; then
+	for cmd in borg pass; do if ! [ -x "$(command -v "$cmd")" ]; then
 		printf "This script requires $cmd; please install it.\n" >&2
 		exit 1
 	fi; done
