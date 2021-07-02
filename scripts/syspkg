@@ -32,8 +32,28 @@ use_apt () {
     }
 }
 
+use_dnf () {
+    s_dnf () { sudo dnf "$@"; }
+    s_rpm () { sudo rpm "$@"; }
+    refresh () { s_dnf check-update; }
+    update () { s_dnf upgrade; }
+    install () { s_dnf install "$@"; }
+    install_file () { s_dnf install "$@"; }
+    remove () { s_dnf remove "$@"; }
+    remove_recursive () { s_dnf remove "$@" && s_dnf autoremove; }
+    purge () { unsupported; }
+    purge_recursive () { unsupported; }
+    info () { s_dnf info "$@"; }
+    search () { s_dnf search "$@"; }
+    search_local () { unsupported; }
+    list () { rpm -ql "$@"; }
+    owns () { s_dnf provides "$@"; }
+    clean () { s_dnf autoremove && s_dnf clean packages; }
+}
+
 use_pacman () {
     s_pacman () { sudo pacman "$@"; }
+    if [ -x "$(command -v yay)" ]; then s_pacman () { yay "$@"; }; fi
     refresh () { s_pacman -Sy; }
     update () { s_pacman -Syu; }
     install () { s_pacman -S "$@"; }
@@ -52,6 +72,7 @@ use_pacman () {
 }
 
 if [ -x "$(command -v apt)" ]; then use_apt;
+elif [ -x "$(command -v dnf)" ]; then use_dnf;
 elif [ -x "$(command -v pacman)" ]; then use_pacman;
 # TODO: other package managers
 fi
