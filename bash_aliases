@@ -36,6 +36,7 @@ update_pc_games () {
     echo "Pausing so you can check the generated steamids."
     read -p "Press enter to continue."
     steamid-to-skyscraper "$dir"
+    scrape-steamgriddb "$dir"
     Skyscraper -p pc -s import
     Skyscraper -p pc
     #sed -i '/^extensions:/d' "$dir/metadata.pegasus.txt"

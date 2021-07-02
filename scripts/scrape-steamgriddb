@@ -1,0 +1,263 @@
+#!/bin/sh
+# shellcheck disable=SC2119
+# scrape-steamgriddb -- Scrape a directory of games using SteamGridDB.
+#     Usage: scrape-steamgriddb [-f|--force] <directory|list of files>
+# Use in conjunction with generate-steamids. Will pull official Steam media
+# and then will pull media from SteamGridDB. The media will be created in
+# a subfolder of $1/media with the game file's basename. All availabale media
+# will be pulled, and you can choose which one you like best with symlinks.
+#
+# This probably shouldn't have been a shell script. I'll probably rewrite this
+# in a real language later.
+set -eu
+
+for cmd in curl jq; do if ! [ -x "$(command -v "$cmd")" ]; then
+	printf "Missing dependency: %s\n" "$cmd" >&2; exit 1
+fi; done
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+
+case "${1:-}" in
+-h|--help|--usage|help|usage) usage 0 ;;
+-f|--force) force_scrape=1; shift ;;
+esac
+
+steam_api="https://store.steampowered.com/api/appdetails/?appids="
+steam_content="https://cdn.akamai.steamstatic.com/steam/apps"
+griddb_api="https://www.steamgriddb.com/api/v2"
+griddb_token=${STEAMGRIDDB_TOKEN:-$(pass steamgriddb-api || :)}
+
+if ! [ "$griddb_token" ]; then
+	printf "Missing SteamGridDB API token.\n" >&2
+	printf "Please save it in pass as steamgriddb-api or\n" >&2
+	printf "Export it in the environment var STEAMGRIDDB_TOKEN.\n" >&2
+	exit 1
+fi
+
+curl_griddb () {
+	api_call="$1"; shift
+	curl -# -H "Authorization: Bearer $griddb_token" \
+	 -H "Accept: application/json" "$@" "$griddb_api/$api_call"
+}
+
+if [ -d "$1" ]; then
+	cd "$1"
+	set -- *
+fi
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+mkdir -p media
+
+failed=""
+
+# Output a convenient media selector.
+setup_media () {
+	media="media/$base"; mkdir -p "$media"
+	cat > "$media/select.sh" <<'EOF'
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+case "$1" in
+	boxFront)  type="capsule" ;;
+	marquee)   type="hero" ;;
+	wheel)     type="logo" ;;
+	*)         type="$1" ;;
+esac
+for ext in jpg png webp ico mp4 webm; do
+	if [ -e "$1.$ext" ]; then
+		if [ "${2:-}" ]; then rm "$1.$ext"
+		else exit 0; fi
+	fi
+done
+target="$type-${2:-}"
+if ! [ -e "$target" ]; then
+	target=$(find . -name "$type-manual*" | head -1); fi
+if ! [ -e "$target" ]; then
+	target=$(find . -name "$type-steam*" | head -1); fi
+if ! [ -e "$target" ]; then
+	target=$(find . -name "$type-griddb*" | head -1); fi
+if ! [ -e "$target" ]; then exit 0; fi
+ext=$(grep "$(file -b --mime-type "$target")" /etc/mime.types \
+ | awk '{print $2}')
+if [ "$ext" = "jpeg" ]; then ext=jpg; fi
+base=$(basename "$target")
+ln -sf "$base" "$type.$ext"
+case "$type" in
+	capsule)  rm -f boxFront.*; ln -sf "$1.$ext" "boxFront.$ext" ;;
+	hero)     rm -f marquee.*; ln -sf "$1.$ext" "marquee.$ext" ;;
+	logo)     rm -f wheel.*; ln -sf "$1.$ext" "wheel.$ext" ;;
+esac
+exit 0
+EOF
+	chmod a+x "$media/select.sh"
+}
+
+# Grab all assets from an array of JSON values.
+get_all () {
+	count=0
+	while true; do
+		url=$(json_val "$(printf %s "$1" | sed "s/#/$count/")")
+		if [ "$url" ] && [ "$url" != "null" ]; then
+			curl -# -o "$(printf %s "$2" | sed "s/#/$count/")" "$url"
+			count=$((count + 1))
+		else break; fi
+	done
+}
+
+# The procedure for scraping Steam's official media.
+scrape_steamid () {
+	while IFS="=" read -r var value; do
+		if [ "$value" ]; then eval "${var}="'${value}'; fi
+	done < "$1"
+	
+	# Skip if the file didn't conform to expected spec.
+	if ! [ "$appid" ] || ! [ "$name" ]; then return; fi
+	
+	# Set up the function used to grab values.
+	json_val () { jq -cr ".[].data.$1" < "${2:-$tmp/json}" || :; }
+	
+	printf "  == Fetching Steam media for %s: %s\n" "$appid" "$name"
+	setup_media
+	app_url="$steam_content/$appid"
+	
+	# Download official Steam assets first.
+	set +e
+	curl -# -o "$media/grid-steam" "$app_url/header.jpg"
+	curl -# -o "$media/capsule-steam" "$app_url/library_600x900_2x.jpg"
+	curl -# -o "$media/hero-steam" "$app_url/library_hero.jpg"
+	curl -# -o "$media/logo-steam" "$app_url/logo.png"
+	set -e
+	
+	# Link them as the current assets if we don't already have them.
+	"$media/select.sh" grid
+	"$media/select.sh" capsule
+	"$media/select.sh" hero
+	"$media/select.sh" logo
+	
+	# Next, let's hit the JSON to get descriptions.
+	attempts=0
+	while true; do
+		curl -# -o "$tmp/json" "$steam_api$appid"
+		attempts=$((attempts + 1))
+		if [ "$(json_val "appid")" ]; then break
+		elif [ "$attempts" -ge 4 ]; then
+			printf "Failed to fetch JSON data; moving on.\n" >&2
+			failed="$failed $base"
+			return
+		fi
+	done
+	
+	if [ "$(jq -cr ".[].success" < "$tmp/json")" != "true" ]; then
+		printf "Failed to fetch JSON data; moving on.\n" >&2
+		failed="$failed $base"
+		return
+	fi
+	
+	json_val "short_description" > "$media/short_description.txt"
+	json_val "detailed_description" > "$media/description.html"
+	
+	# Download all available screenshots.
+	printf "  -- Downloading screenshots.\n"
+	get_all "screenshots[#].path_full" "$media/screenshot-steam-#"
+	printf "  -- Downloading videos.\n"
+	get_all "movies[#].webm.\"480\"" "$media/video-steam-#"
+	
+	# Link them as the current assets.
+	printf "  -- Creating links.\n"
+	"$media/select.sh" screenshot
+	"$media/select.sh" video
+	
+	printf "  ++ Steam scrape complete!\n"
+}
+
+# The procedure for scraping from SteamGridDB.
+scrape_griddb () {
+	# If we have the steam appid, we can look up the game that way.
+	if [ "$appid" ]; then
+		curl_griddb "games/steam/$appid" -o "$tmp/json"
+		gridid=$(jq -cr '.data.id' < "$tmp/json")
+	else
+		curl_griddb "search/autocomplete/$base" -o "$tmp/json"
+		gridid=$(jq -cr '.data[0].id' < "$tmp/json")
+	fi
+	
+	if ! [ "$gridid" ]; then
+		printf "Couldn't figure out what this game is.\n" >&2
+		failed="$failed $base"
+		return
+	fi
+	
+	json_val () { jq -cr ".data$1" < "${2:-$tmp/json}" || :; }	
+	
+	printf "  == Fetching SteamGridDB media for %s\n" "$base"
+	setup_media
+	styles="alternate,material,blurred"
+	
+	# Let's start with the grids.
+	printf "  -- Downloading grids.\n"
+	params="styles=$styles&types=static&dimensions=920x430,460x215"
+	curl_griddb "grids/game/$gridid?$params" -o "$tmp/json"
+	get_all "[#].url" "$media/grid-griddb-#"
+	
+	# Now, the capsules.
+	printf "  -- Downloading capsules.\n"
+	params="styles=$styles&types=static&dimensions=600x900"
+	curl_griddb "grids/game/$gridid?$params" -o "$tmp/json"
+	get_all "[#].url" "$media/capsule-griddb-#"
+	
+	# Let's get the squares for giggles.
+	printf "  -- Downloading squares.\n"
+	params="styles=$styles&types=static&dimensions=512x512,1024x1024"
+	curl_griddb "grids/game/$gridid?$params" -o "$tmp/json"
+	get_all "[#].url" "$media/square-griddb-#"
+	
+	# Now, the heroes.
+	printf "  -- Downloading heroes.\n"
+	params="styles=$styles&types=static"
+	curl_griddb "heroes/game/$gridid?$params" -o "$tmp/json"
+	get_all "[#].url" "$media/hero-griddb-#"
+	
+	# And the logos.
+	printf "  -- Downloading logos.\n"
+	params="styles=official,custom&types=static"
+	curl_griddb "logos/game/$gridid?$params" -o "$tmp/json"
+	get_all "[#].url" "$media/logo-griddb-#"
+	
+	# Link them as the current assets if we don't already have them.
+	printf "  -- Creating links.\n"
+	"$media/select.sh" grid
+	"$media/select.sh" capsule
+	"$media/select.sh" square
+	"$media/select.sh" hero
+	"$media/select.sh" logo
+	
+	printf "  ++ SteamGridDB scrape complete!\n"
+}
+
+for file; do
+	appid=""; name=""
+	base=$(basename "$file")
+	base=${base%.*}
+	if [ -e "media/$base" ] && ! [ "${force_scrape:-}" ]; then continue; fi
+	case "$file" in
+		# The script Pegasus runs to start games.
+		runner.sh) : ;;
+		# Files created by generate-steamids.
+		*.steamid)
+			scrape_steamid "$file"
+			scrape_griddb "$file"
+			;;
+		# Manually-created launcher scripts.
+		*.sh) scrape_griddb "$file" ;;
+		# All other files should be ignored.
+		*) : ;;
+	esac
+done
+
+if [ "$failed" ]; then
+	printf "FAILED games: %s" "$failed"
+	exit 1
+fi
