@@ -1,6 +1,6 @@
 configuration {
 	fullscreen: false;
-	dpi: 1;
+	dpi: 0;
 }
 
 * {
@@ -19,7 +19,7 @@ window {
 	padding: 0;
 	position: center;
 	anchor: center;
-	font: "Apres 16";
+	font: "Apres 24";
 	border-radius: 8px;
 	width: ${WIDTH};
 }
@@ -76,7 +76,7 @@ inputbar {
 prompt {
 	background-color: inherit;
 	text-color: inherit;
-	font: "Apres Bold 16";
+	font: "Apres Bold 24";
 	margin: 4px 4px 8px 4px;
 }
 
