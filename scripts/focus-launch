@@ -6,7 +6,10 @@
 # important raison-d'être for this script is focusing an application.
 #     Usage: focus-launch [-c|--class WM_CLASS] application[.desktop]
 set -eu
-depends wmctrl xdg-open
+for cmd in wmctrl xdg-open; if ! [ -x "$(command -v "$cmd")" ]; then
+    printf "This script requires $cmd; please install it.\n" >&2
+    exit 1
+fi; done
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

@@ -2,7 +2,10 @@
 # Given a directory containing .steamid files, scrapes information
 # from Steam's JSON API into Skyscraper's manual import store.
 set -eu
-depends jq curl
+for cmd in jq curl; if ! [ -x "$(command -v "$cmd")" ]; then
+    printf "This script requires $cmd; please install it.\n" >&2
+    exit 1
+fi; done
 
 json_value () { jq -cr ".[].data.$1" < "$2"; };
 

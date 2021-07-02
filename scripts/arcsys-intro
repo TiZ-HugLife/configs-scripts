@@ -4,7 +4,11 @@
 # If your terminal doesn't have the word terminal in its WM_CLASS, then
 # export TERMINAL_WM_CLASS=alacritty or similar before running this.
 set -eu
-depends shuf wmctrl
+
+for cmd in shuf wmctrl; if ! [ -x "$(command -v "$cmd")" ]; then
+    printf "This script requires $cmd; please install it.\n" >&2
+    exit 1
+fi; done
 
 lower () { printf %s "$*" | tr '[:upper:]' '[:lower:]'; }
 upper () { printf %s "$*" | tr '[:lower:]' '[:upper:]'; }
@@ -209,6 +213,7 @@ THROW US TO THE BEASTS
 End it all!
 Unite up!
 Whip em out!
+STRIFE!
 EOF
 
 tput sgr0

@@ -41,7 +41,10 @@
 #     SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
 #     SetRec*Folder, SetFilenameFormat*
 set -eu
-depends obs-cli pass
+for cmd in obs-cli pass; if ! [ -x "$(command -v "$cmd")" ]; then
+    printf "This script requires $cmd; please install it.\n" >&2
+    exit 1
+fi; done
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
