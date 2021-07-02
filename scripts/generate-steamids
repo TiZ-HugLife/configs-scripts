@@ -17,6 +17,7 @@ tmp=$(mktemp -d)
 
 # These aren't games so don't include them.
 cat > "$tmp/excludes" <<'EOF'
+^appid_
 ^Steamworks .+$
 ^Proton [0-9\.]+$
 ^Proton Experimental$
