@@ -13,13 +13,16 @@ if normal then
     if app_name:is("Geany") then size(790, 1054); pos(1130, 26) end
 
     -- Workspace placements.
-    if app_name:is("Evolution.bin") or win_class:is("Ferdi") or
-     win_class:is("Caprine") or win_class:is("Discord") or
-     win_class:is("MSTeams") or app_name:is("Firefox") then
+    if app_name:is("Evolution.bin") or win_class:is("Joplin") then
+        workspace(1)
+    elseif win_class:is("Ferdi") or win_class:is("MSTeams") or
+     win_class:is("Caprine") or win_class:is("Discord") then
         workspace(1)
     elseif win_class:is("Spotify") then
         workspace(1)
         maximize()
+    elseif app_name:is("Firefox") then
+        workspace(1)
     end
 
     if app_name:is("obs") then

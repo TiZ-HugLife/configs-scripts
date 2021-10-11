@@ -6,7 +6,7 @@ if normal then
     -- Left monitor.
     if app_name:is("Evolution.bin") or win_class:is("Ferdi") or
      win_class:is("Caprine") or win_class:is("Discord") or
-     win_class:is("MSTeams") then
+     win_class:is("MSTeams") or win_class:is("Joplin") then
         pos(0, 0)
         stick()
     elseif win_class:is("Spotify") then
@@ -15,7 +15,7 @@ if normal then
         maximize()
     end
 
-    if app_name:is("Firefox") then workspace(2) end
+    if app_name:is("Firefox") then workspace(1) end
     if app_name:is("Geany") then size(790, 1054); pos(3050, 26) end
-    if app_name:is("Remmina") then size(620, 280) end
+    if app_name:is("Remmina") then workspace(1); size(620, 280) end
 end
