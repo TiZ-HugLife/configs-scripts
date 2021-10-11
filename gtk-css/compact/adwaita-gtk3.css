@@ -113,7 +113,6 @@ notebook header.bottom tab button {
 	margin-bottom: 0px;
 }
 
-
 /* Menu and menubar tweaks. */
 menu, .menu, .context-menu {
 	/* Adwaita doesn't have this; I just think it's a cool look. */
@@ -143,6 +142,13 @@ popover {
 /* Makes simple-scan's bottom toolbar not look dumb. */
 actionbar box box {
 	padding: 0px
+}
+
+/* Dconf Editor. */
+window.dconf-editor stack > .horizontal.pathbar,
+window.dconf-editor stack > .horizontal.pathbar > * {
+    margin: 0px;
+    padding: 0px;
 }
 
 /* Headerbar tweaks. */
