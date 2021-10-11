@@ -1,0 +1,115 @@
+#!/bin/sh
+# prime -- Manage and query NVidia Prime state and offloads.
+# The state where the NVidia GPU is entirely powered down is not supported
+# and the on-demand/offload state will be used instead.
+#
+# <<! This script will sudo itself in select mode to adjust xorg config. !>>
+# 
+# prime select <nvidia|intel|on-demand|power>
+#     Write a config file to /etc/X11/xorg.conf.d/20-nvidia-prime.conf that
+#     configures the desired PrimaryGPU state. This is the only thing that is
+#     really needed to toggle between nvidia and on-demand, but xrandr provider
+#     offload is still necessary when the dGPU is the primary GPU, in order for
+#     anything to appear on iGPU outputs.
+#         The special values power and auto set the PrimaryGPU value based on
+#         whether the computer is plugged into AC.
+# prime offload, prime xrandr
+#     Set up the xrandr output sinks for the NVidia primary GPU state.
+# prime query
+#     Get current state based on xrandr provider availability, or fall back to
+#     parsing the xorg.conf.d file that this script sets up.
+# prime run
+#     Run an application on the NVidia GPU if it is available.
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+xorg_conf_d="/etc/X11/xorg.conf.d"
+nvidia_opts_d="/etc/X11/nvidia-options.d"
+xorg_conf="$xorg_conf_d/20-nvidia-prime.conf"
+nvidia_opts="$xorg_conf_d/15-nvidia-options.conf"
+
+link_nvidia_opts () {
+	if [ -e "$nvidia_opts_d/$1.conf" ]; then
+		ln -sfn "$nvidia_opts_d/$1.conf" "$nvidia_opts"
+	else
+		rm "$nvidia_opts"
+	fi
+}
+
+case "${1:-}" in
+"select")
+	case "${2:-}" in
+	nvidia) primarygpu="yes" ;;
+	intel|on-demand) primarygpu="no" ;;
+	power|auto)
+		if acpi -a | grep -qi "on-line"; then
+		primarygpu="yes"; else primarygpu="no"; fi
+		;;
+	*) printf "Valid options: nvidia, intel, on-demand, power\n" >&2; exit 1 ;;
+	esac
+	if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
+	cat > /etc/X11/xorg.conf.d/20-nvidia-prime.conf <<EOF
+Section "OutputClass"
+    Identifier "nvidia"
+    MatchDriver "nvidia-drm"
+    Driver "nvidia"
+    Option "PrimaryGPU" "$primarygpu"
+EndSection
+EOF
+	case "$primarygpu" in
+	yes) link_nvidia_opts nvidia ;;
+	no) link_nvidia_opts intel ;;
+	esac
+	;;
+query)
+	providers=$(xrandr --listproviders || :)
+	# It's better to prefer querying the current state than the configured one.
+	if [ "$providers" ]; then
+		if printf %s\\n "$providers" | grep -q 'NVIDIA-[0-9]'; then
+			printf "nvidia\n"
+		elif printf %s\\n "$providers" | grep -q 'NVIDIA-G[0-9]'; then
+			printf "on-demand\n"
+		else
+			printf "intel\n"
+		fi
+	# But if we can't do that, check the config file.
+	elif [ -r "$xorg_conf" ]; then
+		if grep -qi '"PrimaryGPU" "yes"' "$xorg_conf"; then printf "nvidia\n";
+		else printf "on-demand\n"; fi
+	else
+		printf "Unable to determine prime state.\n" >&2; exit 1
+	fi
+	;;
+offload|xrandr)
+	# This will only do things if we're in the NVidia primary GPU state.
+	providers=$(xrandr --listproviders || :)
+	if [ "$providers" ]; then
+		if printf %s\\n "$providers" | grep 'NVIDIA-[0-9]'; then
+			get_name () { awk '{ print $NF }' | cut -d: -f2; }
+			get_id () { cut -d: -f3 | cut -d" " -f2; }
+			src=$(printf %s "$providers" | grep -i 'nvidia' | get_id)
+			sink=$(printf %s "$providers" | grep -Ei 'intel|modeset' | get_id)
+			xrandr --setprovideroutputsource "$sink" "$src"
+			xrandr --auto
+		fi
+	fi
+	;;
+run)
+	case "$("$0" query)" in
+	nvidia|on-demand)
+		export __NV_PRIME_RENDER_OFFLOAD=1
+		export __GLX_VENDOR_LIBRARY_NAME=nvidia
+		export __VK_LAYER_NV_optimus=NVIDIA_only
+		shift
+		exec "$@"
+		;;
+	intel)
+		printf "NVidia GPU is not available.\n" >&2
+		exit 1
+		;;
+	esac
+    ;;
+esac
