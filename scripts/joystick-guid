@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+# Outputs the SDL Joystick GUID for a given event device. Does so without using
+# libevdev, to minimize dependencies. It's basically this in Python 3:
+#   http://bazaar.launchpad.net/~taktaktaktaktaktaktaktaktaktak/+junk/ ..
+#    .. joystickguid/view/head:/joystickguid.rb
+# Python 3 was chosen for greater ubiquity on Linux systems than Ruby.
+import sys, os, fcntl, struct
+
+def get_guid (filename):
+	fd = open(sys.argv[1], "rb")
+	fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK)
+	buf = bytearray(8)
+	fcntl.ioctl(fd, 0x80084502, buf)  # Magic number stolen from taktaktak
+	bustype, vendor, product, version = struct.unpack("hhhh", buf)
+	guid = ("{:02x}{:02x}0000" * 4).format(
+		bustype & 0xFF, bustype >> 8,
+		vendor & 0xFF, vendor >> 8,
+		product & 0xFF, product >> 8,
+		version & 0xFF, version >> 8
+	)
+	fd.close()
+	return guid
+
+if len(sys.argv) != 2:
+	print("Usage: joystick-guid <event device>", file=sys.stderr)
+	sys.exit(1)
+else:
+	try:
+		print(get_guid(sys.argv[1]))
+	except:
+		print("Failed to get GUID for {}".format(sys.argv[1]), file=sys.stderr)
+		sys.exit(1)
