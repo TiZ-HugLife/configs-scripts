@@ -14,9 +14,10 @@ alias r='rolldice --separate --random'
 alias usbconsole='script -f -c "picocom /dev/ttyUSB0" console.log'
 alias marina-pingtest='ssh marina pingtest'
 alias sshproxy='ssh -D 28080 marina'
-alias protontricks='flatpak run --command=protontricks com.valvesoftware.Steam --no-runtime'
+alias protontricks='com.github.Matoking.protontricks'
 alias ginstall='/xusr/bin/ginstall.sh -d /xusr/bin '
 alias test-lan='iperf3 -c 192.168.102.4 -f M --get-server-output'
+alias edit-refind='sudo "$EDITOR" /boot/efi/EFI/refind/manual.conf'
 
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
