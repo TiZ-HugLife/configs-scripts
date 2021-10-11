@@ -175,6 +175,7 @@ dotdee_lite () {
 			if [ -x "$f" ]; then "$f"
 			elif [ -r "$f" ]; then cat "$f"
 			fi
+			printf "\n"
 		done > "$1"
 	fi
 }
