@@ -50,7 +50,7 @@ if [ -x "$(command -v mgctl)" ]; then
 fi
 
 result=$(printf %b\\n "$texts" | rofi -dmenu -p "$prompt" -no-custom -format d \
- -theme "$tmp" -lines "$count" || :)
+ -theme "$tmp" -theme-str "listview {lines: $count;}" || :)
 
 printf %b\\n "$ids" | sed -n "$result p" || :
 
