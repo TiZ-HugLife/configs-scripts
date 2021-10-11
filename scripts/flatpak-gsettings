@@ -1,0 +1,30 @@
+#!/bin/sh
+# Migrate some host GSettings into all installed Flatpak applications.
+
+keys=$(mktemp); settings=$(mktemp); trap 'rm "$keys" "$settings"' EXIT
+
+cat > "$keys" << EOF
+org.gtk.Settings.FileChooser window-size
+org.gtk.Settings.FileChooser sort-directories-first
+org.gtk.Settings.FileChooser location-mode
+org.gtk.Settings.FileChooser startup-mode
+org.gtk.Settings.FileChooser show-type-column
+org.gtk.Settings.FileChooser show-size-column
+org.gtk.Settings.FileChooser date-format
+org.gtk.Settings.FileChooser clock-format
+org.gtk.Settings.FileChooser type-format
+org.gtk.Settings.ColorChooser custom-colors
+org.gtk.Settings.ColorChooser selected-color
+org.gtk.Settings.EmojiChooser recent-emoji
+org.gtk.Settings.Debug enable-inspector-keybinding
+org.gtk.Settings.Debug inspector-warning
+EOF
+
+while read -r key; do if [ "$key" ]; then
+    printf "gsettings set %s \"%s\"\n" "$key" \
+     "$(gsettings get $key)" >> "$settings"
+fi; done < "$keys"
+
+flatpak list --app --columns=application | while read -r app; do
+    cat "$settings" | flatpak run --command=bash "$app"
+done
