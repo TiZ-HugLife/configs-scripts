@@ -1,0 +1,9 @@
+#!/bin/sh
+# Prints the NerdFont glyph for the current distro.
+case "$(lsb_release -is 2>/dev/null)" in
+Arch)   printf "\n" ;;
+Debian) printf "\n" ;;
+Fedora) printf "\n" ;;
+Ubuntu) printf "\n" ;;
+*)      printf "\n" ;;
+esac
