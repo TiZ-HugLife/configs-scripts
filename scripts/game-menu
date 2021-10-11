@@ -13,6 +13,10 @@ else
 	peg_id="peg"; peg_text="Play a game"
 fi
 
+if obsctl IsRecording; then
+	book_id="book"; book_text="Save recording bookmark"
+fi
+
 # shellcheck disable=SC2034
 {
 color_1=Cyan
@@ -39,6 +43,7 @@ result=$(
 	slick-menu -w 30% "$header" \
 	 "${peg_id:-}" "${peg_text:-}" \
 	 shot "Take a screenshot" \
+	 "${book_id:-}" "${book_text:-}" \
 	 "${kill_id:-}" "${kill_text:-}" \
 	 "${home_id:-}" "${home_text:-}" \
 	 sep "Controllers:" \
@@ -89,6 +94,7 @@ man_*)
 	esac
 	;;
 shot) sleep 1; screenshot ;;
+book) obsctl Bookmark ;;
 peg) if ! pgrep pegasus >/dev/null 2>&1; then pegasus & fi ;;
 kill|home)
 	notify-send -i input-gaming-symbolic "Not implemented" \
