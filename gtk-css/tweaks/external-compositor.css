@@ -5,9 +5,7 @@ decoration, decoration:backdrop,
 tooltip, tooltip:backdrop,
 tooltip *, tooltip:backdrop *,
 .csd, .window-frame {
-    border-radius: 0px 0px 0 0;
-    border-width: 0px;
-    border-image: none;
+    border-radius: 0px;
     box-shadow: none;
     margin: 0px;
     padding: 0px;
