@@ -1,7 +1,4 @@
-/* Xfce4-panel fixes */
-
-/* Unbreaks Adapta. */
-.xfce4-panel, .xfce4-panel frame > border { border: unset; }
+/* Xfce4-panel tweaks */
 
 .xfce4-panel button {
 	min-width: unset;
@@ -31,11 +28,15 @@
 	font-weight: normal;
 }
 
-/* Gross that this can't be more generic. */
+/* Gross that these can't be more generic. */
 .xfce4-panel #pager-3 button,
 .xfce4-panel #pager-12 button,
 .xfce4-panel #pager-14 button {
 	padding: 0px 2px;
+	/*font-size: 1.1em;*/
+}
+.xfce4-panel #weather-34 image {
+	margin-top: 1px;
 }
 
 /* These can, though. */
@@ -57,7 +58,7 @@
 	margin-left: 4px;
 }
 .xfce4-panel #pulseaudio-button {
-	padding: 0px 3px;
+	padding: 0px 1px;
 }
 .xfce4-panel #pulseaudio-button image {
 	-gtk-icon-transform: scale(0.8);
@@ -66,7 +67,7 @@
 	margin-left: 4px;
 	min-width: 52px;
 }
-.xfce4-panel progressbar.vertical {
+.xfce4-panel progressbar {
 	border-radius: 2px;
 }
 .xfce4-panel progressbar.vertical * {

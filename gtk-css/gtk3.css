@@ -1,13 +1,24 @@
+/* Use these to compact and tweak Adwaita.
+ * Unnecessary if you're using a real compact theme like Prof-Gnome. */
 @import url("css/compact/adwaita-gtk3.css");
 @import url("css/compact/headerbar-sizing-box.css");
-@import url("css/tweaks/external-compositor.css");
+
+/* Just a personal preference. */
 @import url("css/tweaks/no-undershoot.css");
-@import url("css/apps/panel.css");
-@import url("css/apps/panel-top.css");
+
+/* Always necessary on XFCE. Not needed in gtk4.css. */
+@import url("css/apps/xfce4-panel.css");
+@import url("css/apps/xfce4-panel-top.css");
+@import url("css/apps/xfce4-misc.css");
 @import url("css/apps/thunar.css");
-@import url("css/apps/misc.css");
+
+/* Always necessary if using Picom. */
+@import url("css/tweaks/external-compositor.css");
+
 
 /* Use this stupid rule if you need to make sure this CSS is being loaded. */
-/*menuitem label {
+/*
+menuitem label {
     color: #00FFFF;
-}*/
+}
+*/

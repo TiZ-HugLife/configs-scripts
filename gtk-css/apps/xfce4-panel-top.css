@@ -16,3 +16,22 @@
 .xfce4-panel .tasklist button:checked:not(:hover) {
 	color: @theme_fg_color;
 }
+
+/* Support docklike plugin too. */
+/*
+.xfce4-panel #docklike-plugin button.group {
+	box-shadow: none;
+	background-color: transparent;
+}
+
+.xfce4-panel #docklike-plugin button.hover_group {
+	box-shadow: none;
+	background-image: linear-gradient(to bottom, alpha(currentColor, 0.25), transparent, transparent);
+}
+
+.xfce4-panel #docklike-plugin button.active_group {
+	box-shadow: none;
+	background-color: @wm_bg_b;
+	background-image: linear-gradient(to bottom, @theme_selected_bg_color, transparent, transparent);
+}
+*/
