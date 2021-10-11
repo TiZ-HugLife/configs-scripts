@@ -19,11 +19,11 @@ list row box .title, list row box .subtitle {
 }
 
 /* And then use a more specific rule to un-murder the real title/subtitle. */
-headerbar box .title {
+headerbar box .title, .titlebar .title {
     font-size: 1.0em;
     color: unset;
 }
-headerbar box .subtitle {
+headerbar box .subtitle, .titlebar .subtitle {
     font-size: 0.8em;
     color: unset;
 }
