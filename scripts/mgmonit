@@ -26,6 +26,7 @@ controller_name () {
     switch_pro_*)     puts "Switch Pro Controller" ;;
     8bitdo_zero_*)    puts "8BitDo Zero" ;;
     8bitdo_n30pro_*)  puts "8BitDo N30 Pro" ;;
+    8bitdo_sn30pro_*)  puts "8BitDo SN30 Pro" ;;
     ps_*) 
         if [ -e "$rundir/devices/$1/is_ds4" ]; then
             puts "DualShock 4"
