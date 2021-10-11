@@ -22,18 +22,19 @@ cat > "$tmp/excludes" <<'EOF'
 ^Proton [0-9\.]+$
 ^Proton Experimental$
 Runtime
+Studio
 EOF
 
 # Get a list of library folders. The first is always $HOME/.steam/steamapps.
 main_steamapps=$(find "$HOME/.steam/" -name steamapps)
 puts "$main_steamapps" > "$tmp/libraries"
-puts "$(sed -nE 's:^\s+"'[0-9]+'"\s+"(.+)"$:\1/steamapps:p' \
+puts "$(sed -nE 's:^\s+"path"\s+"(.+)"$:\1/steamapps:p' \
  "$main_steamapps/libraryfolders.vdf")" \
  >> "$tmp/libraries"
 
 # Loop through each library folder and parse .acf files.
 while read -r library; do
-	cd "$library"
+	if ! cd "$library"; then continue; fi
 	for acf in appmanifest_*.acf; do
 		if [ "$acf" = 'appmanifest_*.acf' ]; then continue; fi
 		appid=$(acf_value appid "$acf")
