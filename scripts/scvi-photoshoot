@@ -1,0 +1,24 @@
+#!/bin/sh
+# scvi-photoshoot -- Crop and montage screenshots together.
+# Crop arguments use any valid crop geometry for ImageMagick.
+# Usage:
+#   scvi-photoshoot <output> <image1> <image1 crop> <image2> <...> 
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+if ! [ -x "$(command -v convert)" ]; then
+    printf "This script requires ImageMagick; please install it.\n" >&2
+    exit 1
+fi
+
+dir=$(mktemp -d); trap 'rm -rf "$dir"' EXIT
+output="$1"; shift
+count=1
+while [ "$#" -ge 2 ]; do
+	convert "$1" -gravity center -crop "$2" "$dir/$count.png"
+	count=$((count +1)); shift 2
+done
+montage -geometry +0+0 -tile x1 "$dir/"*.png "$output"
