@@ -1,0 +1,16 @@
+/* Try to match CSD shadows to current Picom settings.
+ * Apparently shadow-radius and shadow-opacity don't remotely mean the same
+ * thing between Picom and GTK3. My guess is you have to halve both the
+ * shadow-radius and shadow-opacity.
+ * The second shadow is the window border; it's actually a shadow. */
+decoration {
+    box-shadow: 0 0 5px 0 rgba (0, 0, 0, 0.85), 0 0 0 1px rgba(27, 27, 27, 0.9);
+}
+
+tooltip.csd decoration, .popup decoration {
+    box-shadow: none;
+}
+
+.csd.popup decoration, messagedialog decoration, .solid-csd decoration {
+    box-shadow: 0 0 5px 0 rgba (0, 0, 0, 0.85), 0 0 0 1px rgba(27, 27, 27, 0.9);
+}

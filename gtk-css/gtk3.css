@@ -13,7 +13,8 @@
 @import url("css/apps/thunar.css");
 
 /* Always necessary if using Picom. */
-@import url("css/tweaks/external-compositor.css");
+/*@import url("css/tweaks/external-compositor.css");*/
+@import url("css/tweaks/csd-shadows-match-picom.css");
 
 
 /* Use this stupid rule if you need to make sure this CSS is being loaded. */
