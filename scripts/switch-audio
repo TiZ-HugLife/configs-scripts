@@ -4,6 +4,9 @@ set -eu
 
 if [ "$(hostname)" != "Aura" ]; then exit; fi
 
+pactl set-sink-volume alsa_output.pci-0000_00_1f.3.analog-stereo 50% || :
+pactl set-source-volume alsa_input.pci-0000_00_1f.3.analog-stereo 21% || :
+
 # The NVidia card has like six HDMI outputs and it randomly picks between
 # the first two, so we need to intelligently detect which one is available.
 detect_exp='s/^.*(output:hdmi-stereo[-a-z0-9]*):.+available: yes.*$/\1/p'
