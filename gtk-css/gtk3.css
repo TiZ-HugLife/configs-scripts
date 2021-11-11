@@ -13,6 +13,9 @@
 @import url("css/apps/xfce4-misc.css");
 @import url("css/apps/thunar.css");
 
+/* Tweaks to specific apps. */
+@import url("css/apps/sgt-puzzles.css");
+
 /* Always necessary if using Picom. */
 /*@import url("css/tweaks/external-compositor.css");*/
 @import url("css/tweaks/csd-shadows-match-picom.css");

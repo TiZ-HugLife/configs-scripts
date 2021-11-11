@@ -1,0 +1,14 @@
+/* Requires a version of SGT Puzzles that sets the sgt-puzzles style class. */
+
+.sgt-puzzles {
+    color: black;
+}
+
+.sgt-puzzles menubar {
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+.sgt-puzzles:backdrop menubar {
+    color: @theme_unfocused_fg_color;
+}
