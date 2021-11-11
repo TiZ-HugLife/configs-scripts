@@ -2,6 +2,7 @@
  * Unnecessary if you're using a real compact theme like Prof-Gnome. */
 @import url("css/compact/adwaita-gtk3.css");
 @import url("css/compact/headerbar-sizing-box.css");
+@import url("css/compact/tooltips.css");
 
 /* Just a personal preference. */
 @import url("css/tweaks/no-undershoot.css");

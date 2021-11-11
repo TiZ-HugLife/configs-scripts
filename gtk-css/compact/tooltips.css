@@ -1,0 +1,5 @@
+/* They are so CHONKY by default! */
+tooltip, tooltip * {
+    margin: 0px;
+    padding: 0px;
+}
