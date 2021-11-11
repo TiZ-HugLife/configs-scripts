@@ -4,13 +4,15 @@
 # and the on-demand/offload state will be used instead.
 #
 # <<! This script will sudo itself in select mode to adjust xorg config. !>>
+# <<! This script will sudo itself in setup mode to create xorg configs. !>>
 # 
 # prime select <nvidia|intel|on-demand|power>
-#     Write a config file to /etc/X11/xorg.conf.d/20-nvidia-prime.conf that
-#     configures the desired PrimaryGPU state. This is the only thing that is
-#     really needed to toggle between nvidia and on-demand, but xrandr provider
-#     offload is still necessary when the dGPU is the primary GPU, in order for
-#     anything to appear on iGPU outputs.
+#     If /etc/X11/xorg.conf.d/20-nvidia-prime.conf exists, rewrite it to
+#     configure the desired PrimaryGPU state. Otherwise, if configlets for the
+#     iGPU and dGPU exist, rearrange them for the desired state.
+#     This is the main thing that is really needed to toggle between nvidia
+#     and on-demand, but xrandr provider offload is still necessary when the
+#     dGPU is the primary GPU, in order for anything to appear on iGPU outputs.
 #         The special values power and auto set the PrimaryGPU value based on
 #         whether the computer is plugged into AC.
 # prime offload, prime xrandr
@@ -27,19 +29,36 @@ usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
 case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
 
 xorg_conf_d="/etc/X11/xorg.conf.d"
-nvidia_opts_d="/etc/X11/nvidia-options.d"
-xorg_conf="$xorg_conf_d/20-nvidia-prime.conf"
-nvidia_opts="$xorg_conf_d/15-nvidia-options.conf"
-
-link_nvidia_opts () {
-	if [ -e "$nvidia_opts_d/$1.conf" ]; then
-		ln -sfn "$nvidia_opts_d/$1.conf" "$nvidia_opts"
-	else
-		rm "$nvidia_opts"
-	fi
-}
+nvidia_primary_gpu_conf="$xorg_conf_d/20-nvidia-prime.conf"
+dgpu_conf="$xorg_conf_d/15-dgpu.conf"
+igpu_primary_conf="$xorg_conf_d/05-igpu.conf"
+igpu_secondary_conf="$xorg_conf_d/25-igpu.conf"
 
 case "${1:-}" in
+setup)
+	if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
+	mkdir -p /etc/X11/xorg.conf.d
+	busid=$(lspci | grep 'VGA.*NVIDIA' | grep -Po '\d+:\d+.\d+' | tr . :)
+	if ! [ -e "$dgpu_conf" ]; then
+		cat > "$dgpu_conf" <<-EOF
+		Section "Device"
+			Identifier "dGPU"
+			Driver "nvidia"
+			BusID "PCI:$busid"
+		EndSection
+		EOF
+	fi
+	if ! { [ -e "$igpu_primary_conf" ] || [ -e "$igpu_secondary_conf" ]; }; then
+		cat > "$igpu_primary_conf" <<-EOF
+		Section "Device"
+			Identifier "iGPU"
+			Driver "modesetting"
+			Option "AsyncFlipSecondaries" "on"
+		EndSection
+		EOF
+	fi
+	install -m0755 "$0" "$(readlink -f /usr/local/sbin/prime)"
+	;;
 "select")
 	case "${2:-}" in
 	nvidia) primarygpu="yes" ;;
@@ -51,18 +70,20 @@ case "${1:-}" in
 	*) printf "Valid options: nvidia, intel, on-demand, power\n" >&2; exit 1 ;;
 	esac
 	if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
-	cat > /etc/X11/xorg.conf.d/20-nvidia-prime.conf <<EOF
-Section "OutputClass"
-    Identifier "nvidia"
-    MatchDriver "nvidia-drm"
-    Driver "nvidia"
-    Option "PrimaryGPU" "$primarygpu"
-EndSection
-EOF
-	case "$primarygpu" in
-	yes) link_nvidia_opts nvidia ;;
-	no) link_nvidia_opts intel ;;
-	esac
+	if [ -e "$nvidia_primary_gpu_conf" ]; then
+		cat > "$nvidia_primary_gpu_conf" <<-EOF
+		Section "OutputClass"
+			Identifier "nvidia"
+			MatchDriver "nvidia-drm"
+			Driver "nvidia"
+			Option "PrimaryGPU" "$primarygpu"
+		EndSection
+		EOF
+	elif [ -e "$igpu_primary_conf" ] && [ "$primarygpu" = "yes" ]; then
+		mv "$igpu_primary_conf" "$igpu_secondary_conf"
+	elif [ -e "$igpu_secondary_conf" ] && [ "$primarygpu" = "no" ]; then
+		mv "$igpu_secondary_conf" "$igpu_primary_conf"
+	fi
 	;;
 query)
 	providers=$(xrandr --listproviders || :)
@@ -76,9 +97,14 @@ query)
 			printf "intel\n"
 		fi
 	# But if we can't do that, check the config file.
-	elif [ -r "$xorg_conf" ]; then
-		if grep -qi '"PrimaryGPU" "yes"' "$xorg_conf"; then printf "nvidia\n";
+	elif [ -r "$nvidia_primary_gpu_conf" ]; then
+		if grep -qi '"PrimaryGPU" "yes"' "$nvidia_primary_gpu_conf"; then
+			printf "nvidia\n"
 		else printf "on-demand\n"; fi
+	elif [ -e "$dgpu_conf" ] && [ -e "$igpu_secondary_conf" ]; then
+		printf "nvidia\n"
+	elif [ -e "$dgpu_conf" ] && [ -e "$igpu_primary_conf" ]; then
+		printf "on-demand\n"
 	else
 		printf "Unable to determine prime state.\n" >&2; exit 1
 	fi
