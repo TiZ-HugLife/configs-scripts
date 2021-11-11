@@ -21,14 +21,15 @@ export BORG_PASSPHRASE
 if [ -d /mnt/btrfs ]; then  # Aura, Workbox, Marina.
     # Exclude home, ensure it's done last.
     # shellcheck disable=SC2012 # It works fine, shut up.
-    subvols="$(ls /mnt/btrfs | sed 's/@//' | grep -Ev '\.bak|^home$')"
+    subvols="os/$(cat /this-os)"
     
-    # Tack home onto the end if it exists.
-    if [ -e "/mnt/btrfs/@home" ]; then subvols="$subvols home"; fi
+    if [ -e "/mnt/btrfs/xusr" ]; then subvols="$subvols xusr"; fi
+    if [ -e "/mnt/btrfs/home" ]; then subvols="$subvols home"; fi
 
     # Backup step.
     for vol in $subvols; do
-        borg_create "::{hostname}-$vol-{now:%y%m%d%H%M}" "/mnt/btrfs/@$vol"
+        volname=$(basename "$vol")
+        borg_create "::{hostname}-$volname-{now:%y%m%d%H%M}" "/mnt/btrfs/$vol"
     done
 else  # Cerebro.
     subvols="root xusr"
