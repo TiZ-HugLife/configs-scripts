@@ -1,0 +1,260 @@
+#!/bin/sh
+# snapshot -- manage snapshots using a structured btrfs layout
+#   To create: snapshot create <name> <list of partition names>
+#   To restore/replace: snapshot restore|replace <source> <destination>
+#
+# <<! This script will sudo itself because it manages snapshots. !>>
+# 
+# This script depends on a btrfs with the following top-level layout:
+#   toplevel                                (volume root)
+#   +-- os                                  (directory)
+#   |   +-- distro-name                     (subvolume with nested subvols)
+#   |   \-- [more distros...]
+#   +-- xusr                                (subvolume)
+#   +-- home                                (subvolume with nested subvols)
+#   \-- snapshots                           (directory)
+#       +-- os                              (directory)
+#       |   \-- distro-name                 (directory)
+#       |       +-- auto-210101-120000      (snapshot)
+#       |       +-- manual-210101-120000    (snapshot)
+#       |       \-- [more snapshots...]
+#       \-- xusr                            (directory)
+#           +-- auto-210101-120000          (snapshot)
+#           \-- [more snapshots...]
+#
+# With this layout, the "name" of a snapshot is what precedes the timestamp.
+# The only name with special handling is "auto"; Whenever a snapshot with this
+# name is created, it will clean up old snapshots, leaving the most recent four
+# snapshots, and then the last three weekly, and the last three monthly. If you
+# want to save a snapshot, all you have to do is change its name from auto-*.
+#
+# When making os snapshots, it will look for a file, /this-os, to determine its
+# subvolume name. If it's not present, it will skip making an os snapshot and
+# print a message to stderr.
+#
+# This used to have a more convoluted layout to reduce friction in snapshot
+# restoration, but offloading all of that into /etc/fstab is even clunkier than
+# just moving nested subvolumes back programmatically. So that's the other thing
+# that this script can do. Immediately nested subvolumes follow their parent
+# when a subvolume is moved or renamed. But you can put it back where it was and
+# bring any further nested subvolumes along the way.
+#
+# When a snapshot is restored, the subvolume being replaced is moved into the
+# directory containing the source snapshot with the name restored-$now.
+#
+# In my layout, this script is linked to toplevel/snapshot.sh so that
+# restoration from a live environment is easy.
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
+
+# Self-sudo.
+if [ "$(id -u)" -gt 0 ]; then exec sudo -k "$0" "$@"; fi
+
+# Static global vars (just the one for now).
+btrfs="${BTRFS_TOPLEVEL:-/mnt/btrfs}"
+
+# Main script logic, invoked at bottom of file.
+main () {
+	now=$(date '+%y%m%d-%H%M%S')
+	
+	if ! [ -d "$btrfs/os" ]; then
+		err "BTRFS toplevel appears invalid."
+		err "Mount the filesystem to /mnt/btrfs or export BTRFS_TOPLEVEL."
+		exit 1
+	fi
+	op="$1"; shift
+	case "$op" in
+	create) create "$@" ;;
+	restore|replace) restore "$@" ;;
+	*) usage 1 ;;
+	esac
+}
+
+# Restore snapshots.
+restore () {
+	tmpfile=$(mktemp)
+	source=$(readlink -f "${1:-}")
+	if ! [ -e "$source" ]; then
+		err "Restore source doesn't exist."
+		exit 1
+	fi
+	dest=$(readlink -f "${2:-}")
+	if ! [ -e "$dest" ]; then
+		err "Restore destination doesn't exist."
+		exit 1
+	fi
+	h1 "Attempting to restore $dest from $source."
+	btrfs subvol list -o "$dest" | grep -Po '(?<=path ).+$' | \
+	 sed -r "s|^|$btrfs/|" > "$tmpfile" || :
+	mv "$dest" "$dest.restore"
+	btrfs subvol snapshot "$source" "$dest"
+	while read -r subvol; do
+		subvol_src=$(puts "$subvol" | sed "s|$dest|$dest.restore|")
+		rmdir "$subvol"
+		mv "$subvol_src" "$subvol"
+		mkdir "$subvol_src"
+	done < "$tmpfile"
+	dir=$(dirname "$source")
+	mv "$dest.restore" "$dir/restored-$now"
+	rm "$tmpfile"
+	ok "Snapshot restoration successful."
+}
+
+# Gather all nested subvolumes that will need to be moved back after restoring
+# the snapshot. It won't be necessary to recurse; if a subvolume has subvolumes
+# in it, they get moved back too.
+find_nested_subvols () {
+	btrfs subvol list -o "$1" | grep -Po '(?<=path ).+$' | \
+	 sed -r "s|^|$btrfs/|" || :;
+}
+
+# Create snapshots.
+create () {
+	name="$1"; shift
+	this=$(cat /this-os || :)
+
+	h1 "Making requested snapshots."
+	for vol in "$@"; do case "$vol" in
+		os)
+			check_this || continue
+			mkdir -p "$btrfs/snapshots/os/$this"
+			if btrfs subvolume snapshot "$btrfs/os/$this" \
+			 "$btrfs/snapshots/os/$this/$name-$now" > /dev/null; then
+				ok "Created $vol snapshot: $name-$now"
+			else
+				err "Failed to create $vol snapshot: $name-$now"
+			fi
+			;;
+		snapshots*) err "Not making a snapshot of the snapshots folder." ;;
+		*)
+			if ! [ -e "$btrfs/$vol" ]; then
+				err "Volume name $vol doesn't exist. Skipping."
+				continue
+			fi
+			mkdir -p "$btrfs/snapshots/$vol"
+			if btrfs subvolume snapshot "$btrfs/$vol" \
+			 "$btrfs/snapshots/$vol/$name-$now" > /dev/null; then
+				ok "Created $vol snapshot: $name-$now"
+			else
+				err "Failed to create $vol snapshot: $name-$now"
+			fi
+			;;
+	esac; done
+
+	# If it's not auto, we don't need to to cleanup, so exit.
+	if [ "$name" != "auto" ]; then exit 0; fi
+
+	h1 "Cleaning up auto snapshots."
+	for vol in "$@"; do case "$vol" in
+		os)
+			check_this || continue
+			cleanup "$btrfs/snapshots/os/$this"
+			;;
+		snapshots*) : ;;
+		*) cleanup "$btrfs/snapshots/$vol" ;;
+	esac; done
+}
+
+# Make sure that the os target is valid.
+check_this () {
+	if ! [ "$this" ]; then
+		err "/this-os missing, can't determine subvol. Skipping."
+		return 1
+	elif ! [ -e "$btrfs/os/$this/root" ]; then
+		err "/this-os specifies invalid OS directory. Skipping."
+		return 1
+	fi
+}
+
+# Cleanup routine for auto snapshots.
+cleanup () {
+	cd "$1"
+	here=$(basename "$(pwd)")
+	h2 "Cleaning up auto snapshots for $here."
+	count=0
+	weekly=0
+	monthly=0
+	# shellcheck disable=SC2012
+	for snapshot in $(ls -d auto* | sort -r); do
+		date=$(printf %s "$snapshot" | grep -Po '\d{6}(?=-\d{6}$)')
+		week=$(date -d "$date" '+%W')
+		month=$(date -d "$date" '+%y%m')
+		
+		# Recents.
+		if [ "$count" -lt 4 ]; then
+			count=$((count + 1))
+			ok "Keeping $here/$snapshot; recent"
+			continue
+		
+		# Weeklies. This logic will fail on year bounds.
+		elif [ "$week" = "$week0" ] && [ "$weekly" -le 0 ]; then
+			ok "Keeping $here/$snapshot; weekly"
+			weekly=$((weekly + 1))
+			continue
+		elif [ "$week" = "$week1" ] && [ "$weekly" -le 1 ]; then
+			ok "Keeping $here/$snapshot; weekly"
+			weekly=$((weekly + 1))
+			continue
+		elif [ "$week" = "$week2" ] && [ "$weekly" -le 2 ]; then
+			ok "Keeping $here/$snapshot; weekly"
+			weekly=$((weekly + 1))
+			continue
+		elif [ "$week" = "$week2" ] && [ "$weekly" -le 3 ]; then
+			ok "Keeping $here/$snapshot; weekly"
+			weekly=$((weekly + 1))
+			continue
+		
+		# Monthlies.
+		elif [ "$month" = "$month0" ] && [ "$monthly" -le 0 ]; then
+			ok "Keeping $here/$snapshot; monthly"
+			monthly=$((monthly + 1))
+			continue
+		elif [ "$month" = "$month1" ] && [ "$monthly" -le 1 ]; then
+			ok "Keeping $here/$snapshot; monthly"
+			monthly=$((monthly + 1))
+			continue
+		elif [ "$month" = "$month2" ] && [ "$monthly" -le 2 ]; then
+			ok "Keeping $here/$snapshot; monthly"
+			monthly=$((monthly + 1))
+			continue
+		elif [ "$month" = "$month3" ] && [ "$monthly" -le 3 ]; then
+			ok "Keeping $here/$snapshot; monthly"
+			monthly=$((monthly + 1))
+			continue
+		fi
+
+		# None of the keep conditions applied.
+		ok "Pruning $here/$snapshot."
+		btrfs subvol delete "$snapshot" > /dev/null
+	done
+}
+
+# Cleanup variables.
+month0=$(date -d now '+%y%m')
+month1=$(date -d "$(date +%Y-%m-15) -1 month" '+%y%m')
+month2=$(date -d "$(date +%Y-%m-15) -2 months" '+%y%m')
+month3=$(date -d "$(date +%Y-%m-15) -3 months" '+%y%m')
+week0=$(date -d now '+%W')
+week1=$(date -d "1 week ago" '+%W')
+week2=$(date -d "2 weeks ago" '+%W')
+week3=$(date -d "3 weeks ago" '+%W')
+
+# Message printing. These are in lib.sh, but we can't source it after sudo.
+Treset=$(printf %b "\033[0m")
+Tbold=$(printf %b "\033[1m")
+TFred=$(printf %b "\033[91m")
+TFgreen=$(printf %b "\033[92m")
+TFblue=$(printf %b "\033[94m")
+TFcyan=$(printf %b "\033[96m")
+TFwhite=$(printf %b "\033[97m")
+puts () { printf -- %b\\n "$*"; }
+h1 ()   { puts "${Tbold}${TFcyan}==> ${TFwhite}$*${Treset}"; }
+h2 ()   { puts "${Tbold}${TFblue}-> ${TFwhite}$*${Treset}"; }
+ok ()   { puts "${Tbold}${TFgreen}++ ${TFwhite}$*${Treset}"; }
+err ()  { puts "${Tbold}${TFred}!! ${TFwhite}$*${Treset}"; }
+
+# Do the thing.
+main "$@"
