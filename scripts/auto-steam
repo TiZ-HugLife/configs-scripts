@@ -20,6 +20,28 @@ has_flatpak () {
 	 flatpak run --command=true "$1" >/dev/null 2>&1
 }
 
+wait_for_game () {
+	while ! [ "${mon_pids:-}" ] && steam_didnt_die; do
+		mon_pids=$(pids -f 'reaper SteamLaunch AppId=[0-9]+ --')
+		sleep 1
+	done
+}
+
+game_is_running () {
+	if ! [ "${timer:-}" ]; then timer=0; fi
+	if check_pids "$mon_pids"; then return 0
+	else
+		# Check for a different reaper to appear. Prevents race conditions.
+		mon_pids=$(pids -f 'reaper SteamLaunch AppId=[0-9]+ --')
+		if [ "$mon_pids" ]; then return 0; else
+			timer=$((timer + 1));
+			if [ "$timer" -ge 3 ]; then
+				return 1
+			fi
+		fi
+	fi
+}
+
 check_pids () {
 	# shellcheck disable=SC2048
 	for check in $*; do
@@ -62,17 +84,13 @@ exec > "${XDG_DATA_HOME:-$HOME/.local/share}/auto-steam.log" 2>&1
 
 if [ "$wait_app" -eq 1 ]; then
 	{
-		count=0
-		while ! [ "${mon_pids:-}" ] && steam_didnt_die; do
-			mon_pids=$(pids -f 'reaper SteamLaunch AppId=[0-9]+ --')
-			sleep 1
-		done
+		wait_for_game
 		steam_pids=$(pids '^steam$')
 		# If Steam died before the game actually started, do nothing. If a game
 		# fails to start, at least this way you can just close Steam from the
 		# tray and you don't have to also do `pkill auto-steam`.
 		if [ "$steam_pids" ]; then
-			while check_pids "$mon_pids"; do sleep 1; done
+			while game_is_running; do sleep 1; done
 			if [ "$steam_running" -ne 1 ]; then
 				sleep 2
 				if check_pids "$steam_pids"; then steam -shutdown; fi
