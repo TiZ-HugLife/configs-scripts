@@ -1,22 +1,25 @@
 #!/bin/sh
-# Continuously remove a window's attention hint for 10 seconds.
-# Really useful for Discord windows on startup.
+# Continuously remove a window's attention hint for several seconds and also
+# move back to the initial workspace. Useful for windows that demand attention
+# on startup like Discord, Firefox, and Joplin, or on Plasma, *everything*.
 set -eu
 
-rundir="/run/user/$(id -u)/stfu"
-mkdir -p "$rundir"
-
-{
-wfi -i 0.25 dbus org.xfce.Xfconf
-xfconf-query -c xfwm4 -p /general/activate_action -s none
-touch "$rundir/$$"
+max=50
 count=0
-while [ "$((count = count + 1))" -le "$((${2:-10} * 4))" ]; do
-	sleep 0.25
-	wmctrl -i -r "$1" -b remove,demands_attention
+printf "  ++ Window silencer invoked on %s.\n" "$1"
+{
+# We print it twice so we get it in the stfu log too.
+printf "++ Window silencer invoked on %s.\n" "$1"
+while [ "$((count = count + 1))" -le "$max" ]; do
+	sleep 0.1
+	case "$(xprop -id "$1" _NET_WM_STATE)" in
+	*DEMANDS_ATTENTION*)
+		printf "++ Caught %s demanding attention.\n" "$1"
+		wmctrl -i -r "$1" -b remove,demands_attention
+		wmctrl -s 1
+		count=$((max - 40))
+		;;
+	esac
 done
-rm -f "$rundir/$$"
-if [ "$(find "$rundir" | wc -l)" -eq 1 ]; then
-	xfconf-query -c xfwm4 -p /general/activate_action -s switch 
-fi
-} &
+printf "++ Time ran out on %s.\n" "$1"
+} | logger -t stfu &
