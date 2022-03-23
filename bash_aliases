@@ -25,6 +25,13 @@ altf4_psyche () {
     yad --title HAHAHAHAHA --text "YOU THOUGHT YOU COULD CLOSE MY\nWINDOW BUT YOU WERE WRONG.\nNICE TRY DOOFUS." --button "gtk-close"
 }
 
+# Deduplicate a directory with a hashfile based on the path of $1.
+dedupe () {
+    dir=${XDG_DATA_HOME:-/.local/share}/duperemove; mkdir -p "$dir"
+    hash="$dir/$(realpath "${1:?}" | md5sum | head -c 32)"
+    duperemove -b 4k --hashfile "$hash" -hrd "$@"
+}
+
 # Set the compression flag on a directory then recursively compress it.
 compress () {
     btrfs property set "$1" compression zstd
