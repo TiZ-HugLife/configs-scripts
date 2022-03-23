@@ -97,12 +97,13 @@ start)
 		if ! [ "$(command -v obs)" ]; then
 			if [ -x "$(command -v flatpak)" ] && \
 			 flatpak --command=true run com.obsproject.Studio; then
-				syslog-run flatpak run com.obsproject.Studio --minimize-to-tray
+				flatpak run com.obsproject.Studio --minimize-to-tray \
+				| logger -t obs-studio &
 			else
 				printf "Can't find OBS Studio.\n"
 				exit 1
 			fi
-		else syslog-run obs --minimize-to-tray; fi
+		else obs --minimize-to-tray | logger -t obs-studio & fi
 		touch "$rundir/obsctl_started_obs"
 	fi
 	;;
