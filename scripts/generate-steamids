@@ -1,19 +1,19 @@
 #!/bin/sh
 # Generate .steamid files for installed steam games so scraping tools can
 # download metadata for them.
-# For now, if you're using Flatpak Steam, link .steam to the real steam dir.
 set -eu
 
 puts () { printf %s\\n "$*"; }
 acf_value () { sed -nE 's:^\s+"'"$1"'"\s+"(.+)"$:\1:p' "$2"; }
 safe_filename () {
-	puts "${1#${1%%[![:space:]]*}}" | \
+	puts "${1#"${1%%[![:space:]]*}"}" | \
 	 sed -E -e 's/: / - /' -e "s/[^A-Za-z0-9._()'!& -]//g";
 }
 
 [ -d "$1" ]; [ -w "$1" ]
 target="$1"
-tmp=$(mktemp -d)
+tmp=$(mktemp -d); touch "$tmp/libs"; trap 'rm -r "$tmp"' EXIT
+arcadia_cfg="${XDG_CONFIG_HOME:-$HOME/.config}/arcadia.ini"
 
 # These aren't games so don't include them.
 cat > "$tmp/excludes" <<'EOF'
@@ -22,15 +22,29 @@ cat > "$tmp/excludes" <<'EOF'
 ^Proton [0-9\.]+$
 ^Proton Experimental$
 Runtime
-Studio
 EOF
 
-# Get a list of library folders. The first is always $HOME/.steam/steamapps.
-main_steamapps=$(find "$HOME/.steam/" -name steamapps)
-puts "$main_steamapps" > "$tmp/libraries"
-puts "$(sed -nE 's:^\s+"path"\s+"(.+)"$:\1/steamapps:p' \
- "$main_steamapps/libraryfolders.vdf")" \
- >> "$tmp/libraries"
+# Load extra excludes from arcadia.ini.
+if [ -r "$arcadia_cfg" ]; then
+	read-ini "$arcadia_cfg" "Generate Excludes" >> "$tmp/excludes"
+fi
+
+# First, we have to enumerate every location where Steam might be installed.
+# "Installed" in this case specifically means having the steamapps directory.
+cat > "$tmp/installs" <<EOF
+$HOME/.steam
+$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam
+${XDG_DATA_HOME:-$HOME/.local/share}/Steam
+EOF
+
+# Then we're going to find libraryfolders.vdf in all of these locations.
+while read -r dir; do if [ -d "$dir" ]; then
+	# Now, let's find our library folders. Only output unique ones.
+	find "$dir/" -name libraryfolders.vdf | while read -r vdf; do
+		lib=$(sed -nE 's:^\s+"path"\s+"(.+)"$:\1/steamapps:p' "$vdf")
+		if ! grep -q "$lib" "$tmp/libs"; then puts "$lib" >> "$tmp/libs"; fi
+	done
+fi; done < "$tmp/installs"
 
 # Loop through each library folder and parse .acf files.
 while read -r library; do
@@ -56,6 +70,4 @@ while read -r library; do
 		name=$name
 		EOF
 	done
-done < "$tmp/libraries"
-
-rm -r "$tmp"
+done < "$tmp/libs"
