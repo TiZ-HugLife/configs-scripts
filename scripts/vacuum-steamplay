@@ -1,0 +1,85 @@
+#!/bin/sh
+# vacuum-steamplay -- Deduplicate blocks in Steam Play compatability data
+# Depends on duperemove and can only run on filesystems supporting deduplication
+# such as BTRFS. It's recommended to combine this with compression. Will create
+# per-device hash files in $XDG_DATA_HOME/vacuum-steamplay for faster subsequent
+# runs of this utility.
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
+
+# Check dependencies.
+for dep in duperemove findmnt; do if ! [ -x "$(command -v "$dep")" ]; then
+	printf "This script requires duperemove; please install it.\n" >&2
+	exit 1
+fi; done
+
+tmp=$(mktemp -d); touch "$tmp/libs"; trap 'rm -r "$tmp"' EXIT
+
+puts () { printf %s\\n "$*"; }
+dev_id () { stat -c %d -- "$(findmnt -n -o TARGET --target "$1")"; }
+
+# Resolve XDG data dir for brevity; we'll use it a few times.
+xdg_data=${XDG_DATA_HOME:-$HOME/.local/share}
+mkdir -p "$xdg_data/vacuum-steamplay"
+
+# These are the tools we're looking for.
+cat > "$tmp/tool-patterns" <<'EOF'
+/Proton [0-9\.]+$
+/Proton - Experimental$
+EOF
+
+# First, we have to enumerate every location where Steam might be installed.
+# "Installed" in this case specifically means may have the directories steamapps
+# or compatibilitytools.d present.
+cat > "$tmp/installs" <<EOF
+$HOME/.steam
+$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam
+$xdg_data/Steam
+EOF
+
+# Then we're going to find some stuff in all of these locations.
+while read -r dir; do if [ -d "$dir" ]; then
+	# First, if the compatibilitytools.d directory exists, add that
+	# to our list of duperemove targets. Proton-GE versions often
+	# share files with other Proton versions and their prefixes.
+	if [ -d "$dir/compatibilitytools.d" ]; then
+		puts "$dir/compatibilitytools.d" >> "$tmp/targets"
+	fi
+	# Now, let's find our library folders. Only output unique ones.
+	find "$dir/" -name libraryfolders.vdf | while read -r vdf; do
+		lib=$(sed -nE 's:^\s+"path"\s+"(.+)"$:\1/steamapps:p' "$vdf")
+		if ! grep -q "$lib" "$tmp/libs"; then puts "$lib" >> "$tmp/libs"; fi
+	done
+fi; done < "$tmp/installs"
+
+# Next we need to find stuff in all the steam libraries.
+while read -r dir; do if [ -d "$dir" ]; then
+	# If the compatdata directory exists, add that to the targets.
+	if [ -d "$dir/compatdata" ]; then
+		puts "$dir/compatdata" >> "$tmp/targets"
+	fi
+	# Now, let's find all the tool directories in the library.
+	find "$dir/common" -type d | grep -E -f "$tmp/tool-patterns" \
+	 >> "$tmp/targets" || :
+fi; done < "$tmp/libs"
+
+# Next we have to filter them out by device number to make sure they're on
+# the same filesystem. We also have to make sure the filesystems are BTRFS.
+while read -r target; do
+	if [ "$(findmnt -n -o FSTYPE --target "$target")" = "btrfs" ]; then
+		puts "$target" >> "$tmp/targets-dev-$(dev_id "$target")"
+	fi
+done < "$tmp/targets"
+
+# And finally: run the duplicate removal. We check that the list acctually
+# exists because if this utility runs on a system with no BTRFS devices, then
+# we won't actually have any lists.
+for list in "$tmp/targets-dev-"*; do
+	if [ -r "$list" ]; then
+		xargs -d '\n' -a "$list" duperemove -b 4k -hrd \
+		 --hashfile "$xdg_data/vacuum-steamplay/hashfile-${list##*-}"
+	fi
+done
