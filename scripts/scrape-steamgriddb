@@ -37,7 +37,7 @@ fi
 
 curl_griddb () {
 	api_call="$1"; shift
-	curl -# -H "Authorization: Bearer $griddb_token" \
+	curl -# -f -H "Authorization: Bearer $griddb_token" \
 	 -H "Accept: application/json" "$@" "$griddb_api/$api_call"
 }
 
@@ -125,10 +125,10 @@ scrape_steamid () {
 	
 	# Download official Steam assets first.
 	set +e
-	curl -# -o "$media/grid-steam" "$app_url/header.jpg"
-	curl -# -o "$media/capsule-steam" "$app_url/library_600x900_2x.jpg"
-	curl -# -o "$media/hero-steam" "$app_url/library_hero.jpg"
-	curl -# -o "$media/logo-steam" "$app_url/logo.png"
+	curl -# -f -o "$media/grid-steam" "$app_url/header.jpg"
+	curl -# -f -o "$media/capsule-steam" "$app_url/library_600x900_2x.jpg"
+	curl -# -f -o "$media/hero-steam" "$app_url/library_hero.jpg"
+	curl -# -f -o "$media/logo-steam" "$app_url/logo.png"
 	set -e
 	
 	# Link them as the current assets if we don't already have them.
