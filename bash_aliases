@@ -18,6 +18,7 @@ alias protontricks='com.github.Matoking.protontricks'
 alias ginstall='/xusr/bin/ginstall.sh -d /xusr/bin '
 alias test-lan='iperf3 -c 192.168.102.4 -f M --get-server-output'
 alias edit-refind='sudo "$EDITOR" /boot/efi/EFI/refind/manual.conf'
+alias fp-build='flatpak-builder --force-clean --repo=/xusr/opt/flatpak-local build'
 
 # Sometimes people reach over and hit alt+f4.
 altf4_psyche () {
