@@ -1,0 +1,114 @@
+#!/bin/sh
+# launch -- Start an application by the name of its desktop file.
+#     Usage: launch [options] application[.desktop]
+#
+# Options:
+#   -c|--class <WMClass>: Provide or override the WM_CLASS to search for.
+#   -w|--wait: Waits for its window to appear.
+#   -f|--focus: Focus an application if it's already running, else start it.
+#   -s|--syslog: Send app's output to syslog, tagged by its desktop file name.
+#   -i|--interval: Window poll interval. 0.2 by default.
+#   -D|--post-delay: Delay to wait after finding window. 0 by default.
+set -eu
+for cmd in wmctrl xdg-open xdotool; do if ! [ -x "$(command -v "$cmd")" ]; then
+    printf "This script requires %s; please install it.\n" "$cmd" >&2
+    exit 1
+fi; done
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+
+#############
+# FUNCTIONS #
+#############
+
+# Find the given .desktop file.
+# Runs itself in a subshell so it can safely modify IFS.
+find_desktop () (
+	IFS=':'; set -o noglob
+	dirs="${XDG_DATA_HOME:-$HOME/.local/share}"
+	dirs="$dirs:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+	for dir in $dirs; do
+		if [ "$dir" ] && [ -r "$dir/applications/$target" ]; then
+			printf %s\\n "$dir/applications/$target"
+			return
+		fi
+	done
+)
+
+
+#############
+# MAIN CODE #
+#############
+
+case "$0" in
+wait-launch) wait=1 ;;
+focus-launch) focus=1; wait=1 ;;
+esac
+
+while :; do
+	case "${1:-}" in
+	-c|--class) class="$2"; shift ;;
+	-i|--interval) interval="$2"; shift ;;
+	-f|--focus) focus=1; wait=1 ;;
+	+f|--no-focus) focus=0 ;;
+	-s|--syslog) syslog=1 ;;
+	+s|--no-syslog) syslog=0 ;;
+	-w|--wait) wait=1 ;;
+	+w|--no-wait) wait=0 ;;
+	*) target="$1" ;;
+	esac
+	shift
+	if [ "${target:-}" ]; then break; fi
+done
+
+if ! [ "${target:-}" ]; then usage 1; fi
+if [ "${target%.desktop}" = "$target" ]; then target="$target.desktop"; fi
+
+desktop=$(find_desktop "$target")
+if ! [ "$desktop" ]; then
+	notify-send "Launch Failed" "Couldn't find desktop file."
+	exit 1
+fi
+
+if [ "${wait:-0}" -eq 1 ]; then
+	if ! [ "${class:-}" ]; then
+		class=$(sed -nr 's/^StartupWMClass=(.+)$/\1/p' < "$desktop")
+	fi
+
+	if ! [ "${class:-}" ]; then
+		notify-send "Launch Failed" "Couldn't find window class."
+		exit 1
+	fi
+fi
+
+if [ "${focus:-0}" -eq 1 ]; then
+	if wmctrl -x -a "$class"; then exit 0; fi
+fi
+
+if [ -x "$(command -v dex)" ]; then
+	launcher () { dex "$desktop"; }
+elif [ -x "$(command -v gtk-launch)" ]; then
+	launcher () { gtk-launch "$target"; }
+fi
+
+# Execute the desktop entry.
+if [ "${syslog:-1}" -eq 1 ]; then
+	launcher 2>&1 | logger -t "${target%.desktop}" &
+else
+	launcher &
+fi
+
+if ! [ "${wait:-0}" -eq 1 ]; then exit "$?"; fi
+
+start=$(date +%s); end=$((start + 11))
+while :; do
+	if wmctrl -lx | awk '{print $3}' | grep -qi "$class"; then
+		if [ "${focus:-0}" -eq 1 ]; then wmctrl -x -a "$class"; fi
+		exit 0
+	elif [ "$(date +%s)" -ge "$end" ]; then exit 1
+	fi
+	sleep "${interval:-0.1}"
+done
