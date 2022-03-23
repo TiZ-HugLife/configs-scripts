@@ -35,6 +35,10 @@ pctl () { playerctl -p "$players" "$@"; }
 
 puts () { printf %s\\n "$*"; }
 
+if [ -x /opt/im6/bin/convert ]; then
+	convert () { /opt/im6/bin/convert "$@"; }
+fi
+
 # Used to determine if a notification should be sent.
 # Do nothing and say nothing if OBS isn't running.
 obsctl () { if [ "$(pgrep obs || :)" ]; then command obsctl "$@" || :; fi; }
