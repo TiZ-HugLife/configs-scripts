@@ -132,7 +132,7 @@ bookmark|savebookmark)
 	time=$(obs_pw -f 0.recordTimecode GetRecordingStatus)
 	filename=$(obs_pw -f 0.recordingFilename GetRecordingStatus)
 	printf %s\\n "$time" >> "${filename%.*}.bm.txt"
-	notify-send "Recording Bookmark Saved" "Timestamp: $time"
+	notify-send -a OBSCtl "Recording Bookmark Saved" "Timestamp: $time"
 	;;
 startrec*)     request_with_rc StartRecording ;;
 stoprec*)      request_with_rc StopRecording ;;
