@@ -15,5 +15,8 @@ for dev in $devs; do
 	fi
 done
 
-if [ "${joys:-}" ]; then export SDL_JOYSTICK_DEVICE="$joys"; fi
+if [ "${joys:-}" ]; then case "${1:-}" in
+	-e|--eval|eval) printf "export SDL_JOYSTICK_DEVICE=\"%s\"\n" "$joys" ;;
+	*) export SDL_JOYSTICK_DEVICE="$joys" ;;
+esac; fi
 unset joys devs
