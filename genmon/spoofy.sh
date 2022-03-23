@@ -6,7 +6,7 @@ rundir="/run/user/$(id -u)/song-info"
 title=$(cat "$rundir/title.txt" 2>&1 || :)
 
 printf "<icon>spotify</icon>\n"
-printf "<iconclick>focus-launch com.spotify.Client</iconclick>\n"
+printf "<iconclick>launch -f -w com.spotify.Client</iconclick>\n"
 
 if ! [ "$title" ]; then
 	cat <<-EOF
