@@ -1,0 +1,45 @@
+/* Accent colors */
+@define-color accent_bg_color ;
+@define-color accent_fg_color ;
+@define-color accent_color ;
+
+/* Destructive-action buttons */
+@define-color destructive_bg_color ;
+@define-color destructive_fg_color ;
+@define-color destructive_color ;
+
+/* Levelbars, entries, labels and infobars. These don't need text colors */
+@define-color success_color ;
+@define-color warning_color ;
+@define-color error_color ;
+
+/* Content areas, e.g. text views */
+@define-color view_bg_color ;
+@define-color view_fg_color ;
+
+/* Main window background */
+@define-color window_bg_color ;
+@define-color window_fg_color ;
+@define-color shade_color ;
+
+/* Header bar, search bar, tab bar */
+@define-color headerbar_bg_color ;
+@define-color headerbar_fg_color ;
+@define-color headerbar_border_color ;
+@define-color headerbar_backdrop_color ;
+@define-color headerbar_shade_color ;
+
+/* Cards, boxed lists */
+@define-color card_bg_color ;
+@define-color card_fg_color ;
+@define-color card_border_color ;
+
+/* Popovers */
+@define-color popover_bg_color ;
+@define-color popover_fg_color ;
+
+/* Miscellaneous */
+@define-color scrollbar_outline_color ;
+@define-color window_outline_color ;
+@define-color window_border_color ;
+@define-color window_border_backdrop_color ;
