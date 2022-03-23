@@ -1,0 +1,51 @@
+#!/bin/sh
+# perfgov -- Change CPU governor on or off of performance.
+# <<! This script will sudo itself to change CPU governor. !>>
+# <<! This script will also sudo itself to install its sudoers rule. !>>
+#
+# Usage:
+#	perfgov install -- Install sudoers rule for passwordless execution.
+#	perfgov 1|on|yes|true -- Switch governor to performance.
+#	perfgov 0|off|no|false -- Switch governor to powersave.
+#	perfgov check|query|status -- Exit 0 if governor is performance, else 1.
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
+
+this=$(realpath "$0")
+sys="/sys/devices/system/cpu"
+
+governor=powersave
+case "$(printf %s\\n "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+1|on|yes|true) governor=performance ;;
+check|query|status)
+	exec test "$(cat "$sys/cpu0/cpufreq/scaling_governor")" = "performance" ;;
+install)
+	if [ "$(id -u)" -gt 0 ]; then
+		cat <<-EOF
+		<<! This script will now sudo itself to install a sudoers rule for
+		    passwordless execution!!! Please read the source code of this
+		    script to ensure you are okay with what it does! !>>
+		<<! Script location: $this !>>
+		EOF
+		exec sudo -k "$this" "$@"
+	fi
+	cat > /etc/sudoers.d/perfgov <<-EOF
+	ALL ALL=(ALL) NOPASSWD: $this
+	EOF
+	exit
+	;;
+esac
+
+if [ "$(id -u)" -gt 0 ]; then
+	exec sudo -k "$this" "$@"
+fi
+
+cd /sys/devices/system/cpu
+for cpu in cpu*; do
+	if [ -e "$cpu/cpufreq/scaling_governor" ]; then
+		printf %s\\n "$governor" > "$cpu/cpufreq/scaling_governor"
+	fi
+done
