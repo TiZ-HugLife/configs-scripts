@@ -29,7 +29,6 @@ format='{{status}}
 {{mpris:artUrl}}
 {{title}}
 {{artist}}
-{{albumArtist}}
 {{album}}'
 
 pctl () { playerctl -p "$players" "$@"; }
@@ -145,7 +144,6 @@ pctl -f "$format" -F metadata 2> /dev/null | while read -r status; do
 		read -r arturl
 		read -r title
 		read -r artist
-		read -r album_artist
 		read -r album
 	fi
 	if [ "$status" != "Playing" ]; then clear_info
@@ -158,7 +156,7 @@ pctl -f "$format" -F metadata 2> /dev/null | while read -r status; do
 			album=$(sed -nr 's/^website=(.+)$/\1/p' "$qlpath/current")
 		fi
 		if ! [ "$album" ]; then album=${title}; fi
-		artist_filter=$(puts "$album_artist" | filter_filename)
+		artist_filter=$(puts "$artist" | filter_filename)
 		album_filter=$(puts "$album" | filter_filename)
 		artcache="$artdir/$artist_filter - $album_filter"
 		puts "$title" > "title.txt"
