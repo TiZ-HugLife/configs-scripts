@@ -170,8 +170,7 @@ branch)
 	ln -sfn "$1" current
 	;;
 vacuum|dedupe)
-	duperemove -rd "$prefixes"
-	duperemove -rd "$versions"
+	duperemove -b 4k -hrd "$versions" "$prefixes"
 	success "Deduplicated prefixes and versions."
 	;;
 list|ls)
