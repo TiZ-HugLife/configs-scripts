@@ -7,6 +7,9 @@
 # handled passes through directly to obs-cli with the websocket password.
 # Specially handled requests are case-insensitive.
 # 
+# * This specifically requires leafac's obs-cli:
+#   https://github.com/leafac/obs-cli
+#
 # Store the password for the websocket in pass as obs-websocket.
 # 
 # Usage: obsctl <action> [argument]
@@ -48,6 +51,22 @@ if ! [ -x "$(command -v "$cmd")" ]; then
     exit 1
 fi; done
 
+# Detect which obs-cli we have and exit with an error message if needed.
+if ! obs-cli -V >/dev/null 2>&1; then
+	if obs-cli-leafac -V >/dev/null 2>&1; then
+		obs_cli=$(command -v obs-cli-leafac)
+	else
+		cat <<-EOF
+		This script requires leafac's version of obs-cli. If you need muesli's
+		version as well, install leafac's version with the name obs-cli-leafac.
+		https://github.com/leafac/obs-cli
+		EOF
+		exit 1
+	fi
+else
+	obs_cli=$(command -v obs-cli)
+fi
+
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
 case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
@@ -61,7 +80,7 @@ if ! [ "${obs_ws_pw:-}" ]; then
 	export obs_ws_pw
 fi
 
-obs_pw () { obs-cli -p "$obs_ws_pw" "$@"; }
+obs_pw () { "${obs_cli:-obs-cli}" -p "$obs_ws_pw" "$@"; }
 obsctlrc () { if [ -x "$obsctlrc" ]; then "$obsctlrc" "$@" || :; fi; }
 
 req=$(printf %s "${1:?}" | tr '[:upper:]' '[:lower:]'); shift
