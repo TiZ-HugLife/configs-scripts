@@ -50,12 +50,12 @@ safe_filename () {
 }
 # By using a subshell, we don't have to change anything back.
 # shellcheck disable=SC2086 disable=SC2048
-split () { (
+split () (
     set -f
     IFS=$1; shift
     set -- $*
     printf '%s\n' "$@"
-) }
+)
 
 # Check for a variable to be a very loosely truthy value.
 # When given extra arguments, function as a ternary puts.
