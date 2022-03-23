@@ -77,6 +77,16 @@ has_flatpak () {
 	[ -x "$(command -v flatpak)" ] && shh flatpak run --command=true "$1"
 }
 
+# Search a newline-separated list of items.
+val_in_list () (
+	while read -r item; do
+		if [ "$1" = "$item" ]; then return 0; fi
+	done <<-EOF
+	${2:-}
+	EOF
+	return 1
+)
+
 # Trap management.
 cleanup_on_exit () {
 	__current_trap=$(trap | err_ok grep -oP "(?<=trap -- ').+(?=' EXIT)")
