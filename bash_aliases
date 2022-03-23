@@ -38,6 +38,20 @@ compress () {
     btrfs filesystem defragment -vr -czstd "$1"
 }
 
+# Crop an image to a new width, with an optional offset.
+crop_width () {
+	while [ "${1:-?}" ]; do case "$1" in
+		-w|--width) width="${2:?}"; shift ;;
+		-o|--offset) offset=$(printf '%+d\n' "${2:?}"); shift ;;
+		*) break ;;
+	esac; shift; done
+	for file in "$@"; do
+	convert "$file" -set filename:original %t -gravity Center \
+	 -crop "${width:?}x${offset:-0}+0" +repage \
+	 "%[filename:original].${width:?}.png"
+	done
+}
+
 # Update PC games in Pegasus.
 update_pc_games () {
     dir="/home/tiz/gam/pc"
