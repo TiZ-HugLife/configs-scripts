@@ -9,7 +9,7 @@
 
 /* Always necessary on XFCE. Not needed in gtk4.css. */
 @import url("css/apps/xfce4-panel.css");
-@import url("css/apps/xfce4-panel-top.css");
+@import url("css/apps/xfce4-panel-left.css");
 @import url("css/apps/xfce4-misc.css");
 @import url("css/apps/thunar.css");
 

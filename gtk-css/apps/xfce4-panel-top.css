@@ -1,3 +1,15 @@
+/* Horizontal panel plugin tweaks. */
+.xfce4-panel #clock-button {
+	margin-left: 4px;
+	min-width: 52px;
+}
+.xfce4-panel #pulseaudio-button {
+	padding: 0px 1px;
+}
+.xfce4-panel #pulseaudio-button image {
+	-gtk-icon-transform: scale(0.8);
+}
+
 /* Regular buttons. */
 .xfce4-panel button:hover:not(:active):not(:checked) {
 	box-shadow: none;

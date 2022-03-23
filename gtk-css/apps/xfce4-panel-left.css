@@ -4,7 +4,7 @@
 .xfce4-panel #pager-3 button,
 .xfce4-panel #pager-12 button,
 .xfce4-panel #pager-14 button {
-	padding: 2px 0px;
+	padding: 0px;
 	/*font-size: 1.1em;*/
 }
 .xfce4-panel #weather-34 image {
@@ -31,6 +31,12 @@
 	margin: 0px;
 }
 
+/* Shrink volume button more. */
+/* We can't do anything about the hardcoded height request. */
+.xfce4-panel #pulseaudio-button image {
+	-gtk-icon-transform: scale(0.75);
+}
+
 /* Regular buttons. */
 .xfce4-panel button:hover:not(:active):not(:checked) {
 	box-shadow: none;
@@ -41,15 +47,6 @@
 	background-image: linear-gradient(to right, @theme_selected_bg_color, transparent, transparent);
 }
 
-/* The tasklist's active button should look like a tab for the window. */
-.xfce4-panel .tasklist button:checked {
-	background-color: @wm_bg_b;
-	font-weight: bold;
-}
-.xfce4-panel .tasklist button:checked:not(:hover) {
-	color: @theme_fg_color;
-}
-
 /* Support docklike plugin too. */
 .xfce4-panel #docklike-plugin button.group {
 	box-shadow: none;
@@ -58,11 +55,11 @@
 
 .xfce4-panel #docklike-plugin button.hover_group {
 	box-shadow: none;
-	background-image: linear-gradient(to right, alpha(currentColor, 0.25), transparent, transparent);
+	/*background-image: linear-gradient(to right, alpha(currentColor, 0.25), transparent, transparent);*/
 }
 
 .xfce4-panel #docklike-plugin button.active_group {
 	box-shadow: none;
-	background-color: @wm_bg_b;
-	background-image: linear-gradient(to right, @theme_selected_bg_color, transparent, transparent);
+	/*background-color: @wm_bg_b;
+	background-image: linear-gradient(to right, @theme_selected_bg_color, transparent, transparent);*/
 }
