@@ -1,7 +1,10 @@
 #!/bin/sh
 # vacuum-steamplay -- Deduplicate blocks in Steam Play compatability data
 # Depends on duperemove and can only run on filesystems supporting deduplication
-# such as BTRFS. It's recommended to combine this with compression. Will create
+# such as BTRFS. Actually, right now, BTRFS is the only filesystem supported.
+# It's recommended to combine this with compression, but enable compression on
+# your compatdata folders and do an initial `btrfs fi defrag` on them *before*
+# running this, because on-demand defragments usually break reflinks. Will make
 # per-device hash files in $XDG_DATA_HOME/vacuum-steamplay for faster subsequent
 # runs of this utility.
 set -eu
@@ -12,7 +15,7 @@ case "${1:-}" in -h|--help|--usage|help|usage) usage 0 ;; esac
 
 # Check dependencies.
 for dep in duperemove findmnt; do if ! [ -x "$(command -v "$dep")" ]; then
-	printf "This script requires duperemove; please install it.\n" >&2
+	printf "This script requires %s; please install it.\n" "$dep" >&2
 	exit 1
 fi; done
 
