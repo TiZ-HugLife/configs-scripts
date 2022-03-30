@@ -1,14 +1,19 @@
 #!/bin/sh
 # This does basically the same thing as prime-run in Arch's nvidia-prime
 # package, but does so more vendor-agnostically and carefully.
-if xrandr --listproviders | grep -qi nvidia; then
-    # It's okay to set these vars while the NVidia is the primary GPU.
+providers=$(xrandr --listproviders)
+if printf %s\\n "$providers" | grep -Eqi 'nvidia-[0-9]'; then
+    # It turns out that it is no longer okay to export the prime offload
+    # variables when running NVidia-as-primary; this has recently started
+    # crashing Plasma.
+    exec "$@"
+elif printf %s\\n "$providers" | grep -Eqi 'nvidia-g[0-9]'; then
     export __NV_PRIME_RENDER_OFFLOAD=1
     export __GLX_VENDOR_LIBRARY_NAME=nvidia
     export __VK_LAYER_NV_optimus=NVIDIA_only
     exec "$@"
 # This doesn't account for the possiblity that an AMD GPU is integrated.
-elif xrandr --listproviders | grep -qi radeon; then
+elif printf %s\\n "$providers" | grep -qi radeon; then
     export DRI_PRIME=1
     exec "$@"
 # I figure it's safer to fail if a command needs a dGPU and it's not there
