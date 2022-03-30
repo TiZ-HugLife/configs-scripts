@@ -1,7 +1,7 @@
 #!/bin/sh
 # auto-steam -- A Steam wrapper that blocks until the launched game exits.
 #
-# Useful if you want to exceute actions before and/or after running games. If
+# Useful if you want to execute actions before and/or after running games. If
 # Steam is not already running, then it will close Steam afterwards. Do not name
 # this script as "steam"; It will chase itself around in circles. Don't use this
 # to launch Steam for general purpose; it's only useful for launching apps.
