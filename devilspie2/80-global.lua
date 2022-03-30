@@ -47,8 +47,8 @@ if normal then
         -- OBS does not change workspaces, but it does go on the second monitor.
         maximize_at(secondary.l, secondary.t, true)
     elseif not persistent_secondary and
-     win_x >= secondary_true.l and win_x < secondary_true.r and
-     win_y >= secondary_true.t and win_y < secondary_true.b then
+     (win_x < main_true.l or win_x >= main_true.r or
+      win_y < main_true.t or win_y >= main_true.b) then
         -- If it's not a persistent window but it appeared on the
         -- second monitor, then move it off of the second monitor.
         -- This is effectively a no-op when there's one monitor.
