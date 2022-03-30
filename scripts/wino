@@ -1,6 +1,9 @@
 #!/bin/sh
 # wino -- Manage Wine prefixes and versions, and run commands wtih them.
 #
+# If the Flatpak Wine package is installed (org.winehq.Wine), Wino will prefer
+# to wrap all wine commands in that package. Make sure
+#
 # "I saw this wino, he was eating grapes. I was like, 'Dude, you have to wait!'"
 #     -- Mitch Hedberg
 #
@@ -13,10 +16,12 @@
 #     tkg -- The latest version of Wine-tkg.
 #     proton -- The latest version of Proton.
 #     current -- The latest version of your preferred branch (tkg by default).
-# The DXVK updater also maintains a latest ailias.
+# The DXVK updater also maintains a latest alias.
 #
 # Usage: wino <action> [args]
 # Actions:
+#     init -- First-time setup; update-all and then create default prefixes.
+#       Also performs some overrides for the Flatpak version.
 #     update-wine -- Download the latest builds of Wine.
 #     update-tricks -- Download the latest version of Winetricks.
 #     update-dxvk -- Download the latest version of DXVK.
@@ -76,8 +81,38 @@ case "$action" in
 		;;
 esac
 
+# Prefer Flatpak Wine when available.
+if has_flatpak org.winehq.Wine; then
+	fp_wine () {
+		cmd="$1"; shift
+		# We use command -v because we change PATH for the custom builds.
+		flatpak run --command="$(command -v "$cmd")" \
+		 --env=WINEPREFIX="$WINEPREFIX" org.winehq.Wine "$@"
+	}
+	for bin in wine wineboot winecfg winetricks msiexec regedit wineserver; do
+		eval "$bin () { fp_wine $bin \"\$@\"; }"
+	done
+	flatpak=1
+fi
+
 case "$action" in
 init*)
+	h1 "Checking system."
+	if ! [ -x "$(command -v wine)" ]; then
+		if ! has_flatpak org.winehq.Wine; then
+			failure "No wine installation detected."
+			cat <<-EOF
+			Wine needs to be installed on your system in some manner even when
+			using this script's distro-agnostic builds. This is because the 32-
+			bit dependencies need to be present. The most convenient way to
+			handle this is to install the Wine Flatpak: org.winehq.Wine.
+			Wino will handle wrapping commands in the Flatpak.
+			EOF
+			exit 1
+		else
+			flatpak --user override --filesystem=xdg-data/wine org.winehq.Wine
+		fi
+	fi
 	h1 "Downloading latest wine, proton, and winetricks."
 	"$0" update-all
 	h1 "Creating standard prefixes and WINEARCH=win32 versions."
@@ -105,11 +140,11 @@ update-wine|get-wine)
 	 sed 's:.*refs/tags/::' | sort -V)
 	latest=$(puts "$tags" | grep -v 'wayland|proton|rc' | tail -n1)
 	latest_proton=$(puts "$tags" | grep 'proton' | grep -v 'exp' | tail -n1)
-	
+
 	if [ -d "$versions/$latest" ] && [ -d "$versions/$latest_proton" ]; then
 		h2 "Already have the latest Wine builds."
 	fi
-	
+
 	if ! [ -d "$versions/$latest" ]; then
 		h1 "Downloading latest Wine builds."
 		cd "$(mktemp -d)"
@@ -127,7 +162,7 @@ update-wine|get-wine)
 		if ! [ -e current ]; then ln -s tkg current; fi
 		success "Successfully fetched latest Wine builds."
 	fi
-	
+
 	if ! [ -d "$versions/$latest_proton" ]; then
 		h1 "Downloading latest Proton build."
 		cd "$(mktemp -d)"
@@ -190,7 +225,7 @@ create|new)
 run|cmd)
 	export WINEPREFIX="$pfx_dir"
 	export PATH="$pfx_dir/wine/bin:$PATH"
-	exec "$@"
+	if ! [ "${flatpak:-}" ]; then exec "$@"; else "$@"; fi
 	;;
 wine)               exec "$0" run "$pfx_name" wine "$@" ;;
 shell|sh)           exec "$0" run "$pfx_name" "${SHELL:-/bin/sh}" "$@" ;;
