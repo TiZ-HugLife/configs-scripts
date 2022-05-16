@@ -1,0 +1,38 @@
+#!/bin/sh
+# daz-decompress -- Decompress all gzipped files in a given directory.
+#   Usage: daz-decompress <directory>
+set -eu
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+# Check dependencies.
+for cmd in zcat sponge; do if ! [ -x "$(command -v "$cmd")" ]; then
+	printf "This script requires %s; please install it.\n" "$cmd" >&2; exit 1
+fi; done
+
+# See if this script has been asked to do a gzip test.
+case "${1:?}" in
+-check)
+	case "$(file "${2:?}")" in
+		*"gzip compressed data"*) printf %s\\n "$2"; exit 0;;
+		*) exit 1;;
+	esac
+esac
+
+# Make sure the argument is a directory.
+if ! [ -d "${1:?}" ]; then
+	printf "Please specify a directory.\n" >&2
+	exit 1
+fi
+
+# Do the actual search and decompression.
+printf "Looking for files to decompress.\n"
+find "$1" -type f -exec "$0" -check '{}' \; | while read -r file; do
+	printf "Decompressing %s..." "$file"
+	zcat "$file" | sponge "$file"
+	printf " Done!\n"
+done
+
+printf "All done! :)\n"
