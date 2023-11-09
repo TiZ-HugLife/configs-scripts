@@ -1,9 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # arcsys-intro -- start your terminals with arcsys intro shitposts
 # Most lines are from https://orteil.dashnet.org/randomgen/?gen=wMu6qiG3
-# If your terminal doesn't have the word terminal in its WM_CLASS, then
-# export TERMINAL_WM_CLASS=alacritty or similar before running this.
-set -eu
+# You can export TERMINAL_WM_CLASS to determine what terminal window classes
+# this script should look for to determine which REBEL the WHEEL OF FATE is on.
+# The value of this variable should be a valid regex for egrep. It will only
+# count windows, not tabs or panes within windows. It will just assume that it
+# is REBEL ONE if it can't find any windows.
+# The default is "terminal|konsole|alacritty|kitty|yakuake".
 for cmd in shuf wmctrl; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
@@ -12,47 +15,57 @@ fi; done
 lower () { printf %s "$*" | tr '[:upper:]' '[:lower:]'; }
 upper () { printf %s "$*" | tr '[:lower:]' '[:upper:]'; }
 
-tput bold; tput setaf 7
+# First off: make sure we put the terminal back to normal whenever we exit.
+trap 'tput sgr0' EXIT
 
-today=$(date +%A)
+if ! [ "${TERMINAL_WM_CLASS:-}" ]; then
+	TERMINAL_WM_CLASS='terminal|konsole|alacritty|kitty|yakuake'
+fi
 
 # All of this is to translate One, First, etc to tne number of terminals open.
-# But if we're SSHing in somewhere, just default to 1.
-if [ "${DISPLAY:-}" ] && ! [ "${SSH_CLIENT:-}${SSH_TTY:-}" ]; then
-    TERMINAL_WM_CLASS=${TERMINAL_WM_CLASS:-terminal}
-    num=$(wmctrl -lx | awk '{print $3}' | grep -i "$TERMINAL_WM_CLASS" | wc -l)
-else num=1; fi
-case "$num" in
-0)
-    printf "Export TERMINAL_WM_CLASS to the WM_CLASS of your terminal\n"
-    printf "before running this script.\n"
-    tput sgr0
-    exit ;;
-1)  One=One; First=First; Uno=Uno ;;
-2)  One=Two; First=Second; Uno=Dos ;;
-3)  One=Three; First=Third; Uno=Tres ;;
-4)  One=Four; First=Fourth; Uno=Cuatro ;;
-5)  One=Five; First=Fifth; Uno=Cinco ;;
-6)  One=Six; First=Sixth; Uno=Seis ;;
-7)  One=Seven; First=Seventh; Uno=Siete ;;
-8)  One=Eight; First=Eighth; Uno=Ocho ;;
-9)  One=Nine; First=Ninth; Uno=Nueve ;;
-10) One=Ten; First=Tenth; Uno=Diez ;;
-11) One=Eleven; First=Eleventh; Uno=Once ;;
-12) One=Twelve; First=Twelfth; Uno=Doce ;;
-13) One=Thirteen; First=Thirteenth; Uno=Trece ;;
-14) One=Fourteen; First=Fourteenth; Uno=Catorce ;;
-15) One=Fifteen; First=Fifteenth; Uno=Quince ;;
-16) One=Sixteen; First=Sixteenth; Uno=Dieciséis ;;
-17) One=Seventeen; First=Seventeenth; Uno=Diecisiete ;;
-18) One=Eighteen; First=Eighteenth; Uno=Dieciocho ;;
-19) One=Nineteen; First=Nineteenth; Uno=Diecinueve ;;
-20) One=Twenty; First=Twentieth; Uno=Veinte ;;
+# But if we're SSHing in somewhere or in a container, just default to 1.
+if [ "${DISPLAY:-}" ] && \
+ ! [ "${SSH_CLIENT:-}${SSH_TTY:-}${container:-}" ]; then
+    num=$(wmctrl -lx | awk '{print $3}' | grep -Ei "$TERMINAL_WM_CLASS" | wc -l)
+fi
+
+# Make the text bold and white. We do it here for the 21+ case.
+tput bold; tput setaf 7
+
+# This lets us use $1 in the specs below.
+set -- "${num:-1}"
+
+# Turn the number into words for the memes.
+case "$1" in
+0|1)  One=One; First=First; Uno=Uno ;;
+2)    One=Two; First=Second; Uno=Dos ;;
+3)    One=Three; First=Third; Uno=Tres ;;
+4)    One=Four; First=Fourth; Uno=Cuatro ;;
+5)    One=Five; First=Fifth; Uno=Cinco ;;
+6)    One=Six; First=Sixth; Uno=Seis ;;
+7)    One=Seven; First=Seventh; Uno=Siete ;;
+8)    One=Eight; First=Eighth; Uno=Ocho ;;
+9)    One=Nine; First=Ninth; Uno=Nueve ;;
+10)   One=Ten; First=Tenth; Uno=Diez ;;
+11)   One=Eleven; First=Eleventh; Uno=Once ;;
+12)   One=Twelve; First=Twelfth; Uno=Doce ;;
+13)   One=Thirteen; First=Thirteenth; Uno=Trece ;;
+14)   One=Fourteen; First=Fourteenth; Uno=Catorce ;;
+15)   One=Fifteen; First=Fifteenth; Uno=Quince ;;
+16)   One=Sixteen; First=Sixteenth; Uno=Dieciséis ;;
+17)   One=Seventeen; First=Seventeenth; Uno=Diecisiete ;;
+18)   One=Eighteen; First=Eighteenth; Uno=Dieciocho ;;
+19)   One=Nineteen; First=Nineteenth; Uno=Diecinueve ;;
+20)   One=Twenty; First=Twentieth; Uno=Veinte ;;
 *)
     printf "Jesus fuck, close some fucking terminals.\n"
-    tput sgr0
     exit ;;
 esac
+
+# What day is it?
+today=$(date +%A)
+
+# Capitalization variants.
 one=$(lower "$One"); ONE=$(upper "$One")
 first=$(lower "$First"); FIRST=$(upper "$First")
 
@@ -139,6 +152,7 @@ Don't you wanna just go ape shitt???
 Are You Ready To Meet God?
 EOF
 
+# Make the text yellow.
 tput setaf 3
 
 shuf -n1 <<EOF
@@ -148,21 +162,22 @@ Carnage $One
 $First Clash!
 MISSION $ONE
 $First Engagement
-Wing $num!
+Wing $1!
 Chapter $One
 INVOICE $ONE
-Ball $num: 
-Round the $first: 
+Ball $1:
+Round the $first:
 $FIRST TRY
 $FIRST HOWDY!
 $FIRST RECEIPT
 $FIRST CONFLICT,
 Round $Uno
-TELLING $num
-Concert $num
+TELLING $1
+Concert $1
 $FIRST SHOWDOWN
 EOF
 
+# Make the text cyan.
 tput setaf 6
 
 shuf -n1 <<EOF
@@ -214,5 +229,3 @@ Unite up!
 Whip em out!
 STRIFE!
 EOF
-
-tput sgr0
