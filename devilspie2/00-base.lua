@@ -36,6 +36,12 @@ if not functions_defined then
         return count == n
     end
 
+    -- Check if session start is in progress.
+    function is_session_starting ()
+        local result = os.execute("pgrep session-apps > /dev/null 2>&1")
+        return (result == true or result == 0)
+    end
+
     -- Modify window class.
     function set_class (class)
         win_class = class
@@ -69,16 +75,8 @@ if not functions_defined then
     main_true = main
     secondary = main
     secondary_true = main
-
-    -- Change window's location and remaximize it.
-    -- Useful for moving windows between displays.
-    function maximize_at (x, y, delay)
-        unmaximize()
-        if delay then os.execute("sleep 0.1") end
-        pos(x, y)
-        if delay then os.execute("sleep 0.1") end
-        maximize()
-    end
+    tertiary = main
+    tertiary_true = main
 
     -- To pin or not to pin?
     function pin (value)
@@ -107,12 +105,73 @@ if not functions_defined then
             new_y = (screen_h - new_h) / 2
         end
         undecorate_window()
-        set_window_geometry2(new_x, new_y, new_w, new_h)
+        set_window_geometry(new_x, new_y, new_w, new_h)
+    end
+
+    -- Add debug_print hooks to see what they're trying to do.
+    -- Both of these have a sleep command in the middle and then do the thing
+    -- a second time. Somehow they find a way not to take when done regularly.
+    function pos (x, y)
+        debug_print("   -- Moving to " .. x .. ", " .. y)
+        if maxed then unmaximize() end
+        set_window_position(x, y)
+        os.execute("sleep 0.1")
+        set_window_position(x, y)
+        if maxed then maximize() end
+    end
+    function geom (x, y, w, h)
+        debug_print("   -- Moving to " ..
+          x .. ", " .. y .. " " .. w .. " x " .. h)
+        if maxed then unmaximize() end
+        set_window_geometry(x, y, w, h)
+        os.execute("sleep 0.1")
+        set_window_geometry(x, y, w, h)
+        if maxed then maximize() end
+    end
+    function geom2 (x, y, w, h)
+        debug_print("   -- Moving to " ..
+          x .. ", " .. y .. " " .. w .. " x " .. h)
+        if maxed then unmaximize() end
+        set_window_geometry2(x, y, w, h)
+        os.execute("sleep 0.1")
+        set_window_geometry2(x, y, w, h)
+        if maxed then maximize() end
+    end
+
+    -- Change window's location and remaximize it.
+    -- Useful for moving windows between displays.
+    function maximize_in (geo, delay)
+        unmaximize()
+        if delay and (delay > 0.0) then os.execute("sleep " .. delay) end
+        set_window_position(geo.l, geo.t)
+        if delay and (delay > 0.0) then os.execute("sleep " .. delay) end
+        maximize()
+    end
+
+    -- Check if window is inside a given geometry.
+    function win_inside (geo)
+        return win_x >= geo.l and win_x < geo.r and
+         win_y >= geo.t and win_y < geo.b
+    end
+
+    -- Move windows onto the main monitor.
+    function move_to_main ()
+        local geo
+
+        -- Check which monitor it's on, aborting if on main.
+        if win_inside(main_true) then return
+        elseif win_inside(secondary_true) then geo = secondary_true
+        elseif win_inside(tertiary_true) then geo = tertiary_true end
+
+        -- Now do the window math and move it.
+        debug_print("  -- Moving window to main monitor.")
+        win_x = win_x - geo.l + main_true.l
+        win_y = win_y - geo.t + main_true.t
+        pos(win_x, win_y)
+        unpin_window()
     end
 
     -- Handy function aliases.
-    pos = set_window_position2
-    size = set_window_size
     workspace = set_window_workspace
     alpha = set_window_opacity
     viewport = set_viewport
@@ -138,6 +197,7 @@ win_x, win_y, win_w, win_h = get_window_geometry()
 new_screen_w, new_screen_h = get_screen_geometry()
 normal = type_is("normal")
 dialog = type_is("dialog")
+maxed = get_window_is_maximized()
 
 -- Check if screen geometry changed so that geometry updates can take place.
 if new_screen_w ~= screen_w or new_screen_h ~= screen_h then
