@@ -35,18 +35,17 @@ If the script is intended to be run without arguments, remove the `""` case. Tha
 If you make a script that uses a program that cannot be reasonably guaranteed to be part of any given Linux system, then you should check for its presence at the start of the script.
 
 ```sh
-for cmd in jq curl; do if ! [ -x "$(command -v "$cmd")" ]; then
-    printf "This script requires $cmd; please install it.\n" >&2
-    exit 1
+# Check dependencies.
+for cmd in zcat sponge; do if ! [ -x "$(command -v "$cmd")" ]; then
+	printf "This script requires %s; please install it.\n" "$cmd" >&2; exit 1
 fi; done
 ```
 
-If it's more than one program, you should use this form. If it's just one program, this next one will do:
+If it's more than one program, you should use the above form. If it's just one program, this next one will do:
 
 ```sh
 if ! [ -x "$(command -v maim)" ]; then
-    printf "This script requires maim; please install it.\n" >&2
-    exit 1
+	printf "This script requires maim; please install it.\n" >&2; exit 1
 fi
 ```
 
