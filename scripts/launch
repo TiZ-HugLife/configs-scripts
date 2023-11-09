@@ -94,8 +94,8 @@ elif [ -x "$(command -v gtk-launch)" ]; then
 fi
 
 # Execute the desktop entry.
-if [ "${syslog:-1}" -eq 1 ]; then
-	launcher 2>&1 | logger -t "${target%.desktop}" &
+if [ "${syslog:-0}" -eq 1 ]; then
+	launcher 2>&1 | systemd-cat -t "${target%.desktop}" &
 else
 	launcher &
 fi
