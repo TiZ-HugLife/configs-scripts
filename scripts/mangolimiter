@@ -1,0 +1,35 @@
+#!/usr/bin/env -S sh -eu
+# mangolimiter -- A more convenient way to use MangoHUD's FPS limiter on Deck.
+#   Set game's launch command to: `/path/to/mangolimiter [-f FPS] %command%`
+#
+# Save this entire file to `/home/deck/.local/bin/mangolimiter`, and then use
+# the desktop mode file manager to make it executable. Alternatively, you can
+# issue `chmod a+x "$HOME/.local/bin/mangolimiter"` in a terminal. You can then
+# set the launch command as specified in the brief usage snippet above. If you
+# don't specify an FPS, the default is 60.
+#
+# If you want to avoid specifying the entire path, you'll need to add the
+# location that this script is saved in to your PATH variable. Create the file
+# `$HOME/.config/environment.d/user-path.conf` and put only one line in it:
+# `PATH=$PATH:$HOME/.local/bin`, or wherever you saved this script. There are
+# potential vulnerabilities in doing this, but making sure this directory is
+# at the end of the PATH variable--and can't override any system binaries--will
+# mitigate many of them. After doing this, the launch command will just be:
+#   `mangolimiter [-f FPS] %command%`
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in -h|--help|--usage|help|usage|"") usage 0 ;; esac
+
+# Check dependencies.
+if ! [ "$(command -v mangohud)" ]; then
+	printf "%s requires mangohud; please install it.\n" "$(basename "$0")" >&2
+	exit 1
+fi
+
+case "${1:-}" in
+	-f|--fps) fps=${2:?}; shift 2;;
+esac
+
+export MANGOHUD_CONFIG="read_cfg,fps_limit=${fps:-60},no_display"
+exec mangohud "$@"
