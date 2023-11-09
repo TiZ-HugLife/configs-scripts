@@ -1,0 +1,73 @@
+/* Forcibly inherit GTK colors */
+:root[color-scheme="system-color"] { 
+  --tab-surface-regular: var(--theme-colors-toolbar); 
+  --tab-text-regular: var(--theme-colors-toolbar_text); 
+  --tab-text-inverted: var(--theme-colors-toolbar); 
+  --tab-text-active: var(--theme-colors-toolbar_text); 
+  --tab-text-active-inverted: var(--theme-colors-toolbar); 
+  --tab-border: var(--theme-colors-toolbar_text-10); 
+  --tab-surface-hover: var(--theme-colors-tab_line-10); 
+  --tab-surface-active: var(--theme-colors-tab_line-20); 
+  --tab-surface-active-hover: var(--theme-colors-tab_line-30); 
+  --tab-dropmarker: var(--theme-colors-toolbar_text); 
+  --tabbar-bg: var(--theme-colors-toolbar_field);
+  --dark-tab-line: Highlight;
+} 
+:root[color-scheme="system-color"] #background::after { 
+  background: var(--browser-bg-darker, AppWorkspace); 
+  opacity: 0.15;  
+  bottom: 0; 
+  content: ""; 
+  left: 0; 
+  margin: 0; 
+  overflow: hidden; 
+  padding: 0; 
+  position: fixed; 
+  right: 0; 
+  top: 0; 
+  z-index: 20; 
+}
+
+#tabbar {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-top: none;
+  /*margin-top: -1px;*/
+}
+.label {
+  margin-top: 2px;
+}
+.tab {
+  margin-top: -1px;
+  margin-bottom: -3px;
+}
+.tab .favicon {
+  margin-top: 4px;
+}
+tab-item-substance {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* tab height */
+:root { --tab-height: 26px !important; }
+.tab { height: var(--tab-height) !important; }
+
+/* hide close button */
+.tab .closebox { display: none !important; }
+
+/* new tab button */
+/*.newtab-button::before { position:relative; top: 0px; }*/
+.newtab-button {
+  --svg-small-icon-size: 10px;
+  /*height: 20px !important;*/
+}
+
+/* Show title of unread tabs with italic font */
+.tab.unread .label {
+  font-style: italic !important;
+}
+
+/* Add private browsing indicator per tab */
+.tab.private-browsing .label:before {
+  content: "🕶";
+}

@@ -1,0 +1,7 @@
+/* Blend navbar with panel and titlebar. */
+#nav-bar {
+  -moz-appearance: menubar !important;
+}
+.browser-toolbar {
+  background-color: unset !important;
+}

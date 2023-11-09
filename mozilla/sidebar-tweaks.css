@@ -1,0 +1,34 @@
+/* Sidebar customizations, mainly for Tree Style Tab. */
+#sidebar-box[checked] {
+    background-color: window !important;
+    display: -moz-box !important;
+    /*-moz-box-direction: reverse !important;*/
+}
+#sidebar-box[hidden] { display: none !important; }
+#sidebar-header {
+    padding: 1px !important;
+    border-top: 1px buttonshadow solid !important;
+    border-bottom: none !important;
+    font-size: unset !important;
+    font-weight: unset !important;
+}
+#sidebar-close, #sidebar-header spacer {
+    display: none !important;
+}
+#sidebar-header toolbarbutton {
+    padding: 1px !important;
+    margin: 0px !important;
+}
+#sidebar-box[sidebarcommand="treestyletab_piro_sakura_ne_jp-sidebar-action"] #sidebar-header {
+  display: none;
+}
+#sidebar-switcher-arrow {
+    list-style-image: url(chrome://global/skin/icons/spinner-arrow-up.svg) !important;
+    width: 10px !important;
+    height: 10px !important;
+    margin-right: 2px;
+}
+.sidebar-splitter {
+    width: 0px !important;
+	border-right: none !important;
+}
