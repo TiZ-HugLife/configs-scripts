@@ -9,7 +9,7 @@ unsupported () {
 use_apt () {
     s_apt () { sudo apt "$@"; }
     refresh () { s_apt update; }
-    update () { s_apt update && s_apt full-upgrade; }
+    update () { s_apt update && s_apt upgrade; }
     install () { s_apt install "$@"; }
     install_file () { sudo dpkg -i "$@"; }
     remove () { s_apt remove "$@"; }
