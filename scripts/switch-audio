@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Change audio output on Aura according to HDMI state.
-set -eu
 
 if [ "$(hostname)" != "Aura" ]; then exit; fi
 

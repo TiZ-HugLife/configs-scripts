@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # obsctl -- A wrapper around obs-cli with extra actions.
 #   Dependencies: obs-cli*, pass, jq, notify-send
 #
@@ -44,7 +44,6 @@
 # Single argument set requests:
 #     SetCurrentScene, SetScene, SetCurrentSceneCol* SetSceneCol*, Set*Profile,
 #     SetRec*Folder, SetFilenameFormat*
-set -eu
 for cmd in obs-cli pass jq notify-send; do
 if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires %s; please install it.\n" "$cmd" >&2

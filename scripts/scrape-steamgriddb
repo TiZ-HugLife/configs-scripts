@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # shellcheck disable=SC2119
 # scrape-steamgriddb -- Scrape a directory of games using SteamGridDB.
 #     Usage: scrape-steamgriddb [-f|--force] <directory|list of files>
@@ -9,7 +9,6 @@
 #
 # This probably shouldn't have been a shell script. I'll probably rewrite this
 # in a real language later.
-set -eu
 
 for cmd in curl jq; do if ! [ -x "$(command -v "$cmd")" ]; then
 	printf "Missing dependency: %s\n" "$cmd" >&2; exit 1
@@ -57,8 +56,7 @@ failed=""
 setup_media () {
 	media="media/$base"; mkdir -p "$media"
 	cat > "$media/select.sh" <<'EOF'
-#!/bin/sh
-set -eu
+#!/usr/bin/env -S sh -eu
 cd "$(dirname "$0")"
 case "$1" in
 	boxFront)  type="capsule" ;;

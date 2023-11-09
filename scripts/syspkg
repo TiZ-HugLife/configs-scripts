@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Wrapper for various system package managers.
-set -eu
 
 unsupported () {
     printf %s\\n "The system package manager doesn't support ${action:-}."

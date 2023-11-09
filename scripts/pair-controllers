@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # shellcheck disable=SC2165 disable=SC2167
 # pair-controllers -- Scan for and pair with game controllers for 48 seconds.
 #
@@ -6,7 +6,6 @@
 # pairing mode that the system does not currently have a pairing for, it makes
 # a new pairing. To handle controllers it has seen before, it first removes its
 # information so that on the next cycle, it's a "new" controller.
-set -eu
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

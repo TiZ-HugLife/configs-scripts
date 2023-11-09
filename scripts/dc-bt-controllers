@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Disconnect all currently connected bluetooth controllers.
 # Requires MGMonit to be in use.
-set -eu
 
 if ! [ -d "/run/moltengamepad/slots" ]; then
 	die "MGMonit must be in use to disconnect connected bluetooth controllers."

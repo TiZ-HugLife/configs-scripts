@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Prints the NerdFont glyph for the current distro.
 case "$(lsb_release -is 2>/dev/null)" in
 Arch)   printf "\n" ;;

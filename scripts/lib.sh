@@ -1,11 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # shellcheck disable=SC2034
 # lib.sh -- A small library of POSIX sh functions
 #
 # These are all the utility functions that are too small to be scripts.
 # Put this in your PATH and include it with `. lib.sh`.
 # Including this script will automatically `set -eu`.
-set -eu
 
 # Ensure XDG vars are set.
 XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}

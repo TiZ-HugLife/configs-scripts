@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # perfgov -- Change CPU governor on or off of performance.
 # <<! This script will sudo itself to change CPU governor. !>>
 # <<! This script will also sudo itself to install its sudoers rule. !>>
@@ -8,7 +8,6 @@
 #	perfgov 1|on|yes|true -- Switch governor to performance.
 #	perfgov 0|off|no|false -- Switch governor to powersave.
 #	perfgov check|query|status -- Exit 0 if governor is performance, else 1.
-set -eu
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # daz-decompress -- Decompress all gzipped files in a given directory.
 #   Usage: daz-decompress <directory>
-set -eu
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Set default options for borg.
-set -eu
 
 if [ "$(id -u)" -gt 0 ]; then
 	for cmd in borg pass; do if ! [ -x "$(command -v "$cmd")" ]; then

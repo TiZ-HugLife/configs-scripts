@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # shellcheck disable=SC2029
 # Make Marina do all the heavy lifting for hue-cli work.
-set -eu
 
 if [ "$(hostname)" = "Marina" ]; then
 	if [ "$1" = "adm" ]; then

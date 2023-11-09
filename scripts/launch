@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # launch -- Start an application by the name of its desktop file.
 #     Usage: launch [options] application[.desktop]
 #
@@ -9,7 +9,6 @@
 #   -s|--syslog: Send app's output to syslog, tagged by its desktop file name.
 #   -i|--interval: Window poll interval. 0.2 by default.
 #   -D|--post-delay: Delay to wait after finding window. 0 by default.
-set -eu
 for cmd in wmctrl xdg-open xdotool; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires %s; please install it.\n" "$cmd" >&2
     exit 1

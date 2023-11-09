@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # wino -- Manage Wine prefixes and versions, and run commands wtih them.
 #
 # If the Flatpak Wine package is installed (org.winehq.Wine), Wino will prefer

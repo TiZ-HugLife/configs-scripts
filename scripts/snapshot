@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # snapshot -- manage snapshots using a structured btrfs layout
 #   To create: snapshot create <name> <list of partition names>
 #   To restore/replace: snapshot restore|replace <source> <destination>

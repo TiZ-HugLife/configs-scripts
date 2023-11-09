@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # mgctl -- Manage running MoltenGamepad instance
 #
 # Any unknown command is passed through directly to the socket/fifo.
@@ -17,7 +17,6 @@
 # 
 # Unload all game and temp profiles:
 #   mgctl profiles reset
-set -eu
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

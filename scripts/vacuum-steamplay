@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # vacuum-steamplay -- Deduplicate blocks in Steam Play compatability data
 # Depends on duperemove and can only run on filesystems supporting deduplication
 # such as BTRFS. Actually, right now, BTRFS is the only filesystem supported.
@@ -7,7 +7,6 @@
 # running this, because on-demand defragments usually break reflinks. Will make
 # per-device hash files in $XDG_DATA_HOME/vacuum-steamplay for faster subsequent
 # runs of this utility.
-set -eu
 
 # Print the comment header of this file when asked for help.
 usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }

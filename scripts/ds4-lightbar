@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Change the color of DualShock 4 LEDS, and also setup udev rules and perms.
 # This is a stark contrast to the xpad-leds script; games like Transistor and
 # TowerFall make use of the light bar so it needs to be user writable.
@@ -6,7 +6,6 @@
 # Usage: ds4-lightbar INDEX|all (R G B)|default|default#|off
 # Install requisite udev rules and config with ds4-lightbar install.
 # Change per-controller defaults by editing /etc/ds4-lightbar.colors.
-set -eu
 
 rundir=/run/ds4-lightbar
 sysdir=/sys/bus/hid/drivers/sony

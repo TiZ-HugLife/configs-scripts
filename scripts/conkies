@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Whew, way simpler! :D
 pkill conky
 hostname=$(hostname)

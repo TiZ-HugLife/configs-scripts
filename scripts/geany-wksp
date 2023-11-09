@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Executes separate socket for geany per workspace. Copy geany.desktop to
 # $HOME/.local/share/applications and change its exec to this to get the most
 # benefit; you'll be able to work on different text-related tasks on each

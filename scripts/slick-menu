@@ -1,10 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # slick-menu -- Use rofi to create a menu for scripting.
 #     Usage: slick-menu <prompt> <id> <option text> [id] [option text] ...
 # If mgctl is present, will load the kbctl profile for gamepad menu control.
 # Alternate option IDs and option texts. Prints the ID of the selected text to
 # stdout. If canceled, prints nothing to stdout.
-set -eu
 
 if ! [ -x "$(command -v rofi)" ]; then
 	printf "This script requires rofi. Please install it.\n" >&2

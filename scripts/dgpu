@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # This does basically the same thing as prime-run in Arch's nvidia-prime
 # package, but does so more vendor-agnostically and carefully.
 providers=$(xrandr --listproviders)

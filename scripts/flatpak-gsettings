@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Migrate some host GSettings into all installed Flatpak applications.
 
 keys=$(mktemp); settings=$(mktemp); trap 'rm "$keys" "$settings"' EXIT

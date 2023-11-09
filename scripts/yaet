@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # yaet.sh: Yet Another External Tiler
-set -eu
 
 margin_l=0
 margin_r=0

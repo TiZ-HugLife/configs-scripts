@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Given a directory containing .steamid files, scrapes information
 # from Steam's JSON API into Skyscraper's manual import store.
-set -eu
 for cmd in jq curl; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1

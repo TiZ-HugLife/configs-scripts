@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # Generate .steamid files for installed steam games so scraping tools can
 # download metadata for them.
-set -eu
 
 puts () { printf %s\\n "$*"; }
 acf_value () { sed -nE 's:^\s+"'"$1"'"\s+"(.+)"$:\1:p' "$2"; }

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # If SDL2 uses the filesystem to enumerate controllers, it uses readdir, which 
 # returns the joysticks in an arbitrary order. On my system, it happens to be in
 # reverse of alphabetical order. So work around this by enumerating controllers

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env -S sh -eu
 # A menu to do various actions from the gamepad.
 
 cat_e () { if [ -r "$1" ]; then cat "$1"; else printf %b\\n "${2:-}"; fi; }
