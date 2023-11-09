@@ -1,0 +1,91 @@
+#!/usr/bin/env -S sh -eu
+# roku-launch -- Start up specific content on a Roku device.
+#   Usage: roku-launch <device> <channel|content> <content>
+# You can use aliases for device, channel, and content. Otherwise, they are
+# expected to be valid IP addresses, valid channel IDs, and valid content IDs.
+# Requires curl and host.
+set -eux
+
+# Print the comment header of this file when asked for help.
+usage () { sed -nE '/^#/!q; /SC[0-9]{4}/d; s/^#( |$)//p' "$0"; exit "${1:-0}"; }
+case "${1:-}" in --help|--usage|help|usage|"") usage 0 ;; esac
+
+for cmd in curl host; do if ! [ -x "$(command -v "$cmd")" ]; then
+	printf "This script requires %s; please install it.\n" "$cmd" >&2
+	exit 1
+fi; done
+
+lower () { printf %s\\n "${1:-}" | tr '[:upper:]' '[:lower:]'; }
+ip_pattern='[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'
+
+press_home=0
+delay=2
+repeat=1
+
+while true; do case "${1:-}" in
+	-h|--home)     press_home="${2:?}"; shift;;
+	-d|--delay)    delay="${2:?}"; shift;;
+	-r|--repeat)   repeat="${2:?}"; shift;;
+	-n|--no-home)  press_home=0;;
+	*) break;;
+esac; shift; done
+
+device=${1:-}
+channel=${2:-}
+content=${3:-}
+mediatype="live"
+
+if ! [ "$channel" ]; then usage 0; fi
+
+# Check for device aliases.
+case "$(lower "$device")" in
+living*|lr)  device="tclbigboi";;
+bed*|br)     device="rokustick";;
+esac
+
+# Check for channel and content aliases.
+for thing in "$channel" "$content"; do
+	case "$(lower "$thing")" in
+	youtube|yt)      channel=837;;
+	chillhop-yt)     channel=837; content=5yx6BWlEVcY;;
+	beachreggae-yt)  channel=837; content=cCInpRLCsbs;;
+	90spop-yt)       channel=837; content=1Ep2eiM5X9U;;
+	pluto*)          channel=74519;;
+	tpir|tpir-drew)  channel=74519; content=643f035d5a0cd50008361534;;
+	*squares)        channel=74519; content=64387bb1af2bd90008978a2b;;
+	wheel*|wof)      channel=74519; content=625f054c5dfea70007244612;;
+	spotify|spoofy)  channel=22297;;
+	esac
+done
+
+# First we have to look up host names to convert them to IP addresses. This
+# uses a flawed ip pattern that can catch invalid octets but that is an
+# acceptable risk for convenience.
+if printf %s\\n "$device" | grep -qE "^$ip_pattern\$"; then
+	ipaddr=$device
+else
+	ipaddr=$(host "$device" | grep -oE "$ip_pattern" || :)
+fi
+if ! [ "$ipaddr" ]; then
+	printf "Invalid device: %s\n" "$device" 2>&1
+	exit 1
+fi
+
+# Now, hit the home button the number of times specified with the given delay.
+i=0; while [ "$i" -lt "$press_home" ]; do
+	curl -d "" "http://$ipaddr:8060/keypress/home"; sleep "$delay"
+i=$((i + 1)); done
+
+# Assemble the last URL...
+target="http://$ipaddr:8060/launch/$channel"
+if [ "$content" ]; then
+	target="$target?contentId=$content"
+	if [ "$mediatype" ]; then
+		target="$target&mediaType=$mediatype"
+	fi
+fi
+
+# And launch the requested content.
+i=0; while [ "$i" -le "$repeat" ]; do
+	curl -d "" "$target"; sleep "$delay"
+i=$((i + 1)); done
