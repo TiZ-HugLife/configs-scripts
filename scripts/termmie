@@ -11,8 +11,8 @@ esac; done
 
 # Unlike arcsys-intro, this doesn't need to know WM_CLASS becasue it
 # just searches for existing titles of all windows.
-if [ "${TERM##xterm}" != "$TERM" ] && [ "$DISPLAY" ] && \
- ! [ "$SSH_CLIENT$SSH_TTY" ] && [ "${termmie_title:-1}" -eq 1 ]; then
+if [ "${TERM##xterm}" != "${TERM:-}" ] && [ "${DISPLAY:-}" ] && \
+ ! [ "${SSH_CLIENT:-}${SSH_TTY:-}" ] && [ "${termmie_title:-1}" -eq 1 ]; then
     termmies="
 hOI!!! im termmie!!!
 an dis is my friend... termmie!!!
