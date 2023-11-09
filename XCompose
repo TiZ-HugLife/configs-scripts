@@ -27,9 +27,9 @@ include "%L"
 <Multi_key> <colon> <colon> <less> <3>                       : "😍"  # ::<3
 <Multi_key> <colon> <semicolon> <asterisk>                   : "😘"  # :;*
 <Multi_key> <colon> <colon> <asterisk>                       : "😗"  # ::*
-<Multi_key> <colon> <x> <asterisk> <space>                   : "😙"  # :x* 
+<Multi_key> <colon> <x> <asterisk> <space>                   : "😙"  # :x*
 <Multi_key> <colon> <x> <asterisk> <asterisk>                : "😚"  # :x**
-<Multi_key> <colon> <h> <u> <g>                              : "🤗"  # :hug
+<Multi_key> <colon> <h> <u> <g>                              : "🫂"  # :hug
 <Multi_key> <colon> <h> <m> <m>                              : "🤔"  # :hmm
 <Multi_key> <colon> <u> <h> <m>                              : "🤔"  # :uhm
 <Multi_key> <colon> <u> <m> <m>                              : "🤔"  # :umm
@@ -119,6 +119,7 @@ include "%L"
 <Multi_key> <colon> <asterisk> <asterisk>                    : "✨"  # :**
 <Multi_key> <colon> <w> <o> <o>                              : "🎉"  # :woo
 <Multi_key> <colon> <1> <0> <0>                              : "💯"  # :100
+<Multi_key> <colon> <t> <h> <o>                              : "💭"  # :tho
 
 # Arrows from https://gist.github.com/5310/9b98f8591f404b21d8c7e52739961070
 <Multi_key> <minus> <less>           : "←"  # -<
