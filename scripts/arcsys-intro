@@ -7,6 +7,10 @@
 # count windows, not tabs or panes within windows. It will just assume that it
 # is REBEL ONE if it can't find any windows.
 # The default is "terminal|konsole|alacritty|kitty|yakuake".
+#
+# Also, hate to say it, but if you're on Wayland, you don't get terminal
+# counting. The protocol maintainers would rather bikeshed for the rest of time
+# than create useful protocols for DE-agnostic window scripting/automation.
 for cmd in shuf wmctrl; do if ! [ -x "$(command -v "$cmd")" ]; then
     printf "This script requires $cmd; please install it.\n" >&2
     exit 1
